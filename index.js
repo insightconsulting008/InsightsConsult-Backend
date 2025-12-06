@@ -133,6 +133,7 @@ app.delete("/department/:departmentId", async (req, res) => {
         mobileNumber,
         role,
         designation,
+        password,
         photoUrl,
         departmentId
       } = req.body;
@@ -154,6 +155,7 @@ app.delete("/department/:departmentId", async (req, res) => {
           name,
           email,
           mobileNumber,
+          password,
           role,
           designation,
           status: "ACTIVE",
@@ -222,6 +224,7 @@ app.delete("/department/:departmentId", async (req, res) => {
         role,
         designation,
         status,
+        password,
         photoUrl,
         departmentId
       } = req.body;
@@ -236,7 +239,7 @@ app.delete("/department/:departmentId", async (req, res) => {
   
       const employee = await prisma.employee.update({
         where: { employeeId },
-        data: { name, email, mobileNumber, role, designation, status, photoUrl, departmentId }
+        data: { name, email, password, mobileNumber, role, designation, status, photoUrl, departmentId }
       });
   
       res.json({

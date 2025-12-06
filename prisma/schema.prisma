@@ -48,6 +48,7 @@ model Employee {
   employeeId   String         @id @unique @default(cuid())
   name         String
   email        String         @unique
+  password     String
   mobileNumber String
   role         Role
   designation  String
