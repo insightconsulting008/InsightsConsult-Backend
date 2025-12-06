@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url  	    = env("DATABASE_URL")
+  // uncomment next line if you use Prisma <5.10
+  // directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum Role {
+  USER
+  STAFF
+  ADMIN
+}
+
+model User {
+  userId      String    @id @unique @default(cuid())
+  name        String
+  email       String    @unique
+  phoneNumber String    @unique
+  password    String // hashed password
+  role        Role      @default(USER)
+  otp         String? // for forgot password / login otp
+  otpExpiry   DateTime? // expiry time
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Department {
+  departmentId   String     @id @unique @default(cuid())
+  name           String
+  departmentCode String
+  labelColor     String // store HEX or any color value
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  Employee       Employee[]
+}
+
+model Employee {
+  employeeId   String         @id @unique @default(cuid())
+  name         String
+  email        String         @unique
+  mobileNumber String
+  role         Role
+  designation  String
+  status       EmployeeStatus @default(ACTIVE)
+  photoUrl     String?
+  departmentId String
+  department   Department     @relation(fields: [departmentId], references: [departmentId])
+  service Service[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Service {
+  serviceId   String  @id @default(cuid())
+  name        String
+  description String
+
+  individualPrice String
+ 
+  inputFields ServiceInputField[]
+  trackSteps  ServiceTrackStep[] 
+
+  bundles     ServiceBundle[]  @relation("BundleServices")
+
+  employeeId String
+  employee    Employee @relation(fields:[employeeId], references: [employeeId])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// -----------------------------
+// SERVICE INPUT FIELDS
+// -----------------------------
+model ServiceInputField {
+  fieldId  String  @id @default(cuid())
+  label    String
+  type     String // text, number, file, email, date, select, textarea
+  required Boolean @default(false)
+
+  // relation
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [serviceId])
+
+  createdAt DateTime @default(now())
+}
+
+// -----------------------------
+// SERVICE TRACK STEPS
+// -----------------------------
+model ServiceTrackStep {
+  stepId String @id @default(cuid())
+  title  String
+  order  Int
+
+  // relation
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [serviceId])
+
+  createdAt DateTime @default(now())
+}
+
+model ServiceBundle {
+  bundleId     String      @id @default(cuid())
+  name         String
+  description  String?
+  bundlePrice String
+
+  services    Service[]   @relation("BundleServices")
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
