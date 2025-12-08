@@ -57,6 +57,7 @@ model Employee {
   departmentId String
   department   Department     @relation(fields: [departmentId], references: [departmentId])
   service Service[]
+  application Application[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -71,6 +72,7 @@ model Service {
  
   inputFields ServiceInputField[]
   trackSteps  ServiceTrackStep[] 
+  application Application[]
 
   bundles     ServiceBundle[]  @relation("BundleServices")
 
@@ -119,7 +121,68 @@ model ServiceBundle {
   bundlePrice String
 
   services    Service[]   @relation("BundleServices")
+  application Application[]
 
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
+}
+
+model Application {
+  applicationId String            @id @default(cuid())
+
+  // Optional: Service or Bundle
+  serviceId     String?
+  bundleId      String?
+
+  service       Service?          @relation(fields: [serviceId], references: [serviceId])
+  bundle        ServiceBundle?    @relation(fields: [bundleId], references: [bundleId])
+
+  // Assigned employee
+  employeeId    String?
+  employee      Employee?         @relation(fields: [employeeId], references: [employeeId])
+
+  // Dynamic form data (label, type, required)
+  formData      Json?
+
+  status        ApplicationStatus   @default(PENDING)
+
+  // Live progress tracking
+  trackSteps    ApplicationTrackStep[]
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model ApplicationTrackStep {
+  trackId       String      @id @default(cuid())
+  title         String
+  order         Int
+  completed     Boolean      @default(false)
+  updatedBy     String? 
+  remarks       String?      // Optional comments or notes
+  status       StepStatus @default(PENDING)
+
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [applicationId])
+
+  createdAt     DateTime    @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
+enum StepStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  ERROR
+}
+
+enum ApplicationStatus {
+  PENDING
+  ASSIGNED
+  PROCESSING
+  REASSIGNED
+  COMPLETED
+  REJECTED
 }

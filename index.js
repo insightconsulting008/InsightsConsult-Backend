@@ -272,6 +272,517 @@ app.delete("/department/:departmentId", async (req, res) => {
     }
   });
   
+
+
+
+  // =============================
+// CREATE SERVICE
+// =============================
+app.post("/service", async (req, res) => {
+    try {
+      const { name, description, individualPrice, employeeId } = req.body;
+  
+      const service = await prisma.service.create({
+        data: { name, description, individualPrice, employeeId },
+      });
+  
+      res.json({ success: true, service });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+  
+  // =============================
+  // GET ALL SERVICES WITH INPUTFIELDS + TRACKSTEPS
+  // =============================
+  app.get("/service", async (req, res) => {
+    try {
+      const services = await prisma.service.findMany({
+        include: {
+          inputFields: true,
+          trackSteps: true,
+        },
+      });
+  
+      res.json({ success: true, services });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+  
+  // =============================
+  // ADD INPUT FIELD TO SERVICE
+  // =============================
+  app.post("/service/:serviceId/input-fields", async (req, res) => {
+    try {
+      const { serviceId } = req.params;
+      const { fields } = req.body; // array of fields
+  
+      const createdFields = await prisma.$transaction(
+        fields.map((f) =>
+          prisma.serviceInputField.create({
+            data: {
+              label: f.label,
+              type: f.type,
+              required: f.required,
+              serviceId,
+            },
+          })
+        )
+      );
+  
+      res.json({ success: true, createdFields });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+  
+  
+  // =============================
+  // ADD TRACK STEP TO SERVICE
+  // =============================
+// 
+  app.post("/service/:serviceId/track-steps", async (req, res) => {
+    try {
+      const { serviceId } = req.params;
+      const { steps } = req.body; // array of steps
+  
+      const result = await prisma.$transaction(
+        steps.map((step) =>
+          prisma.serviceTrackStep.create({
+            data: {
+              title: step.title,
+              order: step.order,
+              serviceId
+            }
+          })
+        )
+      );
+  
+      res.json({
+        success: true,
+        message: "Track steps created successfully",
+        steps: result
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+  
+  
+  // =============================
+  // CREATE BUNDLE WITH SERVICES
+  // =============================
+  app.post("/bundle", async (req, res) => {
+    try {
+      const { name, description, bundlePrice, serviceIds } = req.body;
+  
+      const bundle = await prisma.serviceBundle.create({
+        data: {
+          name,
+          description,
+          bundlePrice,
+          services: {
+            connect: serviceIds.map((id) => ({ serviceId: id })),
+          },
+        },
+        include: { services: true },
+      });
+  
+      res.json({ success: true, bundle });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+  
+  // =============================
+  // GET ALL BUNDLES
+  // =============================
+  app.get("/bundle", async (req, res) => {
+    try {
+      const bundles = await prisma.serviceBundle.findMany({
+        include: { services: true },
+      });
+  
+      res.json({ success: true, bundles });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+
+  app.get("/bundle/:bundleId/details", async (req, res) => {
+    const { bundleId } = req.params;
+  
+    const bundle = await prisma.serviceBundle.findUnique({
+      where: { bundleId },
+      include: {
+        services: {
+          include: {
+            inputFields: true,
+            trackSteps: true,
+          },
+        },
+      },
+    });
+  
+    if (!bundle) {
+      return res.status(404).json({ success: false, message: "Bundle not found" });
+    }
+  
+    // Merge inputs & steps
+    const mergedInputs = bundle.services.flatMap(s => s.inputFields);
+    const mergedSteps = bundle.services.flatMap(s => s.trackSteps);
+  
+    return res.json({
+      success: true,
+      bundle,
+      mergedInputs,
+      mergedSteps,
+    });
+  });
+  
+  
+  // =============================
+  // CREATE APPLICATION (FOR SERVICE OR BUNDLE)
+  // =============================
+  app.post("/application", async (req, res) => {
+    try {
+      const { serviceId, bundleId, employeeId, formData } = req.body;
+
+      if (!serviceId && !bundleId) {
+        return res.status(400).json({
+          success: false,
+          message: "serviceId or bundleId is required",
+        });
+      }
+  
+      // Create Application
+      const application = await prisma.application.create({
+        data: {
+          serviceId,
+          bundleId,
+          employeeId,
+          formData,
+          status: "PENDING",
+        },
+      });
+  
+      // ================
+      // If Service ID
+      // ================
+      if (serviceId) {
+        const serviceSteps = await prisma.serviceTrackStep.findMany({
+          where: { serviceId },
+          orderBy: { order: "asc" },
+        });
+  
+        await prisma.$transaction(
+          serviceSteps.map((step) =>
+            prisma.applicationTrackStep.create({
+              data: {
+                title: step.title,
+                order: step.order,
+                applicationId: application.applicationId,
+              },
+            })
+          )
+        );
+      }
+  
+      // =================
+      // If Bundle ID
+      // =================
+      if (bundleId) {
+        const bundleSteps = await prisma.bundleTrackStep.findMany({
+          where: { bundleId },
+          orderBy: { order: "asc" },
+        });
+  
+        await prisma.$transaction(
+          bundleSteps.map((step) =>
+            prisma.applicationTrackStep.create({
+              data: {
+                title: step.title,
+                order: step.order,
+                applicationId: application.applicationId,
+              },
+            })
+          )
+        );
+      }
+  
+      res.json({
+        success: true,
+        message: "Application created successfully",
+        application,
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+  
+  
+  // ================================
+  // GET ALL APPLICATIONS
+  // ================================
+  app.get("/applications", async (req, res) => {
+    try {
+      const apps = await prisma.application.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+  
+      res.json({ success: true, applications: apps });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+  
+  // ================================
+  // GET SINGLE APPLICATION + LIVE TRACKING
+  // ================================
+  app.get("/application/:applicationId", async (req, res) => {
+    try {
+      const { applicationId } = req.params;
+  
+      const application = await prisma.application.findUnique({
+        where: { applicationId },
+        include: {
+          trackSteps: {
+            orderBy: { order: "asc" },
+          },
+          service: true,
+          bundle: true, 
+          employee: true,
+        },
+      });
+  
+      if (!application) {
+        return res.status(404).json({
+          success: false,
+          message: "Application not found",
+        });
+      }
+  
+      res.json({
+        success: true,
+        application,
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+
+
+
+// ================================
+// APPLICATION ASSIGN/REASSIGN
+// ================================
+
+  app.post("/application/:applicationId/assign", async (req, res) => {
+    try {
+      const { applicationId } = req.params;
+      const { employeeId } = req.body;
+  
+      if (!employeeId) {
+        return res.status(400).json({
+          success: false,
+          message: "employeeId is required to assign the application",
+        });
+      }
+  
+      // Update application with assigned employee
+      const updatedApplication = await prisma.application.update({
+        where: { applicationId },
+        data: { employeeId, 
+            status: "Assigned" 
+            }
+      });
+  
+      res.json({
+        success: true,
+        message: "Application assigned successfully",
+        application: updatedApplication,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+
+
+  app.put("/application/:applicationId/reassign", async (req, res) => {
+    try {
+      const { applicationId } = req.params;
+      const { employeeId} = req.body;
+  
+      if (!employeeId) {
+        return res.status(400).json({
+          success: false,
+          message: "employeeId is required for reassignment",
+        });
+      }
+  
+      const application = await prisma.application.update({
+        where: { applicationId },
+        data: {
+          employeeId,
+          status: "Reassigned",
+        },
+      });
+  
+      res.json({
+        success: true,
+        message: "Application reassigned successfully",
+        application,
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  app.get("/application/:applicationId/track-steps", async (req, res) => {
+    try {
+      const { applicationId } = req.params;
+  
+      const steps = await prisma.applicationTrackStep.findMany({
+        where: { applicationId },
+        orderBy: { order: "asc" }
+      });
+  
+      res.json({
+        success: true,
+        steps
+      });
+  
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+  
+  
+    
+  
+  // ================================
+  // UPDATE APPLICATION TRACK STEP
+  // ================================
+  app.post("/track-step/update/:trackId", async (req, res) => {
+    try {
+      const { trackId } = req.params;
+      const { completed, updatedBy, remarks } = req.body;
+  
+      const step = await prisma.applicationTrackStep.update({
+        where: { trackId },
+        data: { completed, updatedBy, remarks },
+      });
+  
+      res.json({
+        success: true,
+        message: "Track step updated successfully",
+        step,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+  
+
+
+
+  app.put("/application/process", async (req, res) => {
+    try {
+      const { applicationId, finalRemark, finalDocument } = req.body;
+  
+      const updated = await prisma.application.update({
+        where: { applicationId },
+        data: {
+          status: "Processed",
+          finalRemark,
+          finalDocument,
+        },
+      });
+  
+      res.json({
+        success: true,
+        message: "Application moved to admin verification",
+        application: updated,
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  
+  app.put("/application/complete/:applicationId", async (req, res) => {
+    try {
+      const { applicationId } = req.params;
+      const { completedBy, remarks } = req.body;
+  
+      const updated = await prisma.application.update({
+        where: { applicationId },
+        data: {
+          status: "Completed",
+          adminRemarks: remarks,
+          completedBy,
+        },
+      });
+  
+      res.json({
+        success: true,
+        message: "Application completed successfully",
+        application: updated,
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  
+  app.get("/applications", async (req, res) => {
+    try {
+      const applications = await prisma.application.findMany({
+        include: {
+          trackSteps: true,
+        },
+      });
+  
+      res.json({ success: true, applications });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  
+  app.get("/application/:applicationId", async (req, res) => {
+    try {
+      const { applicationId } = req.params;
+  
+      const appData = await prisma.application.findUnique({
+        where: { applicationId },
+        include: {
+          trackSteps: {
+            orderBy: { order: "asc" },
+          },
+          service: true,
+          bundle: true,
+          employee: true,
+        },
+      });
+  
+      res.json({ success: true, application: appData });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
   
   
   
