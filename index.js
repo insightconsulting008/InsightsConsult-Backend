@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const prisma = require('./src/prisma/prisma')
+const categoryRouter = require("./src/category/Category");
+const subcategoryRouter = require("./src/subCategory/SubCategory");
 
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(cors());
@@ -13,6 +15,14 @@ app.get("/test", (req, res) => {
     message: "Insight Consulting Project Server is running 🚀"
   });
 });
+
+
+
+
+// Use routers with prefixes
+app.use("/", categoryRouter);
+app.use("/", subcategoryRouter);
+
 
 
 /* -------------------- ROUTES -------------------- */
@@ -422,20 +432,8 @@ app.post("/service", async (req, res) => {
     }
   });
 
-
   app.get("/bundle/:bundleId/details", async (req, res) => {
     const { bundleId } = req.params;
-  
-    function uniqueById(arr) {
-      const seen = new Set();
-      return arr.filter(item => {
-        if (seen.has(item.id)) {
-          return false;
-        }
-        seen.add(item.id);
-        return true;
-      });
-    }
   
     try {
       const bundle = await prisma.serviceBundle.findUnique({
@@ -451,26 +449,46 @@ app.post("/service", async (req, res) => {
       });
   
       if (!bundle) {
-        return res.status(404).json({ success: false, message: "Bundle not found" });
+        return res.status(404).json({
+          success: false,
+          message: "Bundle not found",
+        });
       }
   
-      // Merge inputFields & trackSteps from all services
-      const allInputs = bundle.services.flatMap(service => service.inputFields);
-      const mergedSteps = bundle.services.flatMap(service => service.trackSteps);
+      // 👉 Merge and remove duplicate input fields
+      const allInputFields = bundle.services.flatMap(service => service.inputFields);
   
-      // Remove duplicates from inputFields by 'id'
-      const uniqueInputs = uniqueById(allInputs);
+      const mergedInputFields = [];
+      const seen = new Set();
+  
+      for (const field of allInputFields) {
+        const key = field.label.trim().toLowerCase();
+  
+        if (!seen.has(key)) {
+          seen.add(key);
+  
+          mergedInputFields.push({
+            label: field.label,
+            type: field.type,
+            required: field.required
+          });
+        }
+      }
   
       return res.json({
         success: true,
-        bundle,
-        allInputs,     // Full input fields including duplicates
-        uniqueInputs,  // Input fields with duplicates removed
-        mergedSteps,
+        bundle: {
+          ...bundle,
+          mergedInputFields  // <-- sending merged input fields
+        }
       });
+  
     } catch (error) {
       console.error("Error fetching bundle details:", error);
-      return res.status(500).json({ success: false, message: "Internal Server Error" });
+      return res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+      });
     }
   });
   

@@ -63,6 +63,41 @@ model Employee {
   updatedAt DateTime @updatedAt
 }
 
+
+//
+// =====================================
+// CATEGORY
+// =====================================
+//
+model Category {
+  categoryId    String        @id @default(cuid())
+  categoryName  String
+
+  subcategory SubCategory[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+//
+// =====================================
+// SUBCATEGORY
+// =====================================
+//
+model SubCategory {
+  subCategoryId String     @id @default(cuid())
+  subCategoryName          String
+
+  categoryId    String
+  category      Category   @relation(fields: [categoryId], references: [categoryId])
+
+  service      Service[]
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+
 model Service {
   serviceId   String  @id @default(cuid())
   name        String
@@ -78,6 +113,9 @@ model Service {
 
   employeeId String
   employee    Employee @relation(fields:[employeeId], references: [employeeId])
+
+  subCategoryId   String
+  subCategory     SubCategory @relation(fields: [subCategoryId], references: [subCategoryId])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
