@@ -149,6 +149,18 @@ app.delete("/department/:departmentId", async (req, res) => {
           message: "Department not found"
         });
       }
+
+          // ✅ 1. Check if email already exists
+    const existingEmployee = await prisma.employee.findUnique({
+        where: { email }
+      });
+  
+      if (existingEmployee) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already exists"
+        });
+      }
   
       const employee = await prisma.employee.create({
         data: {
@@ -414,33 +426,54 @@ app.post("/service", async (req, res) => {
   app.get("/bundle/:bundleId/details", async (req, res) => {
     const { bundleId } = req.params;
   
-    const bundle = await prisma.serviceBundle.findUnique({
-      where: { bundleId },
-      include: {
-        services: {
-          include: {
-            inputFields: true,
-            trackSteps: true,
-          },
-        },
-      },
-    });
-  
-    if (!bundle) {
-      return res.status(404).json({ success: false, message: "Bundle not found" });
+    function uniqueById(arr) {
+      const seen = new Set();
+      return arr.filter(item => {
+        if (seen.has(item.id)) {
+          return false;
+        }
+        seen.add(item.id);
+        return true;
+      });
     }
   
-    // Merge inputs & steps
-    const mergedInputs = bundle.services.flatMap(s => s.inputFields);
-    const mergedSteps = bundle.services.flatMap(s => s.trackSteps);
+    try {
+      const bundle = await prisma.serviceBundle.findUnique({
+        where: { bundleId },
+        include: {
+          services: {
+            include: {
+              inputFields: true,
+              trackSteps: true,
+            },
+          },
+        },
+      });
   
-    return res.json({
-      success: true,
-      bundle,
-      mergedInputs,
-      mergedSteps,
-    });
+      if (!bundle) {
+        return res.status(404).json({ success: false, message: "Bundle not found" });
+      }
+  
+      // Merge inputFields & trackSteps from all services
+      const allInputs = bundle.services.flatMap(service => service.inputFields);
+      const mergedSteps = bundle.services.flatMap(service => service.trackSteps);
+  
+      // Remove duplicates from inputFields by 'id'
+      const uniqueInputs = uniqueById(allInputs);
+  
+      return res.json({
+        success: true,
+        bundle,
+        allInputs,     // Full input fields including duplicates
+        uniqueInputs,  // Input fields with duplicates removed
+        mergedSteps,
+      });
+    } catch (error) {
+      console.error("Error fetching bundle details:", error);
+      return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
   });
+  
   
   
   // =============================
