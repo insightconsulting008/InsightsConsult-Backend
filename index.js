@@ -435,6 +435,7 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
             data: {
               label: f.label,
               type: f.type,
+              options: f.options,
               placeholder: f.placeholder || "",
               required: f.required ?? false,
             },
@@ -450,6 +451,7 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
             type: masterField.type,
             placeholder: masterField.placeholder,
             required: f.required ?? false,
+            options: f.options,
             masterFieldId: masterField.masterFieldId,
             serviceId,
           },
@@ -578,7 +580,8 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
           mergedInputFields.push({
             label: field.label,
             type: field.type,
-            required: field.required
+            required: field.required,
+            options: field.options
           });
         }
       }

@@ -17,6 +17,7 @@ router.post("/master-fields", async (req, res) => {
             data: {
               label: f.label,
               type: f.type,
+              options: f.options,
               placeholder: f.placeholder || "",
               required: f.required ?? false,
             },
@@ -29,6 +30,17 @@ router.post("/master-fields", async (req, res) => {
       res.status(500).json({ success: false, error: error.message });
     }
   });
+
+// GET all master input fields
+router.get("/master-fields", async (req, res) => {
+    try {
+      const masterFields = await prisma.masterInputField.findMany();
+  
+      res.json({ success: true, masterFields });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });  
 
   module.exports = router
   

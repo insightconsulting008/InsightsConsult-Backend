@@ -128,6 +128,7 @@ model MasterInputField {
   label         String
   type          String  // text, number, file, email, date, select, textarea
   placeholder   String
+  options       Json?   // <-- add this field to store dropdown options
   required Boolean @default(false)
   serviceFields ServiceInputField[]
 
@@ -142,6 +143,7 @@ model ServiceInputField {
   fieldId  String  @id @default(cuid())
   label    String
   type     String // text, number, file, email, date, select, textarea
+  options       Json?   // <-- add this field to store dropdown options
   placeholder String
   required Boolean @default(false)
 
