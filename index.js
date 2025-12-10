@@ -302,10 +302,10 @@ app.delete("/department/:departmentId", async (req, res) => {
 // =============================
 app.post("/service", async (req, res) => {
     try {
-      const { name, description, individualPrice, employeeId } = req.body;
+      const { name, description, individualPrice,subCategoryId, employeeId } = req.body;
   
       const service = await prisma.service.create({
-        data: { name, description, individualPrice, employeeId },
+        data: { name, description, individualPrice,subCategoryId, employeeId },
       });
   
       res.json({ success: true, service });
