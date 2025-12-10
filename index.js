@@ -203,14 +203,49 @@ app.delete("/department/:departmentId", async (req, res) => {
   /** ✅ Get All Employee  **/
   app.get("/employee", async (req, res) => {
     try {
-      const employees = await prisma.employee.findMany();
+      let { page, limit } = req.query;
   
-      res.json({ success: true, data: employees });
+      page = parseInt(page);
+      limit = parseInt(limit);
+  
+      const skip = (page - 1) * limit;
+  
+      // Fetch employees with pagination
+      const employees = await prisma.employee.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" } // optional
+      });
+  
+      // Counts
+      const totalEmployees = await prisma.employee.count();
+      const activeEmployees = await prisma.employee.count({
+        where: { status: "ACTIVE" }
+      });
+      const inactiveEmployees = await prisma.employee.count({
+        where: { status: "INACTIVE" }
+      });
+  
+      res.json({
+        success: true,
+        pagination: {
+          page,
+          limit,
+          totalEmployees,
+          totalPages: Math.ceil(totalEmployees / limit),
+        },
+        counts: {
+          active: activeEmployees,
+          inactive: inactiveEmployees,
+        },
+        data: employees,
+      });
   
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
   });
+  
 
     /** ✅ Get Employee By EmployeeId  **/
   app.get("/employee/:employeeId", async (req, res) => {
