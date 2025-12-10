@@ -83,6 +83,7 @@ CREATE TABLE "Service" (
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "individualPrice" TEXT NOT NULL,
+    "offerPrice" TEXT NOT NULL,
     "employeeId" TEXT NOT NULL,
     "subCategoryId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -92,11 +93,26 @@ CREATE TABLE "Service" (
 );
 
 -- CreateTable
+CREATE TABLE "MasterInputField" (
+    "masterFieldId" TEXT NOT NULL,
+    "label" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "placeholder" TEXT NOT NULL,
+    "required" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "MasterInputField_pkey" PRIMARY KEY ("masterFieldId")
+);
+
+-- CreateTable
 CREATE TABLE "ServiceInputField" (
     "fieldId" TEXT NOT NULL,
     "label" TEXT NOT NULL,
     "type" TEXT NOT NULL,
+    "placeholder" TEXT NOT NULL,
     "required" BOOLEAN NOT NULL DEFAULT false,
+    "masterFieldId" TEXT NOT NULL,
     "serviceId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -108,6 +124,7 @@ CREATE TABLE "ServiceTrackStep" (
     "stepId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "order" INTEGER NOT NULL,
+    "description" TEXT NOT NULL,
     "serviceId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -120,6 +137,7 @@ CREATE TABLE "ServiceBundle" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "bundlePrice" TEXT NOT NULL,
+    "bundleOfferPrice" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -196,6 +214,9 @@ ALTER TABLE "Service" ADD CONSTRAINT "Service_employeeId_fkey" FOREIGN KEY ("emp
 
 -- AddForeignKey
 ALTER TABLE "Service" ADD CONSTRAINT "Service_subCategoryId_fkey" FOREIGN KEY ("subCategoryId") REFERENCES "SubCategory"("subCategoryId") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ServiceInputField" ADD CONSTRAINT "ServiceInputField_masterFieldId_fkey" FOREIGN KEY ("masterFieldId") REFERENCES "MasterInputField"("masterFieldId") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ServiceInputField" ADD CONSTRAINT "ServiceInputField_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("serviceId") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -4,6 +4,7 @@ const app = express();
 const prisma = require('./src/prisma/prisma')
 const categoryRouter = require("./src/category/Category");
 const subcategoryRouter = require("./src/subCategory/SubCategory");
+const masterFieldRouter = require("./src/masterFields/MasterInputField")
 
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(cors());
@@ -22,6 +23,7 @@ app.get("/test", (req, res) => {
 // Use routers with prefixes
 app.use("/", categoryRouter);
 app.use("/", subcategoryRouter);
+app.use("/", masterFieldRouter)
 
 
 
@@ -337,10 +339,10 @@ app.delete("/department/:departmentId", async (req, res) => {
 // =============================
 app.post("/service", async (req, res) => {
     try {
-      const { name, description, individualPrice,subCategoryId, employeeId } = req.body;
+      const { name, description, offerPrice, individualPrice,subCategoryId, employeeId } = req.body;
   
       const service = await prisma.service.create({
-        data: { name, description, individualPrice,subCategoryId, employeeId },
+        data: { name, description, individualPrice,offerPrice,subCategoryId, employeeId },
       });
   
       res.json({ success: true, service });
@@ -354,12 +356,16 @@ app.post("/service", async (req, res) => {
   // =============================
   app.get("/service", async (req, res) => {
     try {
-      const services = await prisma.service.findMany({
-        include: {
-          inputFields: true,
-          trackSteps: true,
-        },
-      });
+        const services = await prisma.service.findMany({
+            include: {
+              inputFields: {
+                include: {
+                  masterField: true
+                }
+              },
+              trackSteps: true,
+            },
+          });
   
       res.json({ success: true, services });
     } catch (error) {
@@ -370,29 +376,94 @@ app.post("/service", async (req, res) => {
   // =============================
   // ADD INPUT FIELD TO SERVICE
   // =============================
-  app.post("/service/:serviceId/input-fields", async (req, res) => {
+//   app.post("/service/:serviceId/input-fields", async (req, res) => {
+//     try {
+//       const { serviceId } = req.params;
+//       const { fields } = req.body; // array of fields
+  
+//       const createdFields = await prisma.$transaction(
+//         fields.map((f) =>
+//           prisma.serviceInputField.create({
+//             data: {
+//               label: f.label,
+//               type: f.type,
+//               required: f.required,
+//               serviceId,
+//             },
+//           })
+//         )
+//       );
+  
+//       res.json({ success: true, createdFields });
+//     } catch (error) {
+//       res.status(500).json({ success: false, error: error.message });
+//     }
+//   });
+
+app.post("/service/:serviceId/input-fields", async (req, res) => {
     try {
       const { serviceId } = req.params;
-      const { fields } = req.body; // array of fields
+      const { fields } = req.body; // array: [{ label, type, placeholder, required, masterFieldId }]
   
-      const createdFields = await prisma.$transaction(
-        fields.map((f) =>
-          prisma.serviceInputField.create({
+      const createdFields = [];
+  
+      for (const f of fields) {
+  
+        let masterField;
+  
+        // -----------------------------------------
+        // CASE 1: masterFieldId is given → use it
+        // -----------------------------------------
+        if (f.masterFieldId) {
+          masterField = await prisma.masterInputField.findUnique({
+            where: { masterFieldId: f.masterFieldId }
+          });
+  
+          if (!masterField) {
+            return res.status(400).json({
+              success: false,
+              message: `Master field not found: ${f.masterFieldId}`
+            });
+          }
+        }
+  
+        // -----------------------------------------
+        // CASE 2: No masterFieldId → create new Master input field
+        // -----------------------------------------
+        if (!masterField) {
+          masterField = await prisma.masterInputField.create({
             data: {
               label: f.label,
               type: f.type,
-              required: f.required,
-              serviceId,
+              placeholder: f.placeholder || "",
+              required: f.required ?? false,
             },
-          })
-        )
-      );
+          });
+        }
+  
+        // -----------------------------------------
+        // CREATE SERVICE INPUT FIELD (always)
+        // -----------------------------------------
+        const created = await prisma.serviceInputField.create({
+          data: {
+            label: masterField.label,
+            type: masterField.type,
+            placeholder: masterField.placeholder,
+            required: f.required ?? false,
+            masterFieldId: masterField.masterFieldId,
+            serviceId,
+          },
+        });
+  
+        createdFields.push(created);
+      }
   
       res.json({ success: true, createdFields });
     } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, message: error.message });
     }
   });
+  
   
   
   // =============================
@@ -410,6 +481,7 @@ app.post("/service", async (req, res) => {
             data: {
               title: step.title,
               order: step.order,
+              description: step.description,
               serviceId
             }
           })
@@ -432,13 +504,14 @@ app.post("/service", async (req, res) => {
   // =============================
   app.post("/bundle", async (req, res) => {
     try {
-      const { name, description, bundlePrice, serviceIds } = req.body;
+      const { name, description, bundlePrice,  bundleOfferPrice, serviceIds } = req.body;
   
       const bundle = await prisma.serviceBundle.create({
         data: {
           name,
           description,
           bundlePrice,
+          bundleOfferPrice,
           services: {
             connect: serviceIds.map((id) => ({ serviceId: id })),
           },

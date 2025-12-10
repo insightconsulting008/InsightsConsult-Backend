@@ -104,6 +104,7 @@ model Service {
   description String
 
   individualPrice String
+  offerPrice String
  
   inputFields ServiceInputField[]
   trackSteps  ServiceTrackStep[] 
@@ -121,6 +122,19 @@ model Service {
   updatedAt DateTime @updatedAt
 }
 
+
+model MasterInputField {
+  masterFieldId String   @id @default(cuid())
+  label         String
+  type          String  // text, number, file, email, date, select, textarea
+  placeholder   String
+  required Boolean @default(false)
+  serviceFields ServiceInputField[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
 // -----------------------------
 // SERVICE INPUT FIELDS
 // -----------------------------
@@ -128,7 +142,12 @@ model ServiceInputField {
   fieldId  String  @id @default(cuid())
   label    String
   type     String // text, number, file, email, date, select, textarea
+  placeholder String
   required Boolean @default(false)
+
+    // NEW GLOBAL FIELD LINK
+  masterFieldId  String
+  masterField    MasterInputField  @relation(fields: [masterFieldId], references: [masterFieldId])
 
   // relation
   serviceId String
@@ -144,6 +163,8 @@ model ServiceTrackStep {
   stepId String @id @default(cuid())
   title  String
   order  Int
+  description String
+
 
   // relation
   serviceId String
@@ -157,6 +178,7 @@ model ServiceBundle {
   name         String
   description  String?
   bundlePrice String
+  bundleOfferPrice String
 
   services    Service[]   @relation("BundleServices")
   application Application[]
