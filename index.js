@@ -127,7 +127,16 @@ app.delete("/department/:departmentId", async (req, res) => {
         message: "Department deleted successfully"
       });
     } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
+
+   // Prisma Foreign Key error code is P2003
+   if (error.code === "P2003") {
+     return res.status(400).json({
+      success: false,
+      message:
+        "You cannot delete this department because employees are still assigned to it.",
+    });
+  }
+   return res.status(500).json({ success: false, error: error.message });
     }
   });
   
@@ -333,25 +342,7 @@ app.delete("/department/:departmentId", async (req, res) => {
   
 
 
-
-  // =============================
-// CREATE SERVICE
-// =============================
-app.post("/service", async (req, res) => {
-    try {
-      const { name, description, offerPrice, individualPrice,subCategoryId, employeeId } = req.body;
-  
-      const service = await prisma.service.create({
-        data: { name, description, individualPrice,offerPrice,subCategoryId, employeeId },
-      });
-  
-      res.json({ success: true, service });
-    } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-  
-  // =============================
+    // =============================
   // GET ALL SERVICES WITH INPUTFIELDS + TRACKSTEPS
   // =============================
   app.get("/service", async (req, res) => {
@@ -372,6 +363,25 @@ app.post("/service", async (req, res) => {
       res.status(500).json({ success: false, error: error.message });
     }
   });
+
+  // =============================
+// CREATE SERVICE
+// =============================
+app.post("/service", async (req, res) => {
+    try {
+      const { name, description, offerPrice, individualPrice,subCategoryId, employeeId } = req.body;
+  
+      const service = await prisma.service.create({
+        data: { name, description, individualPrice,offerPrice,subCategoryId, employeeId },
+      });
+  
+      res.json({ success: true, service });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+  
+
   
   // =============================
   // ADD INPUT FIELD TO SERVICE
