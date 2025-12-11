@@ -102,7 +102,7 @@ model Service {
   serviceId   String  @id @default(cuid())
   name        String
   description String
-
+  
   individualPrice String
   offerPrice String
  

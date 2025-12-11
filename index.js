@@ -34,6 +34,37 @@ app.use("/", masterFieldRouter)
    DEPARTMENT APIs
 ===================================================== */
 
+/** ✅ Dashboard Counts: departments, employees, active, inactive */
+app.get("/dashboard/stats", async (req, res) => {
+    try {
+      const totalDepartments = await prisma.department.count();
+  
+      const totalEmployees = await prisma.employee.count();
+  
+      const activeEmployees = await prisma.employee.count({
+        where: { status: "ACTIVE" }   // change field if your column name is different
+      });
+  
+      const inactiveEmployees = await prisma.employee.count({
+        where: { status: "INACTIVE" }
+      });
+  
+      res.json({
+        success: true,
+        data: {
+          totalDepartments,
+          totalEmployees,
+          activeEmployees,
+          inactiveEmployees,
+        },
+      });
+  
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+  
+
 /** ✅ Create Department  **/
 app.post("/department", async (req, res) => {
     try {
@@ -57,15 +88,40 @@ app.post("/department", async (req, res) => {
     }
   });
   
-/** ✅ Get All Departments **/
+
+/** ✅ Get All Departments with Pagination */
 app.get("/department", async (req, res) => {
     try {
-      const departments = await prisma.department.findMany();
-      res.json({ success: true, data: departments });
+      let { page, limit } = req.query;
+  
+      page = parseInt(page);
+      limit = parseInt(limit);
+  
+      const skip = (page - 1) * limit;
+  
+      const departments = await prisma.department.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" }  // Optional
+      });
+  
+      const totalDepartments = await prisma.department.count();
+  
+      res.json({
+        success: true,
+        pagination: {
+          page,
+          limit,
+          totalPages: Math.ceil(totalDepartments / limit),
+        },
+        data: departments,
+      });
+  
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
   });
+  
 
 /** ✅ Get Department by ID **/
 app.get("/department/:departmentId", async (req, res) => {
@@ -230,24 +286,12 @@ app.delete("/department/:departmentId", async (req, res) => {
   
       // Counts
       const totalEmployees = await prisma.employee.count();
-      const activeEmployees = await prisma.employee.count({
-        where: { status: "ACTIVE" }
-      });
-      const inactiveEmployees = await prisma.employee.count({
-        where: { status: "INACTIVE" }
-      });
-  
       res.json({
         success: true,
         pagination: {
           page,
           limit,
-          totalEmployees,
           totalPages: Math.ceil(totalEmployees / limit),
-        },
-        counts: {
-          active: activeEmployees,
-          inactive: inactiveEmployees,
         },
         data: employees,
       });
@@ -342,7 +386,7 @@ app.delete("/department/:departmentId", async (req, res) => {
   
 
 
-    // =============================
+  // =============================
   // GET ALL SERVICES WITH INPUTFIELDS + TRACKSTEPS
   // =============================
   app.get("/service", async (req, res) => {
