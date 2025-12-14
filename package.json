@@ -10,9 +10,13 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.948.0",
     "@prisma/client": "^6.19.0",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "multer": "^2.0.2",
+    "multer-s3": "^3.0.1",
     "nodemon": "^3.1.11",
     "prisma": "^6.19.0",
     "studio": "^0.13.5"

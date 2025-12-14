@@ -391,22 +391,41 @@ app.delete("/department/:departmentId", async (req, res) => {
   // =============================
   app.get("/service", async (req, res) => {
     try {
-        const services = await prisma.service.findMany({
-            include: {
-              inputFields: {
-                include: {
-                  masterField: true
-                }
-              },
-              trackSteps: true,
-            },
-          });
+        const services = await prisma.service.findMany();
   
       res.json({ success: true, services });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
   });
+
+  app.get("/service/:serviceId", async (req, res) => {
+    const { serviceId } = req.params;
+  
+    try {
+      const service = await prisma.service.findUnique({
+        where: {
+          serviceId, // make sure your model field name is correct
+        },
+        include: {
+          inputFields: true,   
+          trackSteps: true,
+        },
+      });
+  
+      if (!service) {
+        return res.status(404).json({
+          success: false,
+          message: "Service not found",
+        });
+      }
+  
+      res.json({ success: true, service });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+  
 
   // =============================
 // CREATE SERVICE
@@ -425,34 +444,6 @@ app.post("/service", async (req, res) => {
     }
   });
   
-
-  
-  // =============================
-  // ADD INPUT FIELD TO SERVICE
-  // =============================
-//   app.post("/service/:serviceId/input-fields", async (req, res) => {
-//     try {
-//       const { serviceId } = req.params;
-//       const { fields } = req.body; // array of fields
-  
-//       const createdFields = await prisma.$transaction(
-//         fields.map((f) =>
-//           prisma.serviceInputField.create({
-//             data: {
-//               label: f.label,
-//               type: f.type,
-//               required: f.required,
-//               serviceId,
-//             },
-//           })
-//         )
-//       );
-  
-//       res.json({ success: true, createdFields });
-//     } catch (error) {
-//       res.status(500).json({ success: false, error: error.message });
-//     }
-//   });
 
 app.post("/service/:serviceId/input-fields", async (req, res) => {
     try {
