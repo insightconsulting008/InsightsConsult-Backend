@@ -449,7 +449,7 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
     try {
       const { serviceId } = req.params;
       const { fields } = req.body; // array: [{ label, type, placeholder, required, masterFieldId }]
-  
+      console.log(fields)
       const createdFields = [];
   
       for (const f of fields) {
@@ -480,7 +480,7 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
             data: {
               label: f.label,
               type: f.type,
-              options: f.options,
+              options: f.options || null,
               placeholder: f.placeholder || "",
               required: f.required ?? false,
             },

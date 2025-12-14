@@ -103,14 +103,8 @@ model Service {
   name        String
   description String
   
-  
-  // Pricing 
-  individualPrice Int 
-  offerPrice Int?
-  isGstApplicable Boolean @default(false)
-  gstPercentage Int? 
-  finalIndividualPrice Int 
-
+  individualPrice String
+  offerPrice String
  
   inputFields ServiceInputField[]
   trackSteps  ServiceTrackStep[] 
@@ -185,13 +179,8 @@ model ServiceBundle {
   bundleId     String      @id @default(cuid())
   name         String
   description  String?
-  
-   // Pricing 
-  bundlePrice Int 
-  bundleOfferPrice Int?
-  isGstApplicable Boolean @default(true)
-  gstPercentage Int? 
-  finalBundlePrice Int 
+  bundlePrice String
+  bundleOfferPrice String
 
   services    Service[]   @relation("BundleServices")
   application Application[]
