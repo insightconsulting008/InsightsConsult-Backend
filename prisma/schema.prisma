@@ -102,9 +102,22 @@ model Service {
   serviceId   String  @id @default(cuid())
   name        String
   description String
-  
-  individualPrice String
-  offerPrice String
+
+  serviceType String // one_time | recurring
+  frequency   String? // monthly | quarterly | yearly
+  duration    Int?    // eg: 12
+  durationUnit String? // month | year
+
+  documentsRequired Boolean @default(true)  
+
+  // Pricing 
+  individualPrice Int 
+  offerPrice Int?
+  isGstApplicable Boolean @default(false)
+  gstPercentage Int? 
+  finalIndividualPrice Int 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
  
   inputFields ServiceInputField[]
   trackSteps  ServiceTrackStep[] 
@@ -118,8 +131,6 @@ model Service {
   subCategoryId   String
   subCategory     SubCategory @relation(fields: [subCategoryId], references: [subCategoryId])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 
@@ -179,8 +190,13 @@ model ServiceBundle {
   bundleId     String      @id @default(cuid())
   name         String
   description  String?
-  bundlePrice String
-  bundleOfferPrice String
+  
+   // Pricing 
+  bundlePrice Int 
+  bundleOfferPrice Int?
+  isGstApplicable Boolean @default(true)
+  gstPercentage Int? 
+  finalBundlePrice Int 
 
   services    Service[]   @relation("BundleServices")
   application Application[]
