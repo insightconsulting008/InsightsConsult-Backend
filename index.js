@@ -5,6 +5,7 @@ const prisma = require('./src/prisma/prisma')
 const categoryRouter = require("./src/category/Category");
 const subcategoryRouter = require("./src/subCategory/SubCategory");
 const masterFieldRouter = require("./src/masterFields/MasterInputField")
+const serviceUpdate = require("./src/serviceUpdate/ServiceUpdate")
 
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(cors());
@@ -21,6 +22,7 @@ app.get("/test", (req, res) => {
 
 
 // Use routers with prefixes
+app.use("/",serviceUpdate)
 app.use("/", categoryRouter);
 app.use("/", subcategoryRouter);
 app.use("/", masterFieldRouter)
@@ -539,8 +541,6 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
       res.status(500).json({ success: false, message: error.message });
     }
   });
-  
-  
   
   // =============================
   // ADD TRACK STEP TO SERVICE
