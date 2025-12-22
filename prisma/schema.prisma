@@ -251,7 +251,7 @@ model ServicePeriod {
   application   Application @relation(fields: [applicationId], references: [applicationId])
 
   periodLabel String // Jan 2025, Feb 2025
-  status PeriodStatus // PENDING | USER_UPLOADED | STAFF_UPLOADED | COMPLETED
+  status   String? //PeriodStatus // PENDING | USER_UPLOADED | STAFF_UPLOADED | COMPLETED
 
   serviceDocument ServiceDocument[]
 

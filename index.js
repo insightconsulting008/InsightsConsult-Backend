@@ -391,13 +391,35 @@ app.delete("/department/:departmentId", async (req, res) => {
   // =============================
   app.get("/service", async (req, res) => {
     try {
-        const services = await prisma.service.findMany();
+      let { page, limit } = req.query;
   
-      res.json({ success: true, services });
+      page = parseInt(page);
+      limit = parseInt(limit);
+  
+      const skip = (page - 1) * limit;
+  
+      // Fetch services with pagination
+      const services = await prisma.service.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" }, // optional
+      });
+  
+      res.json({
+        success: true,
+        pagination: {
+          page,
+          limit,
+          totalPages: Math.ceil(totalServices / limit),
+          
+        },
+        data: services,
+      });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
   });
+  
 
   app.get("/service/:serviceId", async (req, res) => {
     const { serviceId } = req.params;
