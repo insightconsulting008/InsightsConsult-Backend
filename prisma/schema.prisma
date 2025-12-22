@@ -21,6 +21,18 @@ enum Role {
   ADMIN
 }
 
+enum DurationUnit {
+  MONTH
+  YEAR
+}
+
+enum Frequency {
+  MONTHLY
+  QUARTERLY
+  HALF_YEARLY
+  YEARLY
+}
+
 model User {
   userId      String    @id @unique @default(cuid())
   name        String
@@ -104,9 +116,9 @@ model Service {
   description String
 
   serviceType String // one_time | recurring
-  frequency   String? // monthly | quarterly | yearly
+  frequency   Frequency? // monthly | quarterly | yearly
   duration    Int?    // eg: 12
-  durationUnit String? // month | year
+  durationUnit DurationUnit? // month | year
 
   documentsRequired Boolean @default(true)  
 
@@ -226,10 +238,43 @@ model Application {
 
   // Live progress tracking
   trackSteps    ApplicationTrackStep[]
+  servicePeriod   ServicePeriod[]
 
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 }
+
+model ServicePeriod {
+  periodId String @id @default(cuid())
+
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [applicationId])
+
+  periodLabel String // Jan 2025, Feb 2025
+  status PeriodStatus // PENDING | USER_UPLOADED | STAFF_UPLOADED | COMPLETED
+
+  serviceDocument ServiceDocument[]
+
+  createdAt DateTime @default(now())
+}
+
+model ServiceDocument {
+  documentId String @id @default(cuid())
+
+  periodId String
+  servicePeriod   ServicePeriod @relation(fields: [periodId], references: [periodId])
+
+  uploadedBy String // user | staff
+  documentType String // bill | challan | gst_return | certificate
+
+  fileUrl String
+
+  version Int @default(1) // re-upload increases version
+  remark  String?
+
+  createdAt DateTime @default(now())
+}
+
 
 model ApplicationTrackStep {
   trackId       String      @id @default(cuid())
