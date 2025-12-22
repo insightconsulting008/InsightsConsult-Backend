@@ -405,6 +405,9 @@ app.delete("/department/:departmentId", async (req, res) => {
         orderBy: { createdAt: "desc" }, // optional
       });
   
+      // Total count
+      const totalServices = await prisma.service.count();
+  
       res.json({
         success: true,
         pagination: {
