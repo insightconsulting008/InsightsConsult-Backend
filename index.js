@@ -208,7 +208,7 @@ app.delete("/department/:departmentId", async (req, res) => {
   app.post("/employee", profileUpload.single('photoUrl'), async (req, res) => {
     try {
  // ✅ Get image URL from S3
-    const {photoUrl} = req.file.location;
+    const photoUrl = req.file.location;
       const {
         name,
         email,
@@ -219,6 +219,8 @@ app.delete("/department/:departmentId", async (req, res) => {
         departmentId
       } = req.body;
 
+      console.log(req.body)
+      console.log(req.file.location)
       // Check if department exists
       const department = await prisma.department.findUnique({
         where: { departmentId }
