@@ -12,21 +12,33 @@ const s3Client = new S3Client({
   },
 });
 
-// Configure multer to upload files to S3
-const upload = multer({
+
+const profileUpload = multer({
   storage: multerS3({
     s3: s3Client,
-    bucket:config.S3_BUCKET_NAME, // Ensure your bucket name is correct
+    bucket: config.S3_BUCKET_NAME,
     acl: 'public-read',
     key: (req, file, cb) => {
-      // Generate a unique filename for the uploaded file
-      cb(null, `Dashboard/${Date.now()}_${file.originalname}`);
+      cb(null, `StaffProfilePhoto/${Date.now()}_${file.originalname}`);
     },
   }),
 });
 
+// Configure multer to upload files to S3
+// const upload = multer({
+//   storage: multerS3({
+//     s3: s3Client,
+//     bucket:config.S3_BUCKET_NAME, // Ensure your bucket name is correct
+//     acl: 'public-read',
+//     key: (req, file, cb) => {
+//       // Generate a unique filename for the uploaded file
+//       cb(null, `Dashboard/${Date.now()}_${file.originalname}`);
+//     },
+//   }),
+// });
 
 
-module.exports = upload;
+
+module.exports = {profileUpload};
 
 

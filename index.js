@@ -6,6 +6,9 @@ const categoryRouter = require("./src/category/Category");
 const subcategoryRouter = require("./src/subCategory/SubCategory");
 const masterFieldRouter = require("./src/masterFields/MasterInputField")
 const serviceUpdate = require("./src/serviceUpdate/ServiceUpdate")
+const {profileUpload} = require("./src/utils/multer")
+
+
 
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(cors());
@@ -17,8 +20,6 @@ app.get("/test", (req, res) => {
     message: "Insight Consulting Project Server is running 🚀"
   });
 });
-
-
 
 
 // Use routers with prefixes
@@ -198,14 +199,16 @@ app.delete("/department/:departmentId", async (req, res) => {
     }
   });
   
-  
+
 /* =====================================================
    EMPLOYEE APIs
 ===================================================== */
 
 /** ✅ Create Employee  **/
-  app.post("/employee", async (req, res) => {
+  app.post("/employee", profileUpload.single('photoUrl'), async (req, res) => {
     try {
+ // ✅ Get image URL from S3
+    const {photoUrl} = req.file.location;
       const {
         name,
         email,
@@ -213,10 +216,9 @@ app.delete("/department/:departmentId", async (req, res) => {
         role,
         designation,
         password,
-        photoUrl,
         departmentId
       } = req.body;
-  
+
       // Check if department exists
       const department = await prisma.department.findUnique({
         where: { departmentId }
@@ -228,6 +230,7 @@ app.delete("/department/:departmentId", async (req, res) => {
           message: "Department not found"
         });
       }
+    
 
           // ✅ 1. Check if email already exists
     const existingEmployee = await prisma.employee.findUnique({
