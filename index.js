@@ -6,7 +6,8 @@ const categoryRouter = require("./src/category/Category");
 const subcategoryRouter = require("./src/subCategory/SubCategory");
 const masterFieldRouter = require("./src/masterFields/MasterInputField")
 const serviceUpdate = require("./src/serviceUpdate/ServiceUpdate")
-const {profileUpload} = require("./src/utils/multer")
+const {profileUpload,serviceImgUpload} = require("./src/utils/multer")
+const deleteS3Object = require("./src/utils/deleteS3Object")
 
 
 
@@ -219,8 +220,7 @@ app.delete("/department/:departmentId", async (req, res) => {
         departmentId
       } = req.body;
 
-      console.log(req.body)
-      console.log(req.file.location)
+     
       // Check if department exists
       const department = await prisma.department.findUnique({
         where: { departmentId }
@@ -234,8 +234,8 @@ app.delete("/department/:departmentId", async (req, res) => {
       }
     
 
-          // ✅ 1. Check if email already exists
-    const existingEmployee = await prisma.employee.findUnique({
+     // ✅ 1. Check if email already exists
+     const existingEmployee = await prisma.employee.findUnique({
         where: { email }
       });
   
@@ -333,7 +333,7 @@ app.delete("/department/:departmentId", async (req, res) => {
   });
 
   /** ✅ Update Employee By EmployeeId  **/
-  app.put("/employee/:employeeId", async (req, res) => {
+  app.put("/employee/:employeeId",profileUpload.single('photoUrl'), async (req, res) => {
     try {
       const { employeeId } = req.params;
       const {
@@ -344,9 +344,21 @@ app.delete("/department/:departmentId", async (req, res) => {
         designation,
         status,
         password,
-        photoUrl,
         departmentId
       } = req.body;
+
+
+        // 1️⃣ Check employee exists
+    const existingEmployee = await prisma.employee.findUnique({
+      where: { employeeId }
+    });
+
+    if (!existingEmployee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found"
+      });
+    }
   
       // Optional: check department exists if departmentId is provided
       if (departmentId) {
@@ -355,6 +367,22 @@ app.delete("/department/:departmentId", async (req, res) => {
           return res.status(404).json({ success: false, message: "Department not found" });
         }
       }
+
+
+      let photoUrl = existingEmployee.photoUrl;
+
+      // 3️⃣ If new image uploaded
+      if (req.file) {
+        // delete old image
+        if (existingEmployee.photoUrl) {
+          await deleteS3Object(existingEmployee.photoUrl);
+        }
+  
+        // save new image
+        photoUrl = req.file.location;
+      }
+
+
   
       const employee = await prisma.employee.update({
         where: { employeeId },
@@ -462,15 +490,16 @@ app.delete("/department/:departmentId", async (req, res) => {
   // =============================
 // CREATE SERVICE
 // =============================
-app.post("/service", async (req, res) => {
+app.post("/service",serviceImgUpload.single('photoUrl') ,async (req, res) => {
     try {
       const {  name, description, serviceType, frequency, duration, durationUnit,
         individualPrice, offerPrice, isGstApplicable, gstPercentage, finalIndividualPrice,
         subCategoryId, employeeId  } = req.body;
+      const photoUrl = req.file.location 
        
     
       const service = await prisma.service.create({
-        data: { name, description, serviceType, frequency, duration, durationUnit, individualPrice,
+        data: { name, description, photoUrl, serviceType, frequency, duration, durationUnit, individualPrice,
             offerPrice, isGstApplicable, gstPercentage, finalIndividualPrice, subCategoryId, employeeId  },
       });
   

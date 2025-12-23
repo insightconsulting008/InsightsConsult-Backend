@@ -114,20 +114,21 @@ model Service {
   serviceId   String  @id @default(cuid())
   name        String
   description String
+  photoUrl    String
 
   serviceType String // one_time | recurring
   frequency   Frequency? // monthly | quarterly | yearly
-  duration    Int?    // eg: 12
-  durationUnit DurationUnit? // month | year
+  duration    String?    // eg: 12
+  durationUnit DurationUnit? // month | Stringr
 
-  documentsRequired Boolean @default(true)  
+ documentsRequired String @default("true") 
 
   // Pricing 
-  individualPrice Int 
-  offerPrice Int?
-  isGstApplicable Boolean @default(false)
-  gstPercentage Int? 
-  finalIndividualPrice Int 
+  individualPrice String 
+  offerPrice String?
+ isGstApplicable String @default("true")
+  gstPercentage String? 
+  finalIndividualPrice String 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
  

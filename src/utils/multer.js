@@ -24,6 +24,17 @@ const profileUpload = multer({
   }),
 });
 
+const serviceImgUpload = multer({
+  storage: multerS3({
+    s3: s3Client,
+    bucket: config.S3_BUCKET_NAME,
+    acl: 'public-read',
+    key: (req, file, cb) => {
+      cb(null, `ServiceCardPhoto/${Date.now()}_${file.originalname}`);
+    },
+  }),
+});
+
 // Configure multer to upload files to S3
 // const upload = multer({
 //   storage: multerS3({
@@ -39,6 +50,6 @@ const profileUpload = multer({
 
 
 
-module.exports = {profileUpload};
+module.exports = {profileUpload ,serviceImgUpload };
 
 
