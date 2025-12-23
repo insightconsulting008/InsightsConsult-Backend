@@ -7,7 +7,7 @@ const subcategoryRouter = require("./src/subCategory/SubCategory");
 const masterFieldRouter = require("./src/masterFields/MasterInputField")
 const serviceUpdate = require("./src/serviceUpdate/ServiceUpdate")
 const {profileUpload,serviceImgUpload} = require("./src/utils/multer")
-const deleteS3Object = require("./src/utils/deleteS3Object")
+const {deleteS3Object} = require("./src/utils/deleteS3Object")
 
 
 
