@@ -404,11 +404,27 @@ app.delete("/department/:departmentId", async (req, res) => {
   app.delete("/employee/:employeeId", async (req, res) => {
     try {
       const { employeeId } = req.params;
-  
-      await prisma.employee.delete({
-        where: { employeeId }
-      });
-  
+   // 1️⃣ Check if employee exists
+   const existingEmployee = await prisma.employee.findUnique({
+    where: { employeeId }
+  });
+
+  if (!existingEmployee) {
+    return res.status(404).json({
+      success: false,
+      message: "Employee not found"
+    });
+  }
+
+  // 2️⃣ Delete employee from DB
+  await prisma.employee.delete({
+    where: { employeeId }
+  });
+
+  // 3️⃣ Delete photo from S3 (if exists)
+  if (existingEmployee.photoUrl) {
+    await deleteS3Object(existingEmployee.photoUrl);
+  }
       res.json({
         success: true,
         message: "Employee deleted successfully"
