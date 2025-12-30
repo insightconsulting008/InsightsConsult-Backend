@@ -1,19 +1,26 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
+const cookieParser = require("cookie-parser");
 const prisma = require('./src/prisma/prisma')
 const categoryRouter = require("./src/category/Category");
 const subcategoryRouter = require("./src/subCategory/SubCategory");
 const masterFieldRouter = require("./src/masterFields/MasterInputField")
 const serviceUpdate = require("./src/serviceUpdate/ServiceUpdate")
+const authUserRouter = require("./src/userPortal/userAuth/userAuth")
 const {profileUpload,serviceImgUpload} = require("./src/utils/multer")
 const {deleteS3Object} = require("./src/utils/deleteS3Object")
 
 
 
+
 /* -------------------- MIDDLEWARE -------------------- */
-app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
+app.use(cors({
+  origin: "http://localhost:5173", // frontend URL
+  credentials: true
+}));
 
 /* -------------------- ROUTES -------------------- */
 app.get("/test", (req, res) => {
@@ -28,6 +35,10 @@ app.use("/",serviceUpdate)
 app.use("/", categoryRouter);
 app.use("/", subcategoryRouter);
 app.use("/", masterFieldRouter)
+app.use("/", subcategoryRouter);
+app.use("/", authUserRouter);
+
+
 
 
 

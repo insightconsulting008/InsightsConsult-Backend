@@ -37,10 +37,11 @@ model User {
   userId      String    @id @unique @default(cuid())
   name        String
   email       String    @unique
-  phoneNumber String    @unique
+  phoneNumber String    
   password    String // hashed password
   role        Role      @default(USER)
   otp         String? // for forgot password / login otp
+  refreshToken  String?
   otpExpiry   DateTime? // expiry time
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

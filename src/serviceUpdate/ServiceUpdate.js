@@ -2,53 +2,53 @@ const express = require("express");
 const router = express.Router();
 const prisma = require("../prisma/prisma");
 
-// app.put("/service/:serviceId", async (req, res) => {
-//     try {
-//       const { serviceId } = req.params;
+router.put("/service/:serviceId", async (req, res) => {
+    try {
+      const { serviceId } = req.params;
   
-//       const {
-//         name,
-//         description,
-//         serviceType,
-//         frequency,
-//         duration,
-//         durationUnit,
-//         individualPrice,
-//         offerPrice,
-//         isGstApplicable,
-//         gstPercentage,
-//         finalIndividualPrice,
-//         subCategoryId,
-//         employeeId
-//       } = req.body;
+      const {
+        name,
+        description,
+        serviceType,
+        frequency,
+        duration,
+        durationUnit,
+        individualPrice,
+        offerPrice,
+        isGstApplicable,
+        gstPercentage,
+        finalIndividualPrice,
+        subCategoryId,
+        employeeId
+      } = req.body;
   
-//       const updatedService = await prisma.service.update({
-//         where: { serviceId: serviceId }, // convert to number if ID is Int
-//         data: {
-//           name,
-//           description,
-//           serviceType,
-//           frequency,
-//           duration,
-//           durationUnit,
-//           individualPrice,
-//           offerPrice,
-//           isGstApplicable,
-//           gstPercentage,
-//           finalIndividualPrice,
-//           subCategoryId,
-//           employeeId
-//         }
-//       });
+      const updatedService = await prisma.service.update({
+        where: { serviceId: serviceId }, // convert to number if ID is Int
+        data: {
+          name,
+          description,
+          serviceType,
+          frequency,
+          duration,
+          durationUnit,
+          individualPrice,
+          offerPrice,
+          isGstApplicable,
+          gstPercentage,
+          finalIndividualPrice,
+          subCategoryId,
+          employeeId
+        }
+      });
   
-//       res.json({ success: true, service: updatedService });
-//     } catch (error) {
-//       res.status(500).json({
-//         success: false,
-//         error: error.message
-//       });
-//     }
-//   });
+      res.json({ success: true, service: updatedService });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
 
 router.put("/service/:serviceId/track-steps", async (req, res) => {
     try {
