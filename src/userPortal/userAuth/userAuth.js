@@ -115,7 +115,7 @@ router.post("/auth/register", async (req, res) => {
   
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: "none",
         maxAge: 30 * 24 * 60 * 60 * 1000
       });
 
