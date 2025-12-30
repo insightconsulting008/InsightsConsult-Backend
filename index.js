@@ -18,7 +18,10 @@ const {deleteS3Object} = require("./src/utils/deleteS3Object")
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: "http://localhost:5173", // frontend URL
+  origin: [
+    "http://localhost:5173",
+    "https://insightsconsult-frontend.onrender.com"
+  ], // frontend URL
   credentials: true
 }));
 
