@@ -10,6 +10,12 @@ datasource db {
   // directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
+enum MyServiceStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
 enum EmployeeStatus {
   ACTIVE
   INACTIVE
@@ -133,6 +139,7 @@ model Service {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
  
+  myService         MyService[]   
   inputFields ServiceInputField[]
   trackSteps  ServiceTrackStep[] 
   application Application[]
@@ -144,6 +151,22 @@ model Service {
 
   subCategoryId   String
   subCategory     SubCategory @relation(fields: [subCategoryId], references: [subCategoryId])
+
+}
+
+model MyService {
+  myServiceId String @id @default(cuid())
+  userId      String
+
+  serviceId String?
+  bundleId  String?
+
+
+  status    MyServiceStatus @default(NOT_STARTED)
+  createdAt DateTime @default(now())
+  application Application?
+  service Service? @relation(fields: [serviceId], references: [serviceId])
+  serviceBundle ServiceBundle? @relation(fields: [bundleId], references: [bundleId])
 
 }
 
@@ -214,6 +237,7 @@ model ServiceBundle {
 
   services    Service[]   @relation("BundleServices")
   application Application[]
+  myService   MyService[]
 
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
@@ -229,12 +253,17 @@ model Application {
   service       Service?          @relation(fields: [serviceId], references: [serviceId])
   bundle        ServiceBundle?    @relation(fields: [bundleId], references: [bundleId])
 
+  myServiceId String  @unique
+  myService MyService @relation(fields: [myServiceId], references: [myServiceId])
+  
+
   // Assigned employee
   employeeId    String?
   employee      Employee?         @relation(fields: [employeeId], references: [employeeId])
 
   // Dynamic form data (label, type, required)
   formData      Json?
+    adminNote String?
 
   status        ApplicationStatus   @default(PENDING)
 

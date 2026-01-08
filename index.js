@@ -8,6 +8,7 @@ const subcategoryRouter = require("./src/subCategory/SubCategory");
 const masterFieldRouter = require("./src/masterFields/MasterInputField")
 const serviceUpdate = require("./src/serviceUpdate/ServiceUpdate")
 const authUserRouter = require("./src/userPortal/userAuth/userAuth")
+const userApplicationApply = require("./src/userPortal/Application/Application")
 const {profileUpload,serviceImgUpload} = require("./src/utils/multer")
 const {deleteS3Object} = require("./src/utils/deleteS3Object")
 
@@ -34,12 +35,13 @@ app.get("/test", (req, res) => {
 
 
 // Use routers with prefixes
-app.use("/",serviceUpdate)
+app.use("/", serviceUpdate)
 app.use("/", categoryRouter);
 app.use("/", subcategoryRouter);
 app.use("/", masterFieldRouter)
 app.use("/", subcategoryRouter);
 app.use("/", authUserRouter);
+app.use("/", userApplicationApply)
 
 
 
