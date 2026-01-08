@@ -9,6 +9,7 @@ const masterFieldRouter = require("./src/masterFields/MasterInputField")
 const serviceUpdate = require("./src/serviceUpdate/ServiceUpdate")
 const authUserRouter = require("./src/userPortal/userAuth/userAuth")
 const userApplicationApply = require("./src/userPortal/Application/Application")
+const settings = require("./src/paymentSetting/PaymentSetting")
 const {profileUpload,serviceImgUpload} = require("./src/utils/multer")
 const {deleteS3Object} = require("./src/utils/deleteS3Object")
 
@@ -42,6 +43,7 @@ app.use("/", masterFieldRouter)
 app.use("/", subcategoryRouter);
 app.use("/", authUserRouter);
 app.use("/", userApplicationApply)
+app.use("/", settings)
 
 
 
