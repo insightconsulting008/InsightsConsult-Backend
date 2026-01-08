@@ -7,19 +7,92 @@ const{ authenticate,authorizeRoles } = require("../../authMiddleware/authMiddlew
 
 
 router.post("/buy/service", async (req, res) => {
-    const { userId, serviceId, bundleId } = req.body;
+    try {
+      const { userId, serviceId, bundleId } = req.body;
   
-    const myService = await prisma.myService.create({
-      data: {
-        userId,
-        serviceId,
-        bundleId,
-        status: "NOT_STARTED",
-      },
-    });
+      /* ---------------------------------------------------
+       1️⃣ Validation
+      --------------------------------------------------- */
+      if ((!serviceId && !bundleId) || (serviceId && bundleId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Provide either serviceId or bundleId",
+        });
+      }
   
-    res.json({ success: true, myService });
-});
+      /* ---------------------------------------------------
+       2️⃣ Buy Single Service
+      --------------------------------------------------- */
+      if (serviceId) {
+        const service = await prisma.service.findUnique({
+          where: { serviceId },
+        });
+  
+        if (!service) {
+          return res.status(404).json({
+            success: false,
+            message: "Service not found",
+          });
+        }
+  
+        const myService = await prisma.myService.create({
+          data: {
+            userId,
+            serviceId,
+            status: "NOT_STARTED",
+          },
+        });
+  
+        return res.json({
+          success: true,
+          message: "Service purchased successfully",
+          myServices: [myService],
+        });
+      }
+  
+      /* ---------------------------------------------------
+       3️⃣ Buy Bundle → Unlock all services
+      --------------------------------------------------- */
+      if (bundleId) {
+        const bundle = await prisma.serviceBundle.findUnique({
+          where: { bundleId },
+          include: { services: true },
+        });
+  
+        if (!bundle) {
+          return res.status(404).json({
+            success: false,
+            message: "Bundle not found",
+          });
+        }
+  
+        // 🔑 Create MyService entry for EACH service
+        const myServicesData = bundle.services.map((service) => ({
+          userId,
+          serviceId: service.serviceId,
+          bundleId,
+          status: "NOT_STARTED",
+        }));
+  
+        const myServices = await prisma.myService.createMany({
+          data: myServicesData,
+        });
+  
+        return res.json({
+          success: true,
+          message: "Bundle purchased. All services unlocked.",
+          unlockedServicesCount: bundle.services.length,
+        });
+      }
+    } catch (error) {
+      console.error("Buy service error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  });
+  
 
 router.get("/my-services/:userId", async (req, res) => {
     const {userId} = req.params;

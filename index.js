@@ -646,14 +646,18 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
   // =============================
   app.post("/bundle", async (req, res) => {
     try {
-      const { name, description, bundlePrice,  bundleOfferPrice, serviceIds } = req.body;
-  
+      const { name, description, bundlePrice,  bundleOfferPrice,isGstApplicable,
+        gstPercentage, serviceIds ,finalBundlePrice } = req.body;
+    
       const bundle = await prisma.serviceBundle.create({
         data: {
           name,
           description,
           bundlePrice,
           bundleOfferPrice,
+          isGstApplicable,
+          gstPercentage,
+          finalBundlePrice,
           services: {
             connect: serviceIds.map((id) => ({ serviceId: id })),
           },
