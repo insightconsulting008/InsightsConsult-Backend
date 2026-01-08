@@ -148,14 +148,210 @@ router.get("/my-services/:userId", async (req, res) => {
   });
   
   
+  router.post(
+    "/application/start/apply/:myServiceId",
+    applicationImgUpload.any(),
+    async (req, res) => {
+      try {
+        const { myServiceId } = req.params;
+        const { serviceId, ...restBody } = req.body;
+  
+        /* ---------------------------------------------------
+         1️⃣ Validate serviceId
+        --------------------------------------------------- */
+        if (!serviceId) {
+          return res.status(400).json({
+            success: false,
+            message: "serviceId is required",
+          });
+        }
+  
+        /* ---------------------------------------------------
+         2️⃣ Validate MyService (must be purchased)
+        --------------------------------------------------- */
+        const myService = await prisma.myService.findUnique({
+          where: { myServiceId },
+        });
+  
+        if (!myService) {
+          return res.status(404).json({
+            success: false,
+            message: "Service not purchased",
+          });
+        }
+  
+        /* ---------------------------------------------------
+         3️⃣ Prevent duplicate application
+        --------------------------------------------------- */
+        const existingApplication = await prisma.application.findUnique({
+          where: { myServiceId },
+        });
+  
+        if (existingApplication) {
+          return res.status(400).json({
+            success: false,
+            message: "Application already submitted for this service",
+          });
+        }
+  
+        /* ---------------------------------------------------
+         4️⃣ Validate service existence
+        --------------------------------------------------- */
+        const service = await prisma.service.findUnique({
+          where: { serviceId },
+        });
+  
+        if (!service) {
+          return res.status(404).json({
+            success: false,
+            message: "Service not found",
+          });
+        }
+  
+        /* ---------------------------------------------------
+         5️⃣ Ownership check (VERY IMPORTANT)
+        --------------------------------------------------- */
+        if (myService.serviceId !== serviceId) {
+          return res.status(400).json({
+            success: false,
+            message: "Service does not match purchased service",
+          });
+        }
+  
+        /* ---------------------------------------------------
+         6️⃣ Collect text inputs
+        --------------------------------------------------- */
+        let parsedFormData = { ...restBody };
+  
+        /* ---------------------------------------------------
+         7️⃣ Attach uploaded files
+        --------------------------------------------------- */
+        if (req.files && req.files.length > 0) {
+          req.files.forEach((file) => {
+            parsedFormData[file.fieldname] = {
+              fileName: file.filename,
+              sizeInMb: (file.size / (1024 * 1024)).toFixed(2),
+              url: file.location,
+            };
+          });
+        }
+  
+        /* ---------------------------------------------------
+         8️⃣ Create Application (linked to MyService)
+        --------------------------------------------------- */
+        const application = await prisma.application.create({
+          data: {
+            myServiceId,
+            serviceId,
+            formData: parsedFormData,
+            status: "PENDING",
+          },
+        });
+  
+        /* ---------------------------------------------------
+         9️⃣ Handle recurring service periods
+        --------------------------------------------------- */
+        if (service.serviceType === "RECURRING") {
+          const periods = [];
+          const startDate = new Date();
+  
+          let totalMonths =
+            service.durationUnit === "YEAR"
+              ? Number(service.duration) * 12
+              : Number(service.duration);
+  
+          let monthGap = 0;
+  
+          switch (service.frequency) {
+            case "MONTHLY":
+              monthGap = 1;
+              break;
+            case "QUARTERLY":
+              monthGap = 3;
+              break;
+            case "HALF_YEARLY":
+              monthGap = 6;
+              break;
+            case "YEARLY":
+              monthGap = 12;
+              break;
+            default:
+              throw new Error("Invalid service frequency");
+          }
+  
+          const totalPeriods = Math.ceil(totalMonths / monthGap);
+  
+          for (let i = 0; i < totalPeriods; i++) {
+            const periodDate = new Date(
+              startDate.getFullYear(),
+              startDate.getMonth() + i * monthGap,
+              1
+            );
+  
+            const label = periodDate.toLocaleString("default", {
+              month: "short",
+              year: "numeric",
+            });
+  
+            periods.push({
+              applicationId: application.applicationId,
+              periodLabel: label,
+              status: "PENDING",
+            });
+          }
+  
+          if (periods.length > 0) {
+            await prisma.servicePeriod.createMany({ data: periods });
+          }
+        }
+  
+        /* ---------------------------------------------------
+         🔟 Update MyService status
+        --------------------------------------------------- */
+        await prisma.myService.update({
+          where: { myServiceId },
+          data: { status: "IN_PROGRESS" },
+        });
+  
+        /* ---------------------------------------------------
+         ✅ Final Response
+        --------------------------------------------------- */
+        return res.status(201).json({
+          success: true,
+          message: "Application submitted successfully",
+          application,
+        });
+      } catch (error) {
+        console.error("Apply service error:", error);
+        return res.status(500).json({
+          success: false,
+          message: "Internal server error",
+        });
+      }
+    }
+  );
+  
 
 
   router.post(
-    "/applications/apply",
+    "/application/start/apply/:myServiceId",
     applicationImgUpload.any(),
     async (req, res) => {
       try {
         const { serviceId, bundleId, ...restBody } = req.body;
+
+        const { myServiceId } = req.params;
+
+const myService = await prisma.myService.findUnique({
+  where: { myServiceId },
+});
+
+if (!myService) {
+  return res.status(404).json({
+    success: false,
+    message: "Service not purchased",
+  });
+}
 
        
   
@@ -298,106 +494,7 @@ if (service && service.serviceType === "RECURRING") {
   
 
 
-// router.post("/applications/apply", applicationImgUpload.any() ,async (req, res) => {
-//     try {
-//       const {
-//         //  userId,
-//          serviceId, bundleId, formData } = req.body;
-  
-//     //   if (!userId) {
-//     //     return res.status(400).json({ success: false, message: "userId is required" });
-//     //   }
-  
-//       if (!serviceId && !bundleId) {
-//         return res.status(400).json({
-//           success: false,
-//           message: "Either serviceId or bundleId must be provided",
-//         });
-//       }
-  
-//       // Fetch service or bundle details
-//       let service = null;
-//       let bundle = null;
-  
-//       if (serviceId) {
-//         service = await prisma.service.findUnique({
-//           where: { serviceId },
-//         });
-  
-//         if (!service) {
-//           return res.status(404).json({ success: false, message: "Service not found" });
-//         }
-//       }
-  
-//       if (bundleId) {
-//         bundle = await prisma.serviceBundle.findUnique({
-//           where: { bundleId },
-//         });
-  
-//         if (!bundle) {
-//           return res.status(404).json({ success: false, message: "Bundle not found" });
-//         }
-//       }
-  
-//       // Create Application
-//       const application = await prisma.application.create({
-//         data: {
-//           serviceId: serviceId,
-//           bundleId: bundleId, 
-//           formData: formData,
-//           status: "PENDING",
- 
-//         },
-//       });
-  
-//       // If service is recurring, create ServicePeriods
-//       if (service && service.serviceType === "RECURRING") {
-//         const periods = [];
-//         const startDate = new Date();
-  
-//         for (let i = 0; i < (service.duration || 0); i++) {
-//           let periodDate;
-  
-//           if (service.frequency === "MONTHLY") {
-//             periodDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
-//           } else if (service.frequency === "QUARTERLY") {
-//             periodDate = new Date(startDate.getFullYear(), startDate.getMonth() + i * 3, 1);
-//           } else if (service.frequency === "YEARLY") {
-//             periodDate = new Date(startDate.getFullYear() + i, 0, 1);
-//           } else {
-//             // Default monthly if frequency missing
-//             periodDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
-//           }
-  
-//           const label = periodDate.toLocaleString("default", {
-//             month: "short",
-//             year: "numeric",
-//           });
-  
-//           periods.push({
-//             applicationId: application.applicationId,
-//             periodLabel: label,
-//             status: "PENDING",
-//           });
-//         }
-  
-//         if (periods.length > 0) {
-//           await prisma.servicePeriod.createMany({
-//             data: periods,
-//           });
-//         }
-//       }
-  
-//       return res.status(201).json({
-//         success: true,
-//         message: "Application created successfully",
-//         application,
-//       });
-//     } catch (error) {
-//       console.error("Apply service error:", error);
-//       return res.status(500).json({ success: false, message: "Internal server error" });
-//     }
-//   });
+
   
 
 module.exports = router
