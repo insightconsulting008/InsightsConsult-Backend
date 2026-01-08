@@ -10,6 +10,15 @@ datasource db {
   // directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
+model PaymentSetting {
+  paymentSettingId   String   @id @default(cuid())
+  isRazorpayEnabled  Boolean  @default(false)
+  razorpayKeyId      String?
+  razorpaySecret     String?
+  webhookSecret      String?
+  updatedAt          DateTime @updatedAt
+}
+
 enum MyServiceStatus {
   NOT_STARTED
   IN_PROGRESS
