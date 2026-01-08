@@ -3,7 +3,6 @@ const router = express.Router();
 const prisma = require("../../prisma/prisma");
 const config = require("../../utils/config")
 const {applicationImgUpload} = require('../../utils/multer')
-
 const{ authenticate,authorizeRoles } = require("../../authMiddleware/authMiddleware")
 
 
@@ -23,11 +22,16 @@ router.post("/buy/service", async (req, res) => {
 });
 
 router.get("/my-services/:userId", async (req, res) => {
+    const {userId} = req.params;
     const services = await prisma.myService.findMany({
-      where: { userId: req.params.userId },
+      where: { userId: userId},
       include: {
         service: true,
-        bundle: { include: { services: true } },
+        serviceBundle: {
+            include: {
+              services: true,
+            },
+          },
         application: true,
       },
     });
