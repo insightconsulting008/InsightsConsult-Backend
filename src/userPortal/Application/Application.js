@@ -22,6 +22,20 @@ router.post("/buy/service", async (req, res) => {
     res.json({ success: true, myService });
 });
 
+router.get("/my-services/:userId", async (req, res) => {
+    const services = await prisma.myService.findMany({
+      where: { userId: req.params.userId },
+      include: {
+        service: true,
+        bundle: { include: { services: true } },
+        application: true,
+      },
+    });
+  
+    res.json({ success: true, services });
+  });
+  
+
 
   router.get("/application", async (req, res) => {
     try {
