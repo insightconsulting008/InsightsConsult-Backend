@@ -407,7 +407,7 @@ router.get("/my-services/:userId", async (req, res) => {
 
 
   router.post(
-    "/application/start/apply/:myServiceId",
+    "/applications/start/apply/:myServiceId",
     applicationImgUpload.any(),
     async (req, res) => {
       try {
