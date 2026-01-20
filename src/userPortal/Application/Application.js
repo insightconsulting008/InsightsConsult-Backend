@@ -607,6 +607,65 @@ if (service && service.serviceType === "RECURRING") {
       }
     }
   );
+
+
+  router.get("/admin/employees/assignable", async (req, res) => {
+    try {
+      let { page, limit  } = req.query;
+  
+      page = parseInt(page);
+      limit = parseInt(limit);
+      const skip = (page - 1) * limit;
+  
+      const [employees, total] = await Promise.all([
+        prisma.employee.findMany({
+          where: {
+            status: "ACTIVE",
+            role:"STAFF"
+          },
+          skip,
+          take: limit,
+          select: {
+            employeeId: true,
+            name: true,
+            role: true,
+            status: true,
+            photoUrl: true,
+            department: {
+              select: {
+                name: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        }),
+        prisma.employee.count({
+          where: { status: "ACTIVE" },
+        }),
+      ]);
+  
+      res.json({
+        success: true,
+        pagination: {
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          total,
+        },
+        data: employees,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  });
+  
+  
+  
   
   
   
