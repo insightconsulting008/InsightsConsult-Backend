@@ -100,6 +100,10 @@ router.get("/my-services/:userId", async (req, res) => {
       where: { userId: userId},
       include: {
         service: true,
+        include: {
+            ServiceInputField: true,
+          },
+        
         serviceBundle: {
             include: {
               services: true,
@@ -113,18 +117,17 @@ router.get("/my-services/:userId", async (req, res) => {
   });
   
 
-
-  router.get("/application", async (req, res) => {
+  router.get("/applications", async (req, res) => {
     try {
       const applications = await prisma.application.findMany({
         orderBy: {
           createdAt: "desc",
-        },
+        },                 
         select: {
           applicationId: true,
           status: true,
           createdAt: true,
-  
+                          
           service: {
             select: {
               name: true,
@@ -185,7 +188,6 @@ router.get("/my-services/:userId", async (req, res) => {
           service: {
         
           },
-          bundle: true,
           employee: {
             select: {
               employeeId: true,
@@ -563,6 +565,51 @@ if (service && service.serviceType === "RECURRING") {
       }
     }
   );
+
+
+
+  router.post(
+    "/admin/applications/:applicationId/assign",
+    async (req, res) => {
+      try {
+        const { applicationId } = req.params;
+        const { employeeId, adminNote } = req.body;
+  
+        // 1️⃣ Basic validation
+        if (!employeeId) {
+          return res.status(400).json({
+            success: false,
+            message: "employeeId is required",
+          });
+        }
+  
+        // 2️⃣ Update application
+        const application = await prisma.application.update({
+          where: { applicationId },
+          data: {
+            employeeId,
+            adminNote,
+            status: "ASSIGNED",
+          },
+        });
+  
+        res.json({
+          success: true,
+          message: "Application assigned to staff successfully",
+          application,
+        });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to assign application",
+        });
+      }
+    }
+  );
+  
+  
+  
   
   
 
