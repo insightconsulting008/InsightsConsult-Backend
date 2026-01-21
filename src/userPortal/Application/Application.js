@@ -100,9 +100,7 @@ router.get("/my-services/:userId", async (req, res) => {
       where: { userId: userId},
       include: {
         service: true,
-        include: {
-            ServiceInputField: true,
-          },
+      
         
         serviceBundle: {
             include: {
@@ -227,9 +225,7 @@ router.get("/my-services/:userId", async (req, res) => {
   });
   
   
-  router.post(
-    "/application/start/apply/:myServiceId",
-    applicationImgUpload.any(),
+  router.post("/application/start/apply/:myServiceId",applicationImgUpload.any(),
     async (req, res) => {
       try {
         const { myServiceId } = req.params;
@@ -681,6 +677,22 @@ if (service && service.serviceType === "RECURRING") {
       });
     }
   });
+
+
+  router.get("/staff/applications/:employeeId", async (req,res)=>{
+    const {employeeId} = req.params
+
+    const myTask = await prisma.application.findMany({
+        where:{
+            employeeId
+        }
+    })
+
+    res.json({
+        data:myTask
+    })
+
+  })
   
 
 
