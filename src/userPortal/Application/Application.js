@@ -611,18 +611,43 @@ if (service && service.serviceType === "RECURRING") {
 
   router.get("/admin/employees/assignable", async (req, res) => {
     try {
-      let { page, limit  } = req.query;
+      let { page = 1, limit = 10, search = "" } = req.query;
   
       page = parseInt(page);
       limit = parseInt(limit);
       const skip = (page - 1) * limit;
   
+      const whereCondition = {
+        status: "ACTIVE",
+        role: "STAFF",
+        ...(search && {
+          OR: [
+            {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              employeeId: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },{
+            department: {
+                name: { 
+                    contains: search, 
+                    mode: "insensitive" 
+                },
+              },
+            }
+          ],
+        }),
+      };
+  
       const [employees, total] = await Promise.all([
         prisma.employee.findMany({
-          where: {
-            status: "ACTIVE",
-            role:"STAFF"
-          },
+          where: whereCondition,
           skip,
           take: limit,
           select: {
@@ -642,7 +667,7 @@ if (service && service.serviceType === "RECURRING") {
           },
         }),
         prisma.employee.count({
-          where: { status: "ACTIVE" },
+          where: whereCondition,
         }),
       ]);
   
@@ -663,6 +688,7 @@ if (service && service.serviceType === "RECURRING") {
       });
     }
   });
+  
   
   
   
