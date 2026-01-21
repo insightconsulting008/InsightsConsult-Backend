@@ -155,6 +155,7 @@ router.get("/my-services/:userId", async (req, res) => {
           },
         },
       });
+     
   
       const formatted = applications.map((app) => ({
         applicationId: app.applicationId,
@@ -162,6 +163,7 @@ router.get("/my-services/:userId", async (req, res) => {
         serviceType: app.service?.serviceType || "BUNDLE",
         status: app.status,
         createdAt: app.createdAt,
+        photoUrl:app.photoUrl,
         employeeName: app.employee?.name || null,
         totalPeriods: app.servicePeriod.length,
       }));
@@ -169,6 +171,7 @@ router.get("/my-services/:userId", async (req, res) => {
       res.json({
         success: true,
         applications: formatted,
+      
       });
     } catch (error) {
       console.error("Get app list error:", error);
