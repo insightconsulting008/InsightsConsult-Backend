@@ -163,7 +163,7 @@ router.get("/my-services/:userId", async (req, res) => {
         serviceType: app.service?.serviceType || "BUNDLE",
         status: app.status,
         createdAt: app.createdAt,
-        photoUrl:app.photoUrl,
+        photoUrl:app.employee.photoUrl || null,
         employeeName: app.employee?.name || null,
         totalPeriods: app.servicePeriod.length,
       }));
