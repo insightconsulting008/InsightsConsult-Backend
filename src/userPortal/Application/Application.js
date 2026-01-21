@@ -144,6 +144,7 @@ router.get("/my-services/:userId", async (req, res) => {
           employee: {
             select: {
               name: true,
+              photoUrl:true
             },
           },
   
@@ -611,11 +612,7 @@ if (service && service.serviceType === "RECURRING") {
 
   router.get("/admin/employees/assignable", async (req, res) => {
     try {
-      let { page = 1, limit = 10, search = "" } = req.query;
-  
-      page = parseInt(page);
-      limit = parseInt(limit);
-      const skip = (page - 1) * limit;
+      const { search = "" } = req.query;
   
       const whereCondition = {
         status: "ACTIVE",
@@ -633,52 +630,45 @@ if (service && service.serviceType === "RECURRING") {
                 contains: search,
                 mode: "insensitive",
               },
-            },{
-            department: {
-                name: { 
-                    contains: search, 
-                    mode: "insensitive" 
+            },
+            {
+              email: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              department: {
+                name: {
+                  contains: search,
+                  mode: "insensitive",
                 },
               },
-            }
+            },
           ],
         }),
       };
   
-      const [employees, total] = await Promise.all([
-        prisma.employee.findMany({
-          where: whereCondition,
-          skip,
-          take: limit,
-          select: {
-            employeeId: true,
-            name: true,
-            role: true,
-            status: true,
-            photoUrl: true,
-            department: {
-              select: {
-                name: true,
-              },
+      const employees = await prisma.employee.findMany({
+        where: whereCondition,
+        select: {
+          employeeId: true,
+          name: true,
+          email: true,
+          photoUrl: true,
+          department: {
+            select: {
+              name: true,
             },
           },
-          orderBy: {
-            createdAt: "desc",
-          },
-        }),
-        prisma.employee.count({
-          where: whereCondition,
-        }),
-      ]);
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
   
       res.json({
         success: true,
-        pagination: {
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit),
-          total,
-        },
         data: employees,
       });
     } catch (error) {
@@ -688,6 +678,11 @@ if (service && service.serviceType === "RECURRING") {
       });
     }
   });
+  
+
+
+
+  
   
   
   
