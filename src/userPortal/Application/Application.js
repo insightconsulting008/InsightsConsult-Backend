@@ -705,12 +705,7 @@ if (service && service.serviceType === "RECURRING") {
             },
           },
   
-          employee: {
-            select: {
-              name: true,
-              photoUrl: true,
-            },
-          },
+
   
           servicePeriod: {
             select: {
@@ -760,13 +755,7 @@ if (service && service.serviceType === "RECURRING") {
   
           bundle: true,
   
-          employee: {
-            select: {
-              employeeId: true,
-              name: true,
-              photoUrl: true,
-            },
-          },
+          
   
           servicePeriod: {
             orderBy: {
