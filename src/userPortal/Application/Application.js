@@ -722,8 +722,7 @@ if (service && service.serviceType === "RECURRING") {
         status: app.status,
         createdAt: app.createdAt,
   
-        employeeName: app.employee?.name ?? null,
-        employeePhoto: app.employee?.photoUrl ?? null,
+      
   
         totalPeriods: app.servicePeriod.length || null,
       }));
