@@ -408,10 +408,7 @@ router.get("/my-services/:userId", async (req, res) => {
   
 
 
-  router.post(
-    "/applications/start/apply/:myServiceId",
-    applicationImgUpload.any(),
-    async (req, res) => {
+  router.post("/applications/start/apply/:myServiceId",applicationImgUpload.any(),async (req, res) => {
       try {
         const { serviceId, bundleId, ...restBody } = req.body;
 
@@ -568,9 +565,7 @@ if (service && service.serviceType === "RECURRING") {
 
 
 
-  router.post(
-    "/admin/applications/:applicationId/assign",
-    async (req, res) => {
+  router.post("/admin/applications/:applicationId/assign",async (req, res) => {
       try {
         const { applicationId } = req.params;
         const { employeeId, adminNote } = req.body;
@@ -679,23 +674,129 @@ if (service && service.serviceType === "RECURRING") {
   });
 
 
-  router.get("/staff/applications/:employeeId", async (req,res)=>{
-    const {employeeId} = req.params
-
-    const myTask = await prisma.application.findMany({
-        where:{
-            employeeId
-        }
-    })
-
-    res.json({
-        data:myTask
-    })
-
-  })
+//Staff
   
+  router.get("/staff/:employeeId/applications", async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+  
+      const applications = await prisma.application.findMany({
+        where: {
+          employeeId: employeeId,   // ✅ THIS IS THE KEY FIX
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        select: {
+          applicationId: true,
+          status: true,
+          createdAt: true,
+  
+          service: {
+            select: {
+              name: true,
+              serviceType: true,
+            },
+          },
+  
+          bundle: {
+            select: {
+              name: true,
+            },
+          },
+  
+          employee: {
+            select: {
+              name: true,
+              photoUrl: true,
+            },
+          },
+  
+          servicePeriod: {
+            select: {
+              periodId: true,
+            },
+          },
+        },
+      });
+  
+      const formatted = applications.map((app) => ({
+        applicationId: app.applicationId,
+        serviceName: app.service?.name || app.bundle?.name || "N/A",
+        serviceType: app.service?.serviceType || "BUNDLE",
+        status: app.status,
+        createdAt: app.createdAt,
+  
+        employeeName: app.employee?.name ?? null,
+        employeePhoto: app.employee?.photoUrl ?? null,
+  
+        totalPeriods: app.servicePeriod.length || null,
+      }));
+  
+      res.json({
+        success: true,
+        applications: formatted,
+      });
+    } catch (error) {
+      console.error("Get staff applications error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Server error",
+      });
+    }
+  });
 
-
+  router.get("/staff/:employeeId/application/:applicationId", async (req, res) => {
+    try {
+      const { employeeId, applicationId } = req.params;
+  
+      const application = await prisma.application.findFirst({
+        where: {
+          applicationId,
+          employeeId, // ✅ IMPORTANT CHECK
+        },
+        include: {
+          service: true,
+  
+          bundle: true,
+  
+          employee: {
+            select: {
+              employeeId: true,
+              name: true,
+              photoUrl: true,
+            },
+          },
+  
+          servicePeriod: {
+            orderBy: {
+              createdAt: "asc",
+            },
+          },
+        },
+      });
+  
+      if (!application) {
+        return res.status(404).json({
+          success: false,
+          message: "Application not found or access denied",
+        });
+      }
+  
+      res.json({
+        success: true,
+        application,
+      });
+    } catch (error) {
+      console.error("Get application detail error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Server error",
+      });
+    }
+  });
+  
+  
 
   
   
