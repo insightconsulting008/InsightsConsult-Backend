@@ -854,7 +854,7 @@ router.get("/my-services/:userId", async (req, res) => {
       const { applicationStepId,status,description,remarks} = req.body;
   
       const step = await prisma.applicationTrackStep.update({
-        where: { applicationStepId },
+        where: { applicationTrackStepId:applicationStepId },
         data: {
             description:description,
             remarks:remarks,
