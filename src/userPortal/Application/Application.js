@@ -851,22 +851,33 @@ router.get("/my-services/:userId", async (req, res) => {
   
   router.put("/staff/update/applicationstep", async (req, res) => {
     try {
-      const { applicationStepId,status,description,remarks} = req.body;
+      const { applicationTrackStepId,status,description,remarks} = req.body;
+
+      // 🛑 Validation
+    if (!applicationTrackStepId) {
+        return res.status(400).json({
+          success: false,
+          message: "applicationTrackStepId is required",
+        });
+      }
   
       const step = await prisma.applicationTrackStep.update({
-        where: { applicationTrackStepId:applicationStepId },
+        where: { applicationTrackStepId },
         data: {
             description:description,
             remarks:remarks,
             status: status,
         },
       });
+
+
   
       res.json({
         success: true,
         step,
       });
     } catch (error) {
+        console.log(error)
       res.status(500).json({
         success: false,
         message: "Unable to start step",
