@@ -809,7 +809,7 @@ router.get("/my-services/:userId", async (req, res) => {
           
           bundle: true,
   // 🔥 IMPORTANT: STEP TRACKING
-  trackSteps: {
+  applicationTrackStep: {
     orderBy: {
     order: "asc",
     },
