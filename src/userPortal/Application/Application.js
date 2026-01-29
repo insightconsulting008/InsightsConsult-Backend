@@ -100,14 +100,18 @@ router.get("/my-services/:userId", async (req, res) => {
       where: { userId: userId},
       include: {
         service: true,
-      
         
         serviceBundle: {
             include: {
               services: true,
             },
           },
-        application: true,
+        application: {
+            include:{
+                applicationTrackStep:true
+            }
+        }
+        
       },
     });
   
@@ -847,13 +851,16 @@ router.get("/my-services/:userId", async (req, res) => {
   
   router.put("/staff/update/applicationstep", async (req, res) => {
     try {
-      const { stepId } = req.body;
+      const { stepId,status,description,updatedBy,remarks} = req.body;
   
       const step = await prisma.applicationTrackStep.update({
         where: { stepId },
         data: {
-          status: "IN_PROGRESS",
-          startedAt: new Date(),
+            description:description,
+            updatedBy:updatedBy,
+            remarks:remarks,
+            status: status,
+            startedAt: new Date(),
         },
       });
   
