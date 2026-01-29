@@ -851,16 +851,14 @@ router.get("/my-services/:userId", async (req, res) => {
   
   router.put("/staff/update/applicationstep", async (req, res) => {
     try {
-      const { applicationStepId,status,description,updatedBy,remarks} = req.body;
+      const { applicationStepId,status,description,remarks} = req.body;
   
       const step = await prisma.applicationTrackStep.update({
         where: { applicationStepId },
         data: {
             description:description,
-            updatedBy:updatedBy,
             remarks:remarks,
             status: status,
-
         },
       });
   
