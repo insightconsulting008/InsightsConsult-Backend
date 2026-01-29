@@ -860,7 +860,7 @@ router.get("/my-services/:userId", async (req, res) => {
             updatedBy:updatedBy,
             remarks:remarks,
             status: status,
-            startedAt: new Date(),
+
         },
       });
   
