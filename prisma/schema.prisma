@@ -48,6 +48,22 @@ enum Frequency {
   YEARLY
 }
 
+enum StepStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  ERROR
+}
+
+enum ApplicationStatus {
+  PENDING
+  ASSIGNED
+  PROCESSING
+  REASSIGNED
+  COMPLETED
+  REJECTED
+}
+
 model User {
   userId      String    @id @unique @default(cuid())
   name        String
@@ -223,7 +239,7 @@ model ServiceTrackStep {
   title  String
   order  Int
   description String
-
+  isCompleted Boolean @default(false) 
 
   // relation
   serviceId String
@@ -237,7 +253,7 @@ model ServiceBundle {
   name         String
   description  String?
   
-   // Pricing 
+  // Pricing 
   bundlePrice Int 
   bundleOfferPrice Int?
   isGstApplicable Boolean @default(true)
@@ -284,6 +300,27 @@ model Application {
   updatedAt     DateTime          @updatedAt
 }
 
+model ApplicationTrackStep {
+  applicationTrackStepId String @id @default(cuid())
+
+  title       String
+  order       Int
+  description String?
+  updatedBy     String? 
+  remarks       String?      // Optional comments or notes
+
+  status StepStatus @default(PENDING)
+
+  // relation
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [applicationId])
+
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
 model ServicePeriod {
   periodId String @id @default(cuid())
 
@@ -315,37 +352,3 @@ model ServiceDocument {
   createdAt DateTime @default(now())
 }
 
-
-model ApplicationTrackStep {
-  trackId       String      @id @default(cuid())
-  title         String
-  order         Int
-  completed     Boolean      @default(false)
-  updatedBy     String? 
-  remarks       String?      // Optional comments or notes
-  status       StepStatus @default(PENDING)
-
-  applicationId String
-  application   Application @relation(fields: [applicationId], references: [applicationId])
-
-  createdAt     DateTime    @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-
-
-enum StepStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  ERROR
-}
-
-enum ApplicationStatus {
-  PENDING
-  ASSIGNED
-  PROCESSING
-  REASSIGNED
-  COMPLETED
-  REJECTED
-}

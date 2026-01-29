@@ -485,6 +485,31 @@ if (!myService) {
             status: "PENDING",
           },
         });
+
+        if (service) {
+            const serviceSteps = await prisma.serviceTrackStep.findMany({
+            where: {
+            serviceId: service.serviceId,
+            },
+            orderBy: {
+            order: "asc",
+            },
+            });
+            
+            
+            if (serviceSteps.length > 0) {
+            await prisma.applicationTrackStep.createMany({
+            data: serviceSteps.map((step) => ({
+            title: step.title,
+            description: step.description,
+            order: step.order,
+            applicationTrackStepId: application.applicationId,
+            status: "PENDING",
+            })),
+            });
+            }
+            }
+
   
 // Create recurring periods
 if (service && service.serviceType === "RECURRING") {
@@ -785,10 +810,78 @@ if (service && service.serviceType === "RECURRING") {
   });
   
   
-
+  router.put("/staff/step/start", async (req, res) => {
+    try {
+      const { stepId } = req.body;
+  
+      const step = await prisma.applicationTrackStep.update({
+        where: { stepId },
+        data: {
+          status: "IN_PROGRESS",
+          startedAt: new Date(),
+        },
+      });
+  
+      res.json({
+        success: true,
+        step,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Unable to start step",
+      });
+    }
+  });
   
   
+  router.put("/staff/step/complete", async (req, res) => {
+    try {
+      const { stepId } = req.body;
   
+      // 1️⃣ Complete the step
+      const completedStep = await prisma.applicationTrackStep.update({
+        where: { stepId },
+        data: {
+          status: "COMPLETED",
+          completedAt: new Date(),
+        },
+      });
+  
+      // 2️⃣ Check if any step is pending
+      const pendingSteps = await prisma.applicationTrackStep.count({
+        where: {
+          applicationId: completedStep.applicationId,
+          status: {
+            not: "COMPLETED",
+          },
+        },
+      });
+  
+      // 3️⃣ Auto complete application
+      if (pendingSteps === 0) {
+        await prisma.application.update({
+          where: {
+            applicationId: completedStep.applicationId,
+          },
+          data: {
+            status: "COMPLETED",
+          },
+        });
+      }
+  
+      res.json({
+        success: true,
+        applicationCompleted: pendingSteps === 0,
+      });
+    } catch (error) {
+      console.error("Complete step error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Unable to complete step",
+      });
+    }
+  });
   
   
   
