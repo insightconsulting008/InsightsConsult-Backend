@@ -845,7 +845,7 @@ router.get("/my-services/:userId", async (req, res) => {
   });
   
   
-  router.put("/staff/step/start", async (req, res) => {
+  router.put("/staff/update/applicationstep", async (req, res) => {
     try {
       const { stepId } = req.body;
   
