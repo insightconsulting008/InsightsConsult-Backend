@@ -329,9 +329,9 @@ router.get("/my-services/:userId", async (req, res) => {
           },
         });
 
-        console.log("jarom",application)
+        // console.log("jarom",application)
 
-
+        if (service.serviceType === "ONE_TIME") {
         const serviceSteps = await prisma.serviceTrackStep.findMany({
             where: { serviceId },
             orderBy: { order: "asc" },
@@ -349,7 +349,7 @@ router.get("/my-services/:userId", async (req, res) => {
             })),
             });
             }
-
+        }
    
 
         /* ---------------------------------------------------
@@ -400,6 +400,10 @@ router.get("/my-services/:userId", async (req, res) => {
             periods.push({
               applicationId: application.applicationId,
               periodLabel: label,
+              startDate: periodDate,
+              endDate: new Date(
+              periodDate.getFullYear(),
+              periodDate.getMonth() + monthGap,0),
               status: "PENDING",
             });
           }
@@ -416,6 +420,32 @@ router.get("/my-services/:userId", async (req, res) => {
           where: { myServiceId },
           data: { status: "IN_PROGRESS" },
         });
+
+ // 2️⃣ Fetch them back (needed because createMany doesn't return IDs)
+ const savedPeriods = await prisma.servicePeriod.findMany({
+    where: { applicationId: application.applicationId },
+  });
+
+  // 3️⃣ Get step template
+  const serviceSteps = await prisma.serviceTrackStep.findMany({
+    where: { serviceId },
+    orderBy: { order: "asc" },
+  });
+
+  // 4️⃣ Create PeriodSteps for EACH period
+  for (const period of savedPeriods) {
+    await prisma.periodStep.createMany({
+      data: serviceSteps.map((step) => ({
+        ServicePeriodId: period.ServicePeriodId,
+        title: step.title,
+        description: step.description,
+        order: step.order,
+        status: "PENDING",
+      })),
+    });
+  }
+
+        
   
         /* ---------------------------------------------------
          ✅ Final Response
@@ -799,6 +829,7 @@ router.get("/my-services/:userId", async (req, res) => {
     }
   });
 
+
   router.get("/staff/:employeeId/application/:applicationId", async (req, res) => {
     try {
       const { employeeId, applicationId } = req.params;
@@ -884,55 +915,8 @@ router.get("/my-services/:userId", async (req, res) => {
       });
     }
   });
-  
-  
-  router.put("/staff/step/complete", async (req, res) => {
-    try {
-      const { stepId } = req.body;
-  
-      // 1️⃣ Complete the step
-      const completedStep = await prisma.applicationTrackStep.update({
-        where: { stepId },
-        data: {
-          status: "COMPLETED",
-          completedAt: new Date(),
-        },
-      });
-  
-      // 2️⃣ Check if any step is pending
-      const pendingSteps = await prisma.applicationTrackStep.count({
-        where: {
-          applicationId: completedStep.applicationId,
-          status: {
-            not: "COMPLETED",
-          },
-        },
-      });
-  
-      // 3️⃣ Auto complete application
-      if (pendingSteps === 0) {
-        await prisma.application.update({
-          where: {
-            applicationId: completedStep.applicationId,
-          },
-          data: {
-            status: "COMPLETED",
-          },
-        });
-      }
-  
-      res.json({
-        success: true,
-        applicationCompleted: pendingSteps === 0,
-      });
-    } catch (error) {
-      console.error("Complete step error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Unable to complete step",
-      });
-    }
-  });
+   
+
   
   
   

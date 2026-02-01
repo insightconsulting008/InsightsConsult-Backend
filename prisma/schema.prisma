@@ -288,7 +288,7 @@ model Application {
 
   // Dynamic form data (label, type, required)
   formData      Json?
-    adminNote String?
+  adminNote String?
 
   status        ApplicationStatus   @default(PENDING)
 
@@ -306,8 +306,8 @@ model ApplicationTrackStep {
   title       String
   order       Int
   description String?
-  updatedBy     String? 
   remarks       String?      // Optional comments or notes
+  updatedBy     String? 
 
   status StepStatus @default(PENDING)
 
@@ -322,24 +322,53 @@ model ApplicationTrackStep {
 
 
 model ServicePeriod {
-  periodId String @id @default(cuid())
+  servicePeriodId String @id @default(cuid())
 
   applicationId String
   application   Application @relation(fields: [applicationId], references: [applicationId])
 
   periodLabel String // Jan 2025, Feb 2025
-  status   String? //PeriodStatus // PENDING | USER_UPLOADED | STAFF_UPLOADED | COMPLETED
+  startDate   DateTime   // 🔥 NEW
+  endDate     DateTime   // 🔥 NEW
+  isLocked    Boolean    @default(false)
+  status ApplicationStatus @default(PENDING)
 
+  
+  periodStep PeriodStep[]
   serviceDocument ServiceDocument[]
 
   createdAt DateTime @default(now())
 }
 
+model PeriodStep {
+  periodStepId String @id @default(cuid())
+
+  servicePeriodId String
+  servicePeriod   ServicePeriod @relation(fields: [servicePeriodId], references: [servicePeriodId])
+
+  title       String
+  order       Int
+  description String?
+  remarks     String?
+  updatedBy   String?
+
+  status StepStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+
+}
+
+
+
+
+
 model ServiceDocument {
   documentId String @id @default(cuid())
 
-  periodId String
-  servicePeriod   ServicePeriod @relation(fields: [periodId], references: [periodId])
+  servicePeriodId String
+  servicePeriod   ServicePeriod @relation(fields: [servicePeriodId], references: [servicePeriodId])
 
   uploadedBy String // user | staff
   documentType String // bill | challan | gst_return | certificate
