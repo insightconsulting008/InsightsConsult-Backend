@@ -405,6 +405,7 @@ router.get("/my-services/:userId", async (req, res) => {
               periodDate.getFullYear(),
               periodDate.getMonth() + monthGap,0),
               status: "PENDING",
+              isLocked: i === 0 ? false : true,isLocked: i === 0 ? false : true,
             });
           }
   
@@ -798,7 +799,7 @@ router.get("/my-services/:userId", async (req, res) => {
   
           servicePeriod: {
             select: {
-              periodId: true,
+                servicePeriodId: true,
             },
           },
         },
@@ -855,6 +856,11 @@ router.get("/my-services/:userId", async (req, res) => {
             orderBy: {
               createdAt: "asc",
             },
+            include: { // 🟢 ADDED (so staff sees monthly steps)
+                periodStep: {
+                  orderBy: { order: "asc" },
+                },
+              },
           },
         },
       });
@@ -898,6 +904,7 @@ router.get("/my-services/:userId", async (req, res) => {
             description:description,
             remarks:remarks,
             status: status,
+            updatedAt: new Date(), // 🟢 ADDED
         },
       });
 

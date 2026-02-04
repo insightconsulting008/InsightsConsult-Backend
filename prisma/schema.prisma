@@ -307,7 +307,7 @@ model ApplicationTrackStep {
   order       Int
   description String?
   remarks       String?      // Optional comments or notes
-  updatedBy     String? 
+  updatedById     String? 
 
   status StepStatus @default(PENDING)
 
@@ -320,7 +320,6 @@ model ApplicationTrackStep {
   updatedAt DateTime @updatedAt
 }
 
-
 model ServicePeriod {
   servicePeriodId String @id @default(cuid())
 
@@ -331,7 +330,10 @@ model ServicePeriod {
   startDate   DateTime   // 🔥 NEW
   endDate     DateTime   // 🔥 NEW
   isLocked    Boolean    @default(false)
-  status ApplicationStatus @default(PENDING)
+  status ApplicationStatus @default(PENDING) 
+  statusUpdatedAt DateTime @default(now()) // 🟢 ADDED
+
+  completionPercent Int @default(0)        // 🟢 ADDED
 
   
   periodStep PeriodStep[]
@@ -356,8 +358,6 @@ model PeriodStep {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-
 }
 
 
