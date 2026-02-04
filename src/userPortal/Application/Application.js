@@ -437,7 +437,7 @@ router.get("/my-services/:userId", async (req, res) => {
   for (const period of savedPeriods) {
     await prisma.periodStep.createMany({
       data: serviceSteps.map((step) => ({
-        ServicePeriodId: period.ServicePeriodId,
+        servicePeriodId: period.servicePeriodId,
         title: step.title,
         description: step.description,
         order: step.order,
