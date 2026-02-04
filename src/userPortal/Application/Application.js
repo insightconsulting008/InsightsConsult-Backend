@@ -886,42 +886,66 @@ router.get("/my-services/:userId", async (req, res) => {
   });
   
   
-  router.put("/staff/update/applicationstep", async (req, res) => {
+  router.put("/staff/update/step", async (req, res) => {
     try {
-      const { applicationTrackStepId,status,description,remarks} = req.body;
-
-      // 🛑 Validation
-    if (!applicationTrackStepId) {
+      const {
+        applicationTrackStepId,
+        periodStepId,
+        status,
+        description,
+        remarks,
+      } = req.body;
+  
+      // ❌ Must provide at least one step ID
+      if (!applicationTrackStepId && !periodStepId) {
         return res.status(400).json({
           success: false,
-          message: "applicationTrackStepId is required",
+          message: "Step ID is required",
         });
       }
   
-      const step = await prisma.applicationTrackStep.update({
-        where: { applicationTrackStepId },
-        data: {
-            description:description,
-            remarks:remarks,
-            status: status,
-            updatedAt: new Date(), // 🟢 ADDED
-        },
-      });
-
-
+      let updatedStep;
   
-      res.json({
+      // 🟢 ONE-TIME STEP UPDATE
+      if (applicationTrackStepId) {
+        updatedStep = await prisma.applicationTrackStep.update({
+          where: { applicationTrackStepId },
+          data: {
+            status,
+            description,
+            remarks,
+            updatedAt: new Date(),
+          },
+        });
+      }
+  
+      // 🔵 RECURRING PERIOD STEP UPDATE
+      if (periodStepId) {
+        updatedStep = await prisma.periodStep.update({
+          where: { periodStepId },
+          data: {
+            status,
+            description,
+            remarks,
+            updatedAt: new Date(),
+          },
+        });
+      }
+  
+      return res.json({
         success: true,
-        step,
+        message: "Step updated successfully",
+        step: updatedStep,
       });
     } catch (error) {
-        console.log(error)
+      console.error("Step update error:", error);
       res.status(500).json({
         success: false,
-        message: "Unable to start step",
+        message: "Unable to update step",
       });
     }
   });
+  
    
 
   
