@@ -200,10 +200,20 @@ router.get("/my-services/:userId", async (req, res) => {
               name: true,
             },
           },
+
+             // 🟢 ONE-TIME SERVICE STEPS (important if not recurring)
+        applicationTrackStep: {                 // 🟢 ADDED
+            orderBy: { order: "asc" },            // 🟢 ADDED
+          },
           servicePeriod: {
             orderBy: {
               createdAt: "asc",
             },
+            include: {
+                periodStep: {              // 🟢 ADDED — this brings monthly steps
+                  orderBy: { order: "asc" } // 🟢 ADDED — steps in correct order
+                }
+              }
           },
         },
       });
