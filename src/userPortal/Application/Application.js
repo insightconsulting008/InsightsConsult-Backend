@@ -152,7 +152,7 @@ router.get("/my-services/:userId", async (req, res) => {
   
           servicePeriod: {
             select: {
-              periodId: true, // only count purpose
+                periodStep: true, // only count purpose
             },
           },
         },
