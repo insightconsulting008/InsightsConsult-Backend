@@ -776,7 +776,7 @@ router.get("/my-services/:userId", async (req, res) => {
 
 
 
-  
+
 //Staff
   
   router.get("/staff/:employeeId/applications", async (req, res) => {
@@ -909,22 +909,25 @@ router.get("/my-services/:userId", async (req, res) => {
         remarks,
       } = req.body;
   
-      // ❌ Must provide at least one step ID
+      // must send at least one id
       if (!applicationTrackStepId && !periodStepId) {
         return res.status(400).json({
           success: false,
           message: "Step ID is required",
         });
       }
+
   
       let updatedStep;
   
+      // ===============================
       // 🟢 ONE-TIME STEP UPDATE
+      // ===============================
       if (applicationTrackStepId) {
         updatedStep = await prisma.applicationTrackStep.update({
           where: { applicationTrackStepId },
           data: {
-            status,
+            status: status,
             description,
             remarks,
             updatedAt: new Date(),
@@ -932,15 +935,53 @@ router.get("/my-services/:userId", async (req, res) => {
         });
       }
   
-      // 🔵 RECURRING PERIOD STEP UPDATE
+      // ===============================
+      // 🔵 PERIOD STEP UPDATE
+      // ===============================
       if (periodStepId) {
+        
         updatedStep = await prisma.periodStep.update({
           where: { periodStepId },
           data: {
-            status,
+            status: status,
             description,
             remarks,
             updatedAt: new Date(),
+          },
+          select: {
+            periodStepId: true,
+            servicePeriodId: true,
+          },
+        });
+  
+        const servicePeriodId = updatedStep.servicePeriodId;
+  
+        // ---------- calculate progress ----------
+        const totalSteps = await prisma.periodStep.count({
+          where: { servicePeriodId },
+        });
+  
+        const completedSteps = await prisma.periodStep.count({
+          where: {
+            servicePeriodId,
+            status: "COMPLETED",
+          },
+        });
+  
+  
+        const percentage = totalSteps === 0 ? 0  : Math.round((completedSteps / totalSteps) * 100);
+  
+        // ---------- decide period status ----------
+        let periodStatus = "PENDING";
+        if (percentage === 100) periodStatus = "COMPLETED";
+        else if (percentage > 0) periodStatus = "PROCESSING";
+  
+        // ---------- update parent period ----------
+        await prisma.servicePeriod.update({
+          where: { servicePeriodId },
+          data: {
+            completionPercent: percentage,
+            status: periodStatus,
           },
         });
       }
@@ -950,6 +991,7 @@ router.get("/my-services/:userId", async (req, res) => {
         message: "Step updated successfully",
         step: updatedStep,
       });
+  
     } catch (error) {
       console.error("Step update error:", error);
       res.status(500).json({
@@ -960,17 +1002,80 @@ router.get("/my-services/:userId", async (req, res) => {
   });
   
    
+//CHUMAA EADUTHU VACHU ERUKEN
+  // router.put("/staff/update/step", async (req, res) => {
+  //   try {
+  //     const {
+  //       applicationTrackStepId,
+  //       periodStepId,
+  //       status,
+  //       description,
+  //       remarks,
+  //     } = req.body;
+  
+  //     // ❌ Must provide at least one step ID
+  //     if (!applicationTrackStepId && !periodStepId) {
+  //       return res.status(400).json({
+  //         success: false,
+  //         message: "Step ID is required",
+  //       });
+  //     }
+  
+  //     let updatedStep;
+  
+  //     // 🟢 ONE-TIME STEP UPDATE
+  //     if (applicationTrackStepId) {
+  //       updatedStep = await prisma.applicationTrackStep.update({
+  //         where: { applicationTrackStepId },
+  //         data: {
+  //           status,
+  //           description,
+  //           remarks,
+  //           updatedAt: new Date(),
+  //         },
+  //       });
+  //     }
+  
+  //     // 🔵 RECURRING PERIOD STEP UPDATE
+  //     if (periodStepId) {
+  //       updatedStep = await prisma.periodStep.update({
+  //         where: { periodStepId },
+  //         data: {
+  //           status,
+  //           description,
+  //           remarks,
+  //           updatedAt: new Date(),
+  //         },
+  //         select: {
+  //           periodStepId: true,
+  //           servicePeriodId: true,
+  //         },
+  //       });
+  //     }
 
-  
-  
-  
-  
-  
-  
-  
+  //   console.log(updatedStep)
 
+  //   const totalSteps = await prisma.periodStep.count({
+  //     where: {servicePeriodId : updatedStep.servicePeriodId },
+  //   });
 
+    
 
+  //   console.log(totalSteps)
+  
+  //     return res.json({
+  //       success: true,
+  //       message: "Step updated successfully",
+  //       step: updatedStep,
+  //     });
+  //   } catch (error) {
+  //     console.error("Step update error:", error);
+  //     res.status(500).json({
+  //       success: false,
+  //       message: "Unable to update step",
+  //     });
+  //   }
+  // });
   
 
 module.exports = router

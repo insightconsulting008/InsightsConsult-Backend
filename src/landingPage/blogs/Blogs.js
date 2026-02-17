@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../../prisma/prisma");
-const config = require("../../utils/config")
+
 
 function makeSlug(text) {
     return text
@@ -149,5 +149,6 @@ router.put("/blogs/:blogId", async (req, res) => {
       res.status(500).json({ error: "Delete failed" });
     }
   });
+
 
 module.exports = router
