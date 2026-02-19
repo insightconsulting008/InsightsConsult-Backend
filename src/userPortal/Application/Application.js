@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const prisma = require("../../prisma/prisma");
 const config = require("../../utils/config")
-const {applicationImgUpload} = require('../../utils/multer')
+const {applicationImgUpload,myDocuments} = require('../../utils/multer')
 const{ authenticate,authorizeRoles } = require("../../authMiddleware/authMiddleware")
 
 
@@ -1172,10 +1172,10 @@ router.get("/user/:applicationTrackStepId/documents", async (req, res) => {
 // ------------------------------
 // 2️⃣ User submits document or text
 // ------------------------------
-router.put("/user/upload-document/:documentId", async (req, res) => {
+router.put("/user/upload-document/:documentId",myDocuments.single("file"), async (req, res) => {
   try {
     const { documentId } = req.params;
-    const { fileUrl, textValue } = req.body;
+    const { textValue } = req.body;
 
     if (!fileUrl && !textValue) {
       return res.status(400).json({
@@ -1202,6 +1202,8 @@ router.put("/user/upload-document/:documentId", async (req, res) => {
         message: "Verified document cannot be modified"
       });
     }
+
+    const fileUrl = req.file?.location || null;
 
     const doc = await prisma.serviceDocument.update({
       where: { documentId },
