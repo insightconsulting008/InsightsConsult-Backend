@@ -1085,25 +1085,50 @@ router.get("/my-services/:userId", async (req, res) => {
 // ------------------------------
 router.post("/staff/request-document", async (req, res) => {
   try {
-    const { applicationTrackStepId, requestedBy, documentType, remark } = req.body;
+    const {
+      applicationTrackStepId,
+      servicePeriodId,
+      requestedBy,
+      documentType,
+      remark
+    } = req.body;
+
+    // ✅ Must provide ONE parent
+    if (!applicationTrackStepId && !servicePeriodId) {
+      return res.status(400).json({
+        success: false,
+        message: "applicationTrackStepId OR servicePeriodId required"
+      });
+    }
+
+    // ❌ Prevent both at same time (clean DB design)
+    if (applicationTrackStepId && servicePeriodId) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide only one parent id"
+      });
+    }
 
     const doc = await prisma.serviceDocument.create({
       data: {
         applicationTrackStepId,
+        servicePeriodId,
         requestedBy,
         documentType,
         remark,
         status: "PENDING",
-        version: 0,
-      },
+        version: 0
+      }
     });
 
     res.json({ success: true, document: doc });
+
   } catch (error) {
     console.error("Request document error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
 // ------------------------------
 // 2️⃣ User submits document or text
 // ------------------------------
