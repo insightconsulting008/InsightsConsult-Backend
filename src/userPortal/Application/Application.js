@@ -1129,6 +1129,24 @@ router.post("/staff/request-document", async (req, res) => {
   }
 });
 
+router.get("/user/:applicationTrackStepId/documents", async (req, res) => {
+  try {
+    const { applicationTrackStepId } = req.params;
+
+    const docs = await prisma.serviceDocument.findMany({
+      where: {
+        applicationTrackStepId,
+        status: "PENDING"
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    res.json({ success: true, documents: docs });
+  } catch (error) {
+    console.error("Get pending documents error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
 // ------------------------------
 // 2️⃣ User submits document or text
 // ------------------------------
@@ -1136,6 +1154,32 @@ router.put("/user/upload-document/:documentId", async (req, res) => {
   try {
     const { documentId } = req.params;
     const { fileUrl, textValue } = req.body;
+
+    if (!fileUrl && !textValue) {
+      return res.status(400).json({
+        success: false,
+        message: "fileUrl or textValue required"
+      });
+    }
+
+    const existing = await prisma.serviceDocument.findUnique({
+      where: { documentId }
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: "Document not found"
+      });
+    }
+
+    // optional: lock verified docs
+    if (existing.status === "VERIFIED") {
+      return res.status(400).json({
+        success: false,
+        message: "Verified document cannot be modified"
+      });
+    }
 
     const doc = await prisma.serviceDocument.update({
       where: { documentId },
@@ -1166,9 +1210,28 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid status" });
     }
 
+    
+    const existing = await prisma.serviceDocument.findUnique({
+      where: { documentId }
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: "Document not found"
+      });
+    }
+
+    if (!existing.fileUrl && !existing.textValue) {
+      return res.status(400).json({
+        success: false,
+        message: "User has not uploaded document yet"
+      });
+    }
+
     const doc = await prisma.serviceDocument.update({
       where: { documentId },
-      data: { status, remark },
+      data: { status, remark, uploadedBy:"staff" },
     });
 
     res.json({ success: true, document: doc });
@@ -1185,35 +1248,36 @@ router.get("/application/:applicationId/documents", async (req, res) => {
     const { applicationId } = req.params;
 
     const docs = await prisma.serviceDocument.findMany({
-      where: { applicationId },
-      orderBy: { createdAt: "asc" },
+      where: {
+        OR: [
+          {
+            applicationTrackStep: {
+              applicationId
+            }
+          },
+          {
+            servicePeriod: {
+              applicationId
+            }
+          }
+        ]
+      },
+      include: {
+        applicationTrackStep: true,
+        servicePeriod: true
+      },
+      orderBy: { createdAt: "asc" }
     });
 
     res.json({ success: true, documents: docs });
+
   } catch (error) {
     console.error("List documents error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
-router.get("/user/:applicationTrackStepId/documents", async (req, res) => {
-  try {
-    const { applicationTrackStepId } = req.params;
 
-    const docs = await prisma.serviceDocument.findMany({
-      where: {
-        applicationTrackStepId,
-        status: "PENDING"
-      },
-      orderBy: { createdAt: "asc" },
-    });
-
-    res.json({ success: true, documents: docs });
-  } catch (error) {
-    console.error("Get pending documents error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
 
 
 
