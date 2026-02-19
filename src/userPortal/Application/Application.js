@@ -1085,11 +1085,11 @@ router.get("/my-services/:userId", async (req, res) => {
 // ------------------------------
 router.post("/staff/request-document", async (req, res) => {
   try {
-    const { applicationId, requestedBy, documentType, remark } = req.body;
+    const { applicationTrackStepId, requestedBy, documentType, remark } = req.body;
 
     const doc = await prisma.serviceDocument.create({
       data: {
-        applicationId,
+        applicationTrackStepId,
         requestedBy,
         documentType,
         remark,
