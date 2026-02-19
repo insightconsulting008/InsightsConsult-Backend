@@ -23,7 +23,8 @@ app.use(cookieParser());
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://insightsconsult-frontend.onrender.com"
+    "https://insightsconsult-frontend.onrender.com",
+    "http://localhost:5174",
   ], // frontend URL
   credentials: true
 }));

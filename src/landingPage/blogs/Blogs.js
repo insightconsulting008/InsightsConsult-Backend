@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../../prisma/prisma");
+const {blogImgUpload} = require("../../utils/multer")
 
 
 function makeSlug(text) {
@@ -12,15 +13,38 @@ function makeSlug(text) {
   }
 
 /* ---------------- CREATE BLOG ---------------- */
-router.post("/blogs", async (req, res) => {
+router.post("/blogs", blogImgUpload.fields([
+    { name: "coverImage", maxCount: 1 },
+    { name: "contentImages", maxCount: 20 },
+  ]), async (req, res) => {
     try {
-      const { title, description, content, author, coverImage, meta, published } = req.body;
+      const { title, description, content, author, meta, published } = req.body;
   
       if (!title || !content) {
         return res.status(400).json({ message: "Title and content required" });
       }
   
       const slug = makeSlug(title) + "-" + Date.now();
+
+            // ✅ cover image (may or may not exist)
+            const coverImage =req.files?.coverImage?.[0]?.location ?? null;
+    
+          // ✅ content images (may be empty)
+          const contentImages =req.files?.contentImages?.map(file => file.location) ?? [];
+    
+          let finalContent = content;
+    
+          // replace only if images exist
+          if (contentImages.length > 0) {
+            contentImages.forEach((url, index) => {
+              finalContent = finalContent.replace(
+                `{{img${index}}}`,
+                `<img src="${url}" />`
+              );
+            });
+          }
+
+          const isPublished = published === "true" || published === true;
   
       const blog = await prisma.blog.create({
         data: {
@@ -29,9 +53,9 @@ router.post("/blogs", async (req, res) => {
           content,
           author,
           coverImage,
-          meta,
+          meta:meta ? JSON.parse(meta) : null,
           slug,
-          published: published ?? true
+          published: isPublished 
         }
       });
   

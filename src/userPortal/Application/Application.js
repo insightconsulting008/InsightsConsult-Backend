@@ -1078,4 +1078,118 @@ router.get("/my-services/:userId", async (req, res) => {
   // });
   
 
+
+//document request
+// ------------------------------
+// 1️⃣ Staff requests a document (text or file)
+// ------------------------------
+router.post("/staff/request-document", async (req, res) => {
+  try {
+    const { applicationId, requestedBy, documentType, remark } = req.body;
+
+    const doc = await prisma.serviceDocument.create({
+      data: {
+        applicationId,
+        requestedBy,
+        documentType,
+        remark,
+        status: "PENDING",
+        version: 0,
+      },
+    });
+
+    res.json({ success: true, document: doc });
+  } catch (error) {
+    console.error("Request document error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+// ------------------------------
+// 2️⃣ User submits document or text
+// ------------------------------
+router.put("/user/upload-document/:documentId", async (req, res) => {
+  try {
+    const { documentId } = req.params;
+    const { fileUrl, textValue } = req.body;
+
+    const doc = await prisma.serviceDocument.update({
+      where: { documentId },
+      data: {
+        fileUrl,
+        textValue,
+        uploadedBy: "user",
+        version: { increment: 1 },
+        status: "PENDING", // waiting for staff verification
+      },
+    });
+
+    res.json({ success: true, document: doc });
+  } catch (error) {
+    console.error("User upload document error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+// ------------------------------
+// 3️⃣ Staff verifies or rejects document/text
+// ------------------------------
+router.put("/staff/review-document/:documentId", async (req, res) => {
+  try {
+    const { documentId } = req.params;
+    const { status, remark } = req.body; // VERIFIED or REJECTED
+
+    if (!["VERIFIED", "REJECTED"].includes(status)) {
+      return res.status(400).json({ success: false, message: "Invalid status" });
+    }
+
+    const doc = await prisma.serviceDocument.update({
+      where: { documentId },
+      data: { status, remark },
+    });
+
+    res.json({ success: true, document: doc });
+  } catch (error) {
+    console.error("Review document error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+// ------------------------------
+// 4️⃣ Optional: List all document requests for an application
+// ------------------------------
+router.get("/application/:applicationId/documents", async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    const docs = await prisma.serviceDocument.findMany({
+      where: { applicationId },
+      orderBy: { createdAt: "asc" },
+    });
+
+    res.json({ success: true, documents: docs });
+  } catch (error) {
+    console.error("List documents error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+router.get("/user/:applicationTrackStepId/documents", async (req, res) => {
+  try {
+    const { applicationTrackStepId } = req.params;
+
+    const docs = await prisma.serviceDocument.findMany({
+      where: {
+        applicationTrackStepId,
+        status: "PENDING"
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    res.json({ success: true, documents: docs });
+  } catch (error) {
+    console.error("Get pending documents error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
+
 module.exports = router

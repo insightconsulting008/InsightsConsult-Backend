@@ -329,6 +329,7 @@ model ApplicationTrackStep {
   applicationId String
   application   Application @relation(fields: [applicationId], references: [applicationId])
 
+  serviceDocument   ServiceDocument[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -375,22 +376,33 @@ model PeriodStep {
 }
 
 
-
-
 model ServiceDocument {
   documentId String @id @default(cuid())
 
-  servicePeriodId String
-  servicePeriod   ServicePeriod @relation(fields: [servicePeriodId], references: [servicePeriodId])
+  applicationTrackStepId  String?
+  applicationTrackStep   ApplicationTrackStep? @relation(fields: [applicationTrackStepId], references: [applicationTrackStepId])
 
-  uploadedBy String // user | staff
+  servicePeriodId String?
+  servicePeriod   ServicePeriod? @relation(fields: [servicePeriodId], references: [servicePeriodId])
+
+  requestedBy String?  
+  uploadedBy  String? // user | staff
+
   documentType String // bill | challan | gst_return | certificate
 
-  fileUrl String
+  fileUrl String?
+  textValue    String? 
 
-  version Int @default(1) // re-upload increases version
+  version Int @default(0) // re-upload increases version
   remark  String?
+  status       DocumentStatus @default(PENDING)
 
-  createdAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
+enum DocumentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
