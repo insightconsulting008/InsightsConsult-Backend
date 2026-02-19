@@ -1102,7 +1102,8 @@ router.post("/staff/request-document", async (req, res) => {
       servicePeriodId,
       requestedBy,
       documentType,
-      remark
+      remark,
+      inputType 
     } = req.body;
 
     // ✅ Must provide ONE parent
@@ -1121,6 +1122,14 @@ router.post("/staff/request-document", async (req, res) => {
       });
     }
 
+     // ✅ Validate input type
+     if (!["FILE","TEXT"].includes(inputType)) {
+      return res.status(400).json({
+        success:false,
+        message:"inputType must be FILE, TEXT"
+      });
+    }
+
     const doc = await prisma.serviceDocument.create({
       data: {
         applicationTrackStepId,
@@ -1128,6 +1137,7 @@ router.post("/staff/request-document", async (req, res) => {
         requestedBy,
         documentType,
         remark,
+        inputType,     
         status: "PENDING",
         version: 0
       }

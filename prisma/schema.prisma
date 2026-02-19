@@ -389,6 +389,7 @@ model ServiceDocument {
   uploadedBy  String? // user | staff
 
   documentType String // bill | challan | gst_return | certificate
+  inputType  String
 
   fileUrl String?
   textValue    String? 
