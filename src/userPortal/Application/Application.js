@@ -107,12 +107,17 @@ router.get("/my-services/:userId", async (req, res) => {
             },
           },
         application: {
+          
             include:{
-                applicationTrackStep:true,
-                servicePeriod:true,
+                applicationTrackStep:{
+                  include: {
+                    serviceDocument: true,
+                  },
+                },
                 servicePeriod: {
                   include: {
-                    periodStep: true, // ✅ correct nesting
+                    serviceDocument: true, // MUST exist in schema
+                    periodStep: true,
                   },
                 },
                 
