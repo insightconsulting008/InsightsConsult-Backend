@@ -108,7 +108,14 @@ router.get("/my-services/:userId", async (req, res) => {
           },
         application: {
             include:{
-                applicationTrackStep:true
+                applicationTrackStep:true,
+                servicePeriod:true,
+                servicePeriod: {
+                  include: {
+                    periodStep: true, // ✅ correct nesting
+                  },
+                },
+                
             }
         }
         
