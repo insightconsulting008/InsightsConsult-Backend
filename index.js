@@ -13,6 +13,7 @@ const settings = require("./src/paymentSetting/PaymentSetting")
 const {profileUpload,serviceImgUpload} = require("./src/utils/multer")
 const {deleteS3Object} = require("./src/utils/deleteS3Object")
 const blogs = require("./src/landingPage/blogs/Blogs")
+const contact = require("./src/landingPage/contact/Contact")
 
 
 
@@ -48,6 +49,7 @@ app.use("/", authUserRouter);
 app.use("/", userApplicationApply)
 app.use("/", settings)
 app.use("/", blogs)
+app.use("/",contact)
 
 
 

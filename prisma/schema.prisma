@@ -10,6 +10,31 @@ datasource db {
   // directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
+model FormSubmission {
+  formSubmissionId String      @id @default(cuid())
+  formType         String   // enquiry | contact
+
+  firstName        String?
+  lastName         String?
+  fullName         String?
+  email            String?
+  phone            String?
+
+  serviceRequired  String?
+  comments         String?
+  message          String?
+
+  createdAt        DateTime @default(now())
+}
+
+model Notification {
+  notificationId  String      @id @default(cuid())
+  title           String
+  description     String?
+  isRead          Boolean  @default(false)
+  createdAt       DateTime @default(now())
+}
+
 model Blog {
   blogId          String   @id @default(cuid())
   title           String

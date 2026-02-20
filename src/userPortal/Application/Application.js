@@ -1090,67 +1090,66 @@ router.get("/my-services/:userId", async (req, res) => {
   // });
   
 
-
 //document request
 // ------------------------------
 // 1️⃣ Staff requests a document (text or file)
 // ------------------------------
-router.post("/staff/request-document", async (req, res) => {
-  try {
-    const {
-      applicationTrackStepId,
-      servicePeriodId,
-      requestedBy,
-      documentType,
-      remark,
-      inputType 
-    } = req.body;
+// router.post("/staff/request-document", async (req, res) => {
+//   try {
+//     const {
+//       applicationTrackStepId,
+//       servicePeriodId,
+//       requestedBy,
+//       documentType,
+//       remark,
+//       inputType 
+//     } = req.body;
 
-    // ✅ Must provide ONE parent
-    if (!applicationTrackStepId && !servicePeriodId) {
-      return res.status(400).json({
-        success: false,
-        message: "applicationTrackStepId OR servicePeriodId required"
-      });
-    }
+//     // ✅ Must provide ONE parent
+//     if (!applicationTrackStepId && !servicePeriodId) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "applicationTrackStepId OR servicePeriodId required"
+//       });
+//     }
 
-    // ❌ Prevent both at same time (clean DB design)
-    if (applicationTrackStepId && servicePeriodId) {
-      return res.status(400).json({
-        success: false,
-        message: "Provide only one parent id"
-      });
-    }
+//     // ❌ Prevent both at same time (clean DB design)
+//     if (applicationTrackStepId && servicePeriodId) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Provide only one parent id"
+//       });
+//     }
 
-     // ✅ Validate input type
-     if (!["FILE","TEXT"].includes(inputType)) {
-      return res.status(400).json({
-        success:false,
-        message:"inputType must be FILE, TEXT"
-      });
-    }
+//      // ✅ Validate input type
+//      if (!["FILE","TEXT"].includes(inputType)) {
+//       return res.status(400).json({
+//         success:false,
+//         message:"inputType must be FILE, TEXT"
+//       });
+//     }
 
-    const doc = await prisma.serviceDocument.create({
-      data: {
-        applicationTrackStepId,
-        servicePeriodId,
-        requestedBy,
-        documentType,
-        remark,
-        inputType,     
-        status: "PENDING",
-        version: 0,
-        flow: "REQUESTED", // 🟢 ADD
-      }
-    });
+//     const doc = await prisma.serviceDocument.create({
+//       data: {
+//         applicationTrackStepId,
+//         servicePeriodId,
+//         requestedBy,
+//         documentType,
+//         remark,
+//         inputType,     
+//         status: "PENDING",
+//         version: 0,
+//         flow: "REQUESTED", // 🟢 ADD
+//       }
+//     });
 
-    res.json({ success: true, document: doc });
+//     res.json({ success: true, document: doc });
 
-  } catch (error) {
-    console.error("Request document error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
+//   } catch (error) {
+//     console.error("Request document error:", error);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// });
 
 // router.get("/user/:applicationTrackStepId/documents", async (req, res) => {
 //   try {
@@ -1278,98 +1277,6 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// =======================================================
-// 5️⃣ 🟢 NEW — Staff issues FINAL document
-// =======================================================
-router.post(
-  "/staff/issue-document",
-  myDocuments.single("file"),
-  async (req, res) => {
-    try {
-      const {
-        applicationTrackStepId,
-        servicePeriodId,
-        documentType,
-        remark,
-        inputType,
-        issuedBy
-      } = req.body;
-
-      const fileUrl = req.file?.location;
-
-        // ✅ Must provide ONE parent
-        if (!applicationTrackStepId && !servicePeriodId) {
-          return res.status(400).json({
-            success: false,
-            message: "applicationTrackStepId OR servicePeriodId required"
-          });
-        }
-    
-        // ❌ Prevent both at same time (clean DB design)
-        if (applicationTrackStepId && servicePeriodId) {
-          return res.status(400).json({
-            success: false,
-            message: "Provide only one parent id"
-          });
-        }
-    
-         // ✅ Validate input type
-         if (!["FILE","TEXT"].includes(inputType)) {
-          return res.status(400).json({
-            success:false,
-            message:"inputType must be FILE, TEXT"
-          });
-        }
-    
-
-      const doc = await prisma.serviceDocument.create({
-        data: {
-          applicationTrackStepId,
-          servicePeriodId,
-          documentType,
-          inputType,
-          fileUrl,
-          remark,
-          requestedBy: issuedBy,
-          uploadedBy: "staff",
-          flow: "ISSUED",     // 🟢 ADDED
-          status: "VERIFIED",
-          version: 1
-        }
-      });
-
-      res.json({ success: true, document: doc });
-
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ success: false });
-    }
-  }
-);
-
-
 // =======================================================
 // 6️⃣ 🟢 NEW — User downloads issued documents
 // =======================================================
@@ -1393,6 +1300,9 @@ router.post(
 // ------------------------------
 // 4️⃣ Optional: List all document requests for an application
 // ------------------------------
+
+
+
 router.get("/application/:applicationId/documents", async (req, res) => {
   try {
     const { applicationId } = req.params;
@@ -1431,23 +1341,7 @@ router.get("/application/:applicationId/documents", async (req, res) => {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-router.post(
-  "/staff/document",
-  myDocuments.single("file"),
-  async (req, res) => {
+router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
     try {
       const {
         applicationTrackStepId,
