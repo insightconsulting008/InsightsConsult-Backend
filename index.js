@@ -25,6 +25,7 @@ app.use(cors({
     "http://localhost:5173",
     "https://insightsconsult-frontend.onrender.com",
     "http://localhost:5174",
+    "http://localhost:5175",
   ], // frontend URL
   credentials: true
 }));
