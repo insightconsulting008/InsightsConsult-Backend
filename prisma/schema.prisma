@@ -375,7 +375,6 @@ model PeriodStep {
   updatedAt DateTime @updatedAt
 }
 
-
 model ServiceDocument {
   documentId String @id @default(cuid())
 

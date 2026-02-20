@@ -1177,6 +1177,8 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
     const { documentId } = req.params;
     const { textValue } = req.body;
 
+    const fileUrl = req.file?.location || null;
+
     if (!fileUrl && !textValue) {
       return res.status(400).json({
         success: false,
@@ -1203,7 +1205,7 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       });
     }
 
-    const fileUrl = req.file?.location || null;
+   
 
     const doc = await prisma.serviceDocument.update({
       where: { documentId },
