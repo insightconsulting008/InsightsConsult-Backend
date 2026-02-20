@@ -1139,7 +1139,8 @@ router.post("/staff/request-document", async (req, res) => {
         remark,
         inputType,     
         status: "PENDING",
-        version: 0
+        version: 0,
+        flow: "REQUESTED", // 🟢 ADD
       }
     });
 
@@ -1151,27 +1152,30 @@ router.post("/staff/request-document", async (req, res) => {
   }
 });
 
-router.get("/user/:applicationTrackStepId/documents", async (req, res) => {
-  try {
-    const { applicationTrackStepId } = req.params;
+// router.get("/user/:applicationTrackStepId/documents", async (req, res) => {
+//   try {
+//     const { applicationTrackStepId } = req.params;
 
-    const docs = await prisma.serviceDocument.findMany({
-      where: {
-        applicationTrackStepId,
-        status: "PENDING"
-      },
-      orderBy: { createdAt: "asc" },
-    });
+//     const docs = await prisma.serviceDocument.findMany({
+//       where: {
+//         applicationTrackStepId,
+//         status: "PENDING",
+//         flow: "REQUESTED",   // 🟢 ADD
+//       },
+//       orderBy: { createdAt: "asc" },
+//     });
 
-    res.json({ success: true, documents: docs });
-  } catch (error) {
-    console.error("Get pending documents error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
+//     res.json({ success: true, documents: docs });
+//   } catch (error) {
+//     console.error("Get pending documents error:", error);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// });
 // ------------------------------
 // 2️⃣ User submits document or text
 // ------------------------------
+
+
 router.put("/user/upload-document/:documentId",myDocuments.single("file"), async (req, res) => {
   try {
     const { documentId } = req.params;
@@ -1197,6 +1201,8 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       });
     }
 
+   
+
     // optional: lock verified docs
     if (existing.status === "VERIFIED") {
       return res.status(400).json({
@@ -1214,7 +1220,7 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
         textValue,
         uploadedBy: "user",
         version: { increment: 1 },
-        status: "PENDING", // waiting for staff verification
+        status: "FOR_REVIEW", // waiting for staff verification
       },
     });
 
@@ -1232,7 +1238,7 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
     const { documentId } = req.params;
     const { status, remark } = req.body; // VERIFIED or REJECTED
 
-    if (!["VERIFIED", "REJECTED"].includes(status)) {
+    if (!["VERIFIED", "REJECTED","FOR_REVIEW"].includes(status)) {
       return res.status(400).json({ success: false, message: "Invalid status" });
     }
 
@@ -1247,6 +1253,7 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
         message: "Document not found"
       });
     }
+
 
     if (!existing.fileUrl && !existing.textValue) {
       return res.status(400).json({
@@ -1266,6 +1273,105 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// =======================================================
+// 5️⃣ 🟢 NEW — Staff issues FINAL document
+// =======================================================
+router.post(
+  "/staff/issue-document",
+  myDocuments.single("file"),
+  async (req, res) => {
+    try {
+      const {
+        applicationTrackStepId,
+        servicePeriodId,
+        documentType,
+        remark,
+        inputType,
+        issuedBy
+      } = req.body;
+
+      const fileUrl = req.file?.location;
+
+      if (!fileUrl) {
+        return res.status(400).json({
+          success: false,
+          message: "File required"
+        });
+      }
+
+      const doc = await prisma.serviceDocument.create({
+        data: {
+          applicationTrackStepId,
+          servicePeriodId,
+          documentType,
+          inputType,
+          fileUrl,
+          remark,
+          requestedBy: issuedBy,
+          uploadedBy: "staff",
+          flow: "ISSUED",     // 🟢 ADDED
+          status: "VERIFIED",
+          version: 1
+        }
+      });
+
+      res.json({ success: true, document: doc });
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false });
+    }
+  }
+);
+
+
+// =======================================================
+// 6️⃣ 🟢 NEW — User downloads issued documents
+// =======================================================
+// router.get(
+//   "/user/:applicationTrackStepId/issued-documents",
+//   async (req, res) => {
+//     const { applicationTrackStepId } = req.params;
+
+//     const docs = await prisma.serviceDocument.findMany({
+//       where: {
+//         applicationTrackStepId,
+//         flow: "ISSUED"
+//       },
+//       orderBy: { createdAt: "desc" }
+//     });
+
+//     res.json({ success: true, documents: docs });
+//   }
+// );
+
 // ------------------------------
 // 4️⃣ Optional: List all document requests for an application
 // ------------------------------
@@ -1292,7 +1398,10 @@ router.get("/application/:applicationId/documents", async (req, res) => {
         applicationTrackStep: true,
         servicePeriod: true
       },
-      orderBy: { createdAt: "asc" }
+      orderBy:[        
+        { flow: "asc" },   // 🟢 ADDED (better ordering)
+        { createdAt: "asc" }
+      ] 
     });
 
     res.json({ success: true, documents: docs });

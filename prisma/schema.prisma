@@ -384,6 +384,8 @@ model ServiceDocument {
   servicePeriodId String?
   servicePeriod   ServicePeriod? @relation(fields: [servicePeriodId], references: [servicePeriodId])
 
+  flow DocumentFlow @default(REQUESTED)
+
   requestedBy String?  
   uploadedBy  String? // user | staff
 
@@ -403,6 +405,12 @@ model ServiceDocument {
 
 enum DocumentStatus {
   PENDING
+  FOR_REVIEW
   VERIFIED
   REJECTED
+}
+
+enum DocumentFlow {
+  REQUESTED
+  ISSUED
 }
