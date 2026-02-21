@@ -468,6 +468,27 @@ router.get("/my-services/:userId", async (req, res) => {
     });
   }
 
+
+  if (service.documentsRequired === "true") {
+
+    console.log("📄 Auto Document Request Enabled");
+
+    for (const period of savedPeriods) {
+      await prisma.serviceDocument.create({
+        data: {
+          servicePeriodId: period.servicePeriodId,
+          documentType: "sales_report",
+          inputType: "file",
+          flow: "REQUESTED",
+          status: "PENDING",
+          requestedBy: "system",
+        },
+      });
+    }
+
+    console.log("✅ Documents auto-created");
+  }
+
         
   
         /* ---------------------------------------------------
