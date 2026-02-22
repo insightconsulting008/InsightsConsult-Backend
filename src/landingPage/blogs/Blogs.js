@@ -85,15 +85,56 @@ function makeSlug(text) {
   ============================== */
   router.get("/blogs", async (req, res) => {
     try {
-      const blogs = await prisma.blog.findMany({
-        orderBy: [
-          { order: "asc" },
-          { createdAt: "desc" }
-        ],
+      const { search = "", page = 1, limit = 10 } = req.query;
+  
+      const pageNumber = parseInt(page);
+      const pageSize = parseInt(limit);
+      const skip = (pageNumber - 1) * pageSize;
+  
+      // Search condition
+      const whereCondition = search
+        ? {
+            OR: [
+              {
+                title: {
+                  contains: search,
+                  mode: "insensitive",
+                },
+              },
+              {
+                author: {
+                  contains: search,
+                  mode: "insensitive",
+                },
+              },
+            ],
+          }
+        : {};
+  
+      // Get total count (for pagination info)
+      const totalBlogs = await prisma.blog.count({
+        where: whereCondition,
       });
   
-      res.json(blogs);
+      const blogs = await prisma.blog.findMany({
+        where: whereCondition,
+        orderBy: [
+          { order: "asc" },      // your custom order
+          { createdAt: "desc" }, // latest fallback
+        ],
+        skip,
+        take: pageSize,
+      });
+  
+      res.json({
+        total: totalBlogs,
+        currentPage: pageNumber,
+        totalPages: Math.ceil(totalBlogs / pageSize),
+        pageSize,
+        data: blogs,
+      });
     } catch (error) {
+      console.error(error);
       res.status(500).json({ error: "Fetch blogs failed" });
     }
   });
