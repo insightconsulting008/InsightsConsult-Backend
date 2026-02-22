@@ -42,7 +42,7 @@ model Blog {
   content     Json
   author      String
   thumbnail   String? 
-  order      String?  
+
   slug        String   @unique
   published   Boolean  @default(true)
   createdAt   DateTime @default(now())

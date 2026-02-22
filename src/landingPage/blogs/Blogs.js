@@ -36,11 +36,12 @@ function makeSlug(text) {
   
         let parsedContent = JSON.parse(content || "[]");
   
+        // ✅ Get uploaded S3 URLs
         const uploadedImages = req.files?.contentImages
-          ? req.files.contentImages.map(file => file.path)
+          ? req.files.contentImages.map(file => file.location)
           : [];
   
-        // Replace fileIndex with actual URL
+        // ✅ Replace fileIndex with actual S3 URL
         parsedContent = parsedContent.map(block => {
           if (block.type === "image" && block.fileIndex !== undefined) {
             return {
@@ -52,11 +53,11 @@ function makeSlug(text) {
           return block;
         });
   
-        // Sort blocks
+        // ✅ Sort by order
         parsedContent.sort((a, b) => a.order - b.order);
   
         const thumbnailUrl = req.files?.thumbnail
-          ? req.files.thumbnail[0].path
+          ? req.files.thumbnail[0].location
           : null;
   
         const blog = await prisma.blog.create({
@@ -66,7 +67,6 @@ function makeSlug(text) {
             content: parsedContent,
             author,
             thumbnail: thumbnailUrl,
-            order: order ? parseInt(order) : 0,
             slug,
             published: published === "true",
           },
@@ -92,25 +92,25 @@ function makeSlug(text) {
       const skip = (pageNumber - 1) * pageSize;
   
       // Search condition
-      const whereCondition = search
-        ? {
-            OR: [
-              {
-                title: {
-                  contains: search,
-                  mode: "insensitive",
-                },
+      const whereCondition = {
+        published: true, // ✅ only show published blogs
+        ...(search && {
+          OR: [
+            {
+              title: {
+                contains: search,
+                mode: "insensitive",
               },
-              {
-                author: {
-                  contains: search,
-                  mode: "insensitive",
-                },
+            },
+            {
+              author: {
+                contains: search,
+                mode: "insensitive",
               },
-            ],
-          }
-        : {};
-  
+            },
+          ],
+        }),
+      };
       // Get total count (for pagination info)
       const totalBlogs = await prisma.blog.count({
         where: whereCondition,
@@ -138,6 +138,7 @@ function makeSlug(text) {
       res.status(500).json({ error: "Fetch blogs failed" });
     }
   });
+
   
   /* ==============================
      GET SINGLE BLOG
