@@ -36,17 +36,17 @@ model Notification {
 }
 
 model Blog {
-  blogId          String   @id @default(cuid())
-  title           String
-  description     String
-  content         String        // full article HTML / markdown
-  author          String
-  coverImage      String?
-  meta            Json?         // gallery, readTime, tags, etc
-  slug            String   @unique
-  published       Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  blogId      String   @id @default(cuid())
+  title       String
+  description String?
+  content     Json
+  author      String
+  thumbnail   String? 
+  order      String?  
+  slug        String   @unique
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model PaymentSetting {

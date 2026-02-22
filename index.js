@@ -14,6 +14,7 @@ const {profileUpload,serviceImgUpload} = require("./src/utils/multer")
 const {deleteS3Object} = require("./src/utils/deleteS3Object")
 const blogs = require("./src/landingPage/blogs/Blogs")
 const contact = require("./src/landingPage/contact/Contact")
+const services = require("./src/landingPage/services/Services")
 
 
 
@@ -50,6 +51,7 @@ app.use("/", userApplicationApply)
 app.use("/", settings)
 app.use("/", blogs)
 app.use("/",contact)
+app.use("/",services)
 
 
 

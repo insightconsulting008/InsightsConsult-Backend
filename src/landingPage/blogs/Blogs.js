@@ -4,6 +4,9 @@ const prisma = require("../../prisma/prisma");
 const {blogImgUpload} = require("../../utils/multer")
 
 
+/* ==============================
+   SLUG FUNCTION
+============================== */
 function makeSlug(text) {
     return text
       .toLowerCase()
@@ -11,166 +14,189 @@ function makeSlug(text) {
       .replace(/[^\w\s-]/g, "")
       .replace(/\s+/g, "-");
   }
-
-/* ---------------- CREATE BLOG ---------------- */
-router.post("/blogs", blogImgUpload.fields([
-    { name: "coverImage", maxCount: 1 },
-    { name: "contentImages", maxCount: 20 },
-  ]), async (req, res) => {
-    try {
-      const { title, description, content, author, meta, published } = req.body;
   
-      if (!title || !content) {
-        return res.status(400).json({ message: "Title and content required" });
-      }
+  /* ==============================
+     CREATE BLOG
+  ============================== */
+  router.post(
+    "/blogs",
+    blogImgUpload.fields([
+      { name: "thumbnail", maxCount: 1 },
+      { name: "contentImages", maxCount: 20 }
+    ]),
+    async (req, res) => {
+      try {
+        const { title, description, author, content, published, order } = req.body;
   
-      const slug = makeSlug(title) + "-" + Date.now();
-
-            // ✅ cover image (may or may not exist)
-            const coverImage =req.files?.coverImage?.[0]?.location ?? null;
-    
-          // ✅ content images (may be empty)
-          const contentImages =req.files?.contentImages?.map(file => file.location) ?? [];
-    
-          let finalContent = content;
-    
-          // replace only if images exist
-          if (contentImages.length > 0) {
-            contentImages.forEach((url, index) => {
-              finalContent = finalContent.replace(
-                `{{img${index}}}`,
-                `<img src="${url}" />`
-              );
-            });
-          }
-
-          const isPublished = published === "true" || published === true;
-  
-      const blog = await prisma.blog.create({
-        data: {
-          title,
-          description,
-          content,
-          author,
-          coverImage,
-          meta:meta ? JSON.parse(meta) : null,
-          slug,
-          published: isPublished 
+        if (!title) {
+          return res.status(400).json({ message: "Title is required" });
         }
-      });
   
-      res.json(blog);
+        const slug = makeSlug(title) + "-" + Date.now();
   
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Create blog failed" });
+        let parsedContent = JSON.parse(content || "[]");
+  
+        const uploadedImages = req.files?.contentImages
+          ? req.files.contentImages.map(file => file.path)
+          : [];
+  
+        // Replace fileIndex with actual URL
+        parsedContent = parsedContent.map(block => {
+          if (block.type === "image" && block.fileIndex !== undefined) {
+            return {
+              type: "image",
+              url: uploadedImages[block.fileIndex] || null,
+              order: block.order
+            };
+          }
+          return block;
+        });
+  
+        // Sort blocks
+        parsedContent.sort((a, b) => a.order - b.order);
+  
+        const thumbnailUrl = req.files?.thumbnail
+          ? req.files.thumbnail[0].path
+          : null;
+  
+        const blog = await prisma.blog.create({
+          data: {
+            title,
+            description,
+            content: parsedContent,
+            author,
+            thumbnail: thumbnailUrl,
+            order: order ? parseInt(order) : 0,
+            slug,
+            published: published === "true",
+          },
+        });
+  
+        res.status(201).json(blog);
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Create blog failed" });
+      }
     }
-  });
-
-
-  /* ---------------- GET BLOG LIST (SEARCH + PAGINATION) ---------------- */
-router.get("/blogs", async (req, res) => {
+  );
+  
+  /* ==============================
+     GET ALL BLOGS (Sorted by order)
+  ============================== */
+  router.get("/blogs", async (req, res) => {
     try {
-  
-      const page = Number(req.query.page || 1);
-      const limit = Number(req.query.limit || 10);
-      const search = req.query.search || "";
-  
-      const where = {
-        published: true,
-        OR: [
-          { title: { contains: search, mode: "insensitive" } },
-          { description: { contains: search, mode: "insensitive" } },
-          { author: { contains: search, mode: "insensitive" } }
-        ]
-      };
-  
-      const [blogs, total] = await Promise.all([
-        prisma.blog.findMany({
-          where,
-          skip: (page - 1) * limit,
-          take: limit,
-          orderBy: { createdAt: "desc" }
-        }),
-        prisma.blog.count({ where })
-      ]);
-  
-      res.json({
-        total,
-        page,
-        pages: Math.ceil(total / limit),
-        data: blogs
+      const blogs = await prisma.blog.findMany({
+        orderBy: [
+          { order: "asc" },
+          { createdAt: "desc" }
+        ],
       });
   
-    } catch (err) {
+      res.json(blogs);
+    } catch (error) {
       res.status(500).json({ error: "Fetch blogs failed" });
     }
   });
-
-
-  /* ---------------- GET BLOG BY SLUG ---------------- */
-router.get("/blogs/:slug", async (req, res) => {
-    try {
   
+  /* ==============================
+     GET SINGLE BLOG
+  ============================== */
+  router.get("/blogs/:slug", async (req, res) => {
+    try {
       const blog = await prisma.blog.findUnique({
-        where: { slug: req.params.slug }
+        where: { slug: req.params.slug },
       });
   
-      if (!blog) return res.status(404).json({ message: "Blog not found" });
+      if (!blog) {
+        return res.status(404).json({ message: "Blog not found" });
+      }
+  
+      // Ensure content order
+      blog.content.sort((a, b) => a.order - b.order);
   
       res.json(blog);
-  
-    } catch (err) {
+    } catch (error) {
       res.status(500).json({ error: "Fetch blog failed" });
     }
   });
-
-
-  /* ---------------- UPDATE BLOG ---------------- */
-router.put("/blogs/:blogId", async (req, res) => {
-    try {
   
-      const { title, description, content, author, coverImage, meta, published } = req.body;
+  /* ==============================
+     UPDATE BLOG
+  ============================== */
+  router.put(
+    "/blogs/:id",
+    blogImgUpload.fields([
+      { name: "thumbnail", maxCount: 1 },
+      { name: "contentImages", maxCount: 20 }
+    ]),
+    async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { title, description, content, published, order } = req.body;
   
-      const data = {
-        title,
-        description,
-        content,
-        author,
-        coverImage,
-        meta,
-        published
-      };
+        const existingBlog = await prisma.blog.findUnique({
+          where: { blogId: id },
+        });
   
-      // if title changed -> update slug
-      if (title) {
-        data.slug = makeSlug(title) + "-" + Date.now();
+        if (!existingBlog) {
+          return res.status(404).json({ message: "Blog not found" });
+        }
+  
+        let parsedContent = JSON.parse(content || "[]");
+  
+        const uploadedImages = req.files?.contentImages
+          ? req.files.contentImages.map(file => file.path)
+          : [];
+  
+        parsedContent = parsedContent.map(block => {
+          if (block.type === "image" && block.fileIndex !== undefined) {
+            return {
+              type: "image",
+              url: uploadedImages[block.fileIndex] || null,
+              order: block.order
+            };
+          }
+          return block;
+        });
+  
+        parsedContent.sort((a, b) => a.order - b.order);
+  
+        const thumbnailUrl = req.files?.thumbnail
+          ? req.files.thumbnail[0].path
+          : existingBlog.thumbnail;
+  
+        const updatedBlog = await prisma.blog.update({
+          where: { blogId: id },
+          data: {
+            title,
+            description,
+            content: parsedContent,
+            thumbnail: thumbnailUrl,
+            order: order ? parseInt(order) : existingBlog.order,
+            published: published === "true",
+          },
+        });
+  
+        res.json(updatedBlog);
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: "Update blog failed" });
       }
-  
-      const blog = await prisma.blog.update({
-        where: { blogId: req.params.blogId },
-        data
-      });
-  
-      res.json(blog);
-  
-    } catch (err) {
-      res.status(500).json({ error: "Update failed" });
     }
-  });
+  );
   
-  /* ---------------- DELETE BLOG ---------------- */
-  router.delete("/blogs/:blogId", async (req, res) => {
+  /* ==============================
+     DELETE BLOG
+  ============================== */
+  router.delete("/blogs/:id", async (req, res) => {
     try {
-  
       await prisma.blog.delete({
-        where: { blogId: req.params.blogId }
+        where: { blogId: req.params.id },
       });
   
-      res.json({ message: "Deleted successfully" });
-  
-    } catch (err) {
-      res.status(500).json({ error: "Delete failed" });
+      res.json({ message: "Blog deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Delete blog failed" });
     }
   });
 
