@@ -483,12 +483,13 @@ router.get("/my-services/:userId", async (req, res) => {
       servicePeriod: {
         applicationId: application.applicationId,
       },
+      order: 1,
     },
   });
 
 
    // 2️⃣ Create document for EACH step
-   await prisma.serviceDocument.createMany({
+  await prisma.serviceDocument.createMany({
     data: periodSteps.map((step) => ({
       periodStepId: step.periodStepId,
       documentType: "sales_report",
