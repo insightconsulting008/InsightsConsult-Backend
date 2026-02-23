@@ -480,7 +480,7 @@ router.get("/my-services/:userId", async (req, res) => {
     for (const period of savedPeriods) {
       await prisma.serviceDocument.create({
         data: {
-          servicePeriodId: period.servicePeriodId,
+          periodStepId: period.periodStepId,
           documentType: "sales_report",
           inputType: "file",
           flow: "REQUESTED",
