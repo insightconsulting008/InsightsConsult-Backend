@@ -1376,7 +1376,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
     try {
       const {
         applicationTrackStepId,
-        servicePeriodId,
+        periodStepId,
         documentType,
         remark,
         inputType,
