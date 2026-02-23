@@ -1355,7 +1355,7 @@ router.get("/application/:applicationId/documents", async (req, res) => {
       },
       include: {
         applicationTrackStep: true,
-        servicePeriod: true
+        periodStepId: true
       },
       orderBy:[        
         { flow: "asc" },   // 🟢 ADDED (better ordering)
