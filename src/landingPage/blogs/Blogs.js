@@ -119,7 +119,6 @@ function makeSlug(text) {
       const blogs = await prisma.blog.findMany({
         where: whereCondition,
         orderBy: [
-          { order: "asc" },      // your custom order
           { createdAt: "desc" }, // latest fallback
         ],
         skip,
