@@ -116,8 +116,12 @@ router.get("/my-services/:userId", async (req, res) => {
                 },
                 servicePeriod: {
                   include: {
-                    serviceDocument: true, // MUST exist in schema
-                    periodStep: true,
+                 // MUST exist in schema
+                    periodStep: {
+                      include: {
+                        serviceDocument: true, // ✅ correct place
+                      },
+                    }
                   },
                 },
                 
@@ -901,12 +905,18 @@ router.get("/my-services/:userId", async (req, res) => {
           servicePeriod: {
             orderBy: {
               createdAt: "asc",
-            },
+            },  
             include: { // 🟢 ADDED (so staff sees monthly steps)
                 periodStep: {
                   orderBy: { order: "asc" },
-                },
+                  include: {
+                    // 🔥 PERIOD STEP KULLA SERVICE DOCUMENT
+                    serviceDocument: true,
+                  },
+                }, 
+             
               },
+              
           },
         },
       });
@@ -1378,14 +1388,14 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
       const fileUrl = req.file?.location;
 
       // ✅ parent check
-      if (!applicationTrackStepId && !servicePeriodId) {
+      if (!applicationTrackStepId && !periodStepId) {
         return res.status(400).json({
           success: false,
-          message: "Provide applicationTrackStepId OR servicePeriodId"
+          message: "Provide applicationTrackStepId OR periodStepId"
         });
       }
 
-      if (applicationTrackStepId && servicePeriodId) {
+      if (applicationTrackStepId && periodStepId) {
         return res.status(400).json({
           success: false,
           message: "Provide only one parent id"
@@ -1415,7 +1425,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
         const doc = await prisma.serviceDocument.create({
           data: {
             applicationTrackStepId,
-            servicePeriodId,
+            periodStepId,
             documentType,
             remark,
             inputType,
@@ -1436,7 +1446,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
         const doc = await prisma.serviceDocument.create({
           data: {
             applicationTrackStepId,
-            servicePeriodId,
+            periodStepId,
             documentType,
             remark,
             inputType,

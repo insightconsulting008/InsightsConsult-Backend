@@ -377,7 +377,7 @@ model ServicePeriod {
 
   
   periodStep PeriodStep[]
-  serviceDocument ServiceDocument[]
+ 
 
   createdAt DateTime @default(now())
 }
@@ -395,6 +395,7 @@ model PeriodStep {
   updatedBy   String?
 
   status StepStatus @default(PENDING)
+  serviceDocument ServiceDocument[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -406,8 +407,8 @@ model ServiceDocument {
   applicationTrackStepId  String?
   applicationTrackStep   ApplicationTrackStep? @relation(fields: [applicationTrackStepId], references: [applicationTrackStepId])
 
-  servicePeriodId String?
-  servicePeriod   ServicePeriod? @relation(fields: [servicePeriodId], references: [servicePeriodId])
+  periodStepId String?
+  periodStep   PeriodStep? @relation(fields: [periodStepId], references: [periodStepId])
 
   flow DocumentFlow @default(REQUESTED)
 
