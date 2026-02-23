@@ -477,18 +477,28 @@ router.get("/my-services/:userId", async (req, res) => {
 
     console.log("📄 Auto Document Request Enabled");
 
-    for (const period of savedPeriods) {
-      await prisma.serviceDocument.create({
-        data: {
-          periodStepId: period.periodStepId,
-          documentType: "sales_report",
-          inputType: "file",
-          flow: "REQUESTED",
-          status: "PENDING",
-          requestedBy: "system",
-        },
-      });
-    }
+      // 1️⃣ Get all period steps for this application
+  const periodSteps = await prisma.periodStep.findMany({
+    where: {
+      servicePeriod: {
+        applicationId: application.applicationId,
+      },
+    },
+  });
+
+
+   // 2️⃣ Create document for EACH step
+   await prisma.serviceDocument.createMany({
+    data: periodSteps.map((step) => ({
+      periodStepId: step.periodStepId,
+      documentType: "sales_report",
+      inputType: "file",
+      flow: "REQUESTED",
+      status: "PENDING",
+      requestedBy: "system",
+    })),
+  });
+
 
     console.log("✅ Documents auto-created");
   }
