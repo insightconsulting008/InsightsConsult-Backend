@@ -28,6 +28,7 @@ app.use(cors({
     "https://insightsconsult-frontend.onrender.com",
     "http://localhost:5174",
     "http://localhost:5175",
+    "https://insightconsultancy.netlify.app"
   ], // frontend URL
   credentials: true
 }));
