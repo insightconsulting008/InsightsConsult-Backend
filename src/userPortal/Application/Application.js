@@ -1341,30 +1341,34 @@ router.get("/application/:applicationId/documents", async (req, res) => {
     const docs = await prisma.serviceDocument.findMany({
       where: {
         OR: [
+          // Track step documents
           {
             applicationTrackStep: {
-              applicationId
-            }
+              applicationId: applicationId,
+            },
           },
+
+          // Period step documents
           {
-            servicePeriod: {
-              applicationId
-            }
-          }
-        ]
+            periodStep: {
+              servicePeriod: {
+                applicationId: applicationId,
+              },
+            },
+          },
+        ],
       },
       include: {
         applicationTrackStep: true,
-        periodStepId: true
+        periodStep: true,
       },
-      orderBy:[        
-        { flow: "asc" },   // 🟢 ADDED (better ordering)
-        { createdAt: "asc" }
-      ] 
+      orderBy: [
+        { flow: "asc" },
+        { createdAt: "asc" },
+      ],
     });
 
     res.json({ success: true, documents: docs });
-
   } catch (error) {
     console.error("List documents error:", error);
     res.status(500).json({ success: false, message: "Server error" });
