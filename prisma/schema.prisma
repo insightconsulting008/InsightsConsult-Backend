@@ -115,6 +115,10 @@ model User {
   otpExpiry   DateTime? // expiry time
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+
+  myServices  MyService[]   // ✅ relation
+  applications Application[] // ✅ relation
 }
 
 model Department {
@@ -141,6 +145,10 @@ model Employee {
   department   Department     @relation(fields: [departmentId], references: [departmentId])
   service Service[]
   application Application[]
+
+    // ✅ ADD THESE TWO LINES
+  applicationTrackStepsUpdated ApplicationTrackStep[]
+  periodStepsUpdated           PeriodStep[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -193,6 +201,7 @@ model Service {
   durationUnit DurationUnit? // month | Stringr
 
  documentsRequired String @default("true") 
+ requiredDocuments Json?
 
   // Pricing 
   individualPrice String 
@@ -221,6 +230,7 @@ model Service {
 model MyService {
   myServiceId String @id @default(cuid())
   userId      String
+  user   User @relation(fields: [userId], references: [userId])
 
   serviceId String?
   bundleId  String?
@@ -310,6 +320,10 @@ model ServiceBundle {
 model Application {
   applicationId String            @id @default(cuid())
 
+  userId String
+  user   User @relation(fields: [userId], references: [userId])
+
+
   // Optional: Service or Bundle
   serviceId     String?
   bundleId      String?
@@ -346,7 +360,8 @@ model ApplicationTrackStep {
   order       Int
   description String?
   remarks       String?      // Optional comments or notes
-  updatedById     String? 
+  updatedById String?
+  updatedBy   Employee? @relation(fields: [updatedById], references: [employeeId])
 
   status StepStatus @default(PENDING)
 
@@ -392,7 +407,8 @@ model PeriodStep {
   order       Int
   description String?
   remarks     String?
-  updatedBy   String?
+  updatedById String?
+  updatedBy   Employee? @relation(fields: [updatedById], references: [employeeId])
 
   status StepStatus @default(PENDING)
   serviceDocument ServiceDocument[]
