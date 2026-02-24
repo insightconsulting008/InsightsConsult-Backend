@@ -493,9 +493,7 @@ router.get("/my-services/:userId", async (req, res) => {
     },
   });
 
-  const requiredDocs = JSON.parse(service.requireDocuments);
-
-  console.log("JAROMJERY:",requiredDocs)
+  const requiredDocs = JSON.parse(service.requireDocuments || "[]");
 
   // 3. Build document rows
   const docsData = periodSteps.flatMap(step =>
@@ -517,9 +515,6 @@ router.get("/my-services/:userId", async (req, res) => {
 
     console.log("✅ Documents auto-created");
   }
-
-        
-  
         /* ---------------------------------------------------
          ✅ Final Response
         --------------------------------------------------- */
