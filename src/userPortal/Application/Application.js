@@ -475,7 +475,7 @@ router.get("/my-services/:userId", async (req, res) => {
 
   if (service.documentsRequired === "true") {
 
-    console.log("📄 Auto Document Request Enabled");
+  console.log("📄 Auto Document Request Enabled");
 
       // 1️⃣ Get all period steps for this application
   const periodSteps = await prisma.periodStep.findMany({
@@ -487,17 +487,25 @@ router.get("/my-services/:userId", async (req, res) => {
     },
   });
 
+  const requiredDocs = JSON.parse(service.requireDocuments);
 
-   // 2️⃣ Create document for EACH step
-  await prisma.serviceDocument.createMany({
-    data: periodSteps.map((step) => ({
+  console.log("JAROMJERY:",requiredDocs)
+
+  // 3. Build document rows
+  const docsData = periodSteps.flatMap(step =>
+    requiredDocs.map(doc => ({
       periodStepId: step.periodStepId,
-      documentType: "sales_report",
-      inputType: "file",
+      documentType: doc.documentName,
+      inputType: doc.inputType,
       flow: "REQUESTED",
       status: "PENDING",
-      requestedBy: "system",
-    })),
+      requestedBy: "SYSTEM",
+    }))
+  );
+
+  // 4. Insert
+  await prisma.serviceDocument.createMany({
+    data: docsData,
   });
 
 

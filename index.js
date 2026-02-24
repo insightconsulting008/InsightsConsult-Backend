@@ -18,7 +18,6 @@ const services = require("./src/landingPage/services/Services")
 
 
 
-
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(express.json());
 app.use(cookieParser());
@@ -53,9 +52,6 @@ app.use("/", settings)
 app.use("/", blogs)
 app.use("/",contact)
 app.use("/",services)
-
-
-
 
 
 /* -------------------- ROUTES -------------------- */
@@ -336,7 +332,7 @@ app.delete("/department/:departmentId", async (req, res) => {
   });
   
 
-    /** ✅ Get Employee By EmployeeId  **/
+  /** ✅ Get Employee By EmployeeId  **/
   app.get("/employee/:employeeId", async (req, res) => {
     try {
       const { employeeId } = req.params;
@@ -464,9 +460,9 @@ app.delete("/department/:departmentId", async (req, res) => {
   
 
 
-  // =============================
-  // GET ALL SERVICES WITH INPUTFIELDS + TRACKSTEPS
-  // =============================
+// =============================
+// GET ALL SERVICES WITH INPUTFIELDS + TRACKSTEPS
+// =============================
   app.get("/service", async (req, res) => {
     try {
       let { page, limit } = req.query;
@@ -530,7 +526,7 @@ app.delete("/department/:departmentId", async (req, res) => {
   });
   
 
-  // =============================
+// =============================
 // CREATE SERVICE
 // =============================
 app.post("/service",serviceImgUpload.single('photoUrl') ,async (req, res) => {
