@@ -277,8 +277,6 @@ router.get("/my-services/:userId", async (req, res) => {
         const myService = await prisma.myService.findUnique({
           where: { myServiceId },
         });
-
-  console.log("myService:",myService)
   
         if (!myService) {
           return res.status(404).json({
@@ -287,8 +285,7 @@ router.get("/my-services/:userId", async (req, res) => {
           });
         }
   
-        const userId = myService.userId;
-
+        const userId = myService.userId
         /* ---------------------------------------------------
          3️⃣ Prevent duplicate application
         --------------------------------------------------- */
@@ -346,11 +343,10 @@ router.get("/my-services/:userId", async (req, res) => {
             };
           });
         }
-  
+
         /* ---------------------------------------------------
          8️⃣ Create Application (linked to MyService)
         --------------------------------------------------- */
-        console.log("userid:",userId)
         const application = await prisma.application.create({
           data: {
             myServiceId,
@@ -479,42 +475,67 @@ router.get("/my-services/:userId", async (req, res) => {
   }
 
 
-  if (service.documentsRequired === "true") {
+  // if (service.documentsRequired === "true") {
 
-  console.log("📄 Auto Document Request Enabled");
+  // console.log("📄 Auto Document Request Enabled");
 
-      // 1️⃣ Get all period steps for this application
+  //     // 1️⃣ Get all period steps for this application
+  // const periodSteps = await prisma.periodStep.findMany({
+  //   where: {
+  //     servicePeriod: {
+  //       applicationId: application.applicationId,
+  //     },
+  //     order: 1,
+  //   },
+  // });
+
+
+  //  // 2️⃣ Create document for EACH step
+  // await prisma.serviceDocument.createMany({
+  //   data: periodSteps.map((step) => ({
+  //     periodStepId: step.periodStepId,
+  //     documentType: "sales_report",
+  //     inputType: "file",
+  //     flow: "REQUESTED",
+  //     status: "PENDING",
+  //     requestedBy: "system",
+  //   })),
+  // });
+
+
+  //   console.log("✅ Documents auto-created");
+  // }
+
+  // 9️⃣ Auto-create documents if required
+if (service.documentsRequired === "true" && Array.isArray(service.requireDocuments)) {
   const periodSteps = await prisma.periodStep.findMany({
-    where: {
-      servicePeriod: {
-        applicationId: application.applicationId,
-      },
-      order: 1,
-    },
+    where: { servicePeriod: { applicationId: application.applicationId }, order: 1 },
   });
 
-  const requiredDocs = JSON.parse(service.requireDocuments || "[]");
+  if (periodSteps.length > 0) {
+    const documentsToCreate = [];
 
-  // 3. Build document rows
-  const docsData = periodSteps.flatMap(step =>
-    requiredDocs.map(doc => ({
-      periodStepId: step.periodStepId,
-      documentType: doc.documentName,
-      inputType: doc.inputType,
-      flow: "REQUESTED",
-      status: "PENDING",
-      requestedBy: "SYSTEM",
-    }))
-  );
+    periodSteps.forEach((step) => {
+      service.requireDocuments.forEach((doc) => {
+        documentsToCreate.push({
+          periodStepId: step.periodStepId,
+          documentType: doc.documentName,
+          inputType: doc.fileType,
+          flow: "REQUESTED",
+          status: "PENDING",
+          requestedBy: "SYSTEM",
+        });
+      });
+    });
 
-  // 4. Insert
-  await prisma.serviceDocument.createMany({
-    data: docsData,
-  });
-
-
-    console.log("✅ Documents auto-created");
+    if (documentsToCreate.length > 0) {
+      await prisma.serviceDocument.createMany({ data: documentsToCreate });
+    }
   }
+}
+
+        
+  
         /* ---------------------------------------------------
          ✅ Final Response
         --------------------------------------------------- */
