@@ -277,6 +277,8 @@ router.get("/my-services/:userId", async (req, res) => {
         const myService = await prisma.myService.findUnique({
           where: { myServiceId },
         });
+
+  console.log("myService:",myService)
   
         if (!myService) {
           return res.status(404).json({
@@ -285,6 +287,8 @@ router.get("/my-services/:userId", async (req, res) => {
           });
         }
   
+        const userId = myService.userId;
+
         /* ---------------------------------------------------
          3️⃣ Prevent duplicate application
         --------------------------------------------------- */
@@ -346,10 +350,12 @@ router.get("/my-services/:userId", async (req, res) => {
         /* ---------------------------------------------------
          8️⃣ Create Application (linked to MyService)
         --------------------------------------------------- */
+        console.log("userid:",userId)
         const application = await prisma.application.create({
           data: {
             myServiceId,
             serviceId,
+            userId,
             formData: parsedFormData,
             status: "PENDING",
           },
