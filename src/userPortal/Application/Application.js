@@ -475,83 +475,36 @@ router.get("/my-services/:userId", async (req, res) => {
   }
 
 
-  // if (service.documentsRequired === "true") {
+  if (service.documentsRequired === "true") {
 
-  // console.log("📄 Auto Document Request Enabled");
+  console.log("📄 Auto Document Request Enabled");
 
-  //     // 1️⃣ Get all period steps for this application
-  // const periodSteps = await prisma.periodStep.findMany({
-  //   where: {
-  //     servicePeriod: {
-  //       applicationId: application.applicationId,
-  //     },
-  //     order: 1,
-  //   },
-  // });
-
-
-  //  // 2️⃣ Create document for EACH step
-  // await prisma.serviceDocument.createMany({
-  //   data: periodSteps.map((step) => ({
-  //     periodStepId: step.periodStepId,
-  //     documentType: "sales_report",
-  //     inputType: "file",
-  //     flow: "REQUESTED",
-  //     status: "PENDING",
-  //     requestedBy: "system",
-  //   })),
-  // });
-
-
-  //   console.log("✅ Documents auto-created");
-  // }
-
-  // 9️⃣ Auto-create documents if required
-// 9️⃣ Auto-create documents if required
-if (service.documentsRequired === "true" && Array.isArray(service.requireDocuments) && service.requireDocuments.length > 0) {
-  console.log("📄 Documents are required for this service:", service.requireDocuments);
-
-  // 1️⃣ Get all service periods of this application
-  const servicePeriods = await prisma.servicePeriod.findMany({
-    where: { applicationId: application.applicationId },
+      // 1️⃣ Get all period steps for this application
+  const periodSteps = await prisma.periodStep.findMany({
+    where: {
+      servicePeriod: {
+        applicationId: application.applicationId,
+      },
+      order: 1,
+    },
   });
-  console.log("📅 Service Periods fetched:", servicePeriods);
 
-  if (servicePeriods.length > 0) {
-    // 2️⃣ Get all period steps for these periods
-    const periodStepIds = [];
-    for (const period of servicePeriods) {
-      const steps = await prisma.periodStep.findMany({
-        where: { servicePeriodId: period.servicePeriodId },
-        orderBy: { order: "asc" },
-      });
-      console.log(`📝 Period Steps for period ${period.periodLabel}:`, steps);
-      periodStepIds.push(...steps.map((s) => s.periodStepId));
-    }
 
-    // 3️⃣ Prepare documents dynamically
-    const documentsToCreate = [];
-    periodStepIds.forEach((stepId) => {
-      service.requireDocuments.forEach((doc) => {
-        documentsToCreate.push({
-          periodStepId: stepId,
-          documentType: doc.documentName,
-          inputType: doc.fileType,
-          flow: "REQUESTED",
-          status: "PENDING",
-          requestedBy: "system",
-        });
-      });
-    });
-    console.log("📄 Documents to create:", documentsToCreate);
+   // 2️⃣ Create document for EACH step
+  await prisma.serviceDocument.createMany({
+    data: periodSteps.map((step) => ({
+      periodStepId: step.periodStepId,
+      documentType: "sales_report",
+      inputType: "file",
+      flow: "REQUESTED",
+      status: "PENDING",
+      requestedBy: "system",
+    })),
+  });
 
-    // 4️⃣ Create all documents
-    if (documentsToCreate.length > 0) {
-      const createdDocs = await prisma.serviceDocument.createMany({ data: documentsToCreate });
-      console.log("✅ Documents successfully created:", createdDocs);
-    }
+
+    console.log("✅ Documents auto-created");
   }
-}
 
         
   
