@@ -476,34 +476,34 @@ router.get("/my-services/:userId", async (req, res) => {
 
 
   if (service.documentsRequired === "true") {
-
-  console.log("📄 Auto Document Request Enabled");
-
-      // 1️⃣ Get all period steps for this application
-  const periodSteps = await prisma.periodStep.findMany({
-    where: {
-      servicePeriod: {
-        applicationId: application.applicationId,
-      },
-      order: 1,
-    },
-  });
-
-
-   // 2️⃣ Create document for EACH step
-  await prisma.serviceDocument.createMany({
-    data: periodSteps.map((step) => ({
-      periodStepId: step.periodStepId,
-      documentType: "sales_report",
-      inputType: "file",
-      flow: "REQUESTED",
-      status: "PENDING",
-      requestedBy: "system",
-    })),
-  });
-
-
-    console.log("✅ Documents auto-created");
+    console.log("📄 Auto Document Request Enabled");
+  
+    const periodSteps = await prisma.periodStep.findMany({
+      where: { servicePeriod: { applicationId: application.applicationId }, order: 1 },
+    });
+  
+    const requiredDocs = service.requiredDocuments || [];
+  
+    const docsToCreate = [];
+    for (const step of periodSteps) {
+      for (const doc of requiredDocs) {
+        docsToCreate.push({
+          periodStepId: step.periodStepId,
+          documentType: doc.documentName, // <- use documentName here
+          inputType: doc.inputType,
+          flow: "REQUESTED",
+          status: "PENDING",
+          requestedBy: "system",
+        });
+      }
+    }
+  
+    if (docsToCreate.length > 0) {
+      await prisma.serviceDocument.createMany({ data: docsToCreate });
+      console.log("✅ Documents auto-created");
+    } else {
+      console.log("⚠️ No required documents found for this service");
+    }
   }
 
         
