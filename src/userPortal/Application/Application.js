@@ -484,6 +484,7 @@ router.get("/my-services/:userId", async (req, res) => {
   
     const requiredDocs = JSON.parse(service.requiredDocuments || "[]");
   
+    
     const docsToCreate = [];
     for (const step of periodSteps) {
       for (const doc of requiredDocs) {
