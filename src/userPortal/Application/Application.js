@@ -169,12 +169,12 @@ router.post("/buy/service", async (req, res) => {
 
     if (serviceId) {
       const service = await prisma.service.findUnique({ where: { serviceId }});
-      amount = service.price * 100;
+      amount = Number(service.price) * 100;
     }
 
     if (bundleId) {
       const bundle = await prisma.serviceBundle.findUnique({ where: { bundleId }});
-      amount = bundle.price * 100;
+      amount = Number(bundle.price) * 100;
     }
 
     const order = await razorpay.orders.create({
