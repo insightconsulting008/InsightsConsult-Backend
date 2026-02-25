@@ -490,7 +490,7 @@ router.get("/my-services/:userId", async (req, res) => {
         docsToCreate.push({
           periodStepId: step.periodStepId,
           documentType: doc.documentName, // <- use documentName here
-          inputType: doc.documentType,
+          inputType: doc.inputType,
           flow: "REQUESTED",
           status: "PENDING",
           requestedBy: "SYSTEM",
@@ -822,9 +822,6 @@ router.get("/my-services/:userId", async (req, res) => {
       });
     }
   });
-
-
-
 
 
 //Staff
