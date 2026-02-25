@@ -119,6 +119,32 @@ model User {
 
   myServices  MyService[]   // ✅ relation
   applications Application[] // ✅ relation
+  payments   Payment[]
+
+}
+
+model Payment {
+  paymentId String @id @default(cuid())
+
+  userId String
+  user   User @relation(fields: [userId], references: [userId])
+
+
+  // what user is paying for
+  serviceId String?
+  bundleId  String?
+
+  amount String
+
+  status String @default("PENDING") 
+  // PENDING | PAID | FAILED
+
+  razorpayOrderId   String? @unique
+  razorpayPaymentId String?
+  paymentLink       String?
+
+  paidAt DateTime?
+  createdAt DateTime @default(now())
 }
 
 model Department {

@@ -4,95 +4,279 @@ const prisma = require("../../prisma/prisma");
 const config = require("../../utils/config")
 const {applicationImgUpload,myDocuments} = require('../../utils/multer')
 const{ authenticate,authorizeRoles } = require("../../authMiddleware/authMiddleware")
+const Razorpay = require("razorpay");
+const crypto = require("crypto");
+
+// router.post("/buy/service", async (req, res) => {
+//     try {
+//       const { userId, serviceId, bundleId } = req.body;
+  
+//       /* ---------------------------------------------------
+//        1️⃣ Validation
+//       --------------------------------------------------- */
+//       if ((!serviceId && !bundleId) || (serviceId && bundleId)) {
+//         return res.status(400).json({
+//           success: false,
+//           message: "Provide either serviceId or bundleId",
+//         });
+//       }
+
+//       // 🔑 Get payment settings
+//       // const setting = await prisma.paymentSetting.findFirst();
+
+  
+//       /* ---------------------------------------------------
+//        2️⃣ Buy Single Service
+//       --------------------------------------------------- */
+
+      
+//       if (serviceId) {
+//         const service = await prisma.service.findUnique({
+//           where: { serviceId },
+//         });
+  
+//         if (!service) {
+//           return res.status(404).json({
+//             success: false,
+//             message: "Service not found",
+//           });
+//         }
+  
+//         const myService = await prisma.myService.create({
+//           data: {
+//             userId,
+//             serviceId,
+//             status: "NOT_STARTED",
+//           },
+//         });
+  
+//         return res.json({
+//           success: true,
+//           message: "Service purchased successfully",
+//           myServices: [myService],
+//         });
+//       }
+  
+//       /* ---------------------------------------------------
+//        3️⃣ Buy Bundle → Unlock all services
+//       --------------------------------------------------- */
+//       if (bundleId) {
+//         const bundle = await prisma.serviceBundle.findUnique({
+//           where: { bundleId },
+//           include: { services: true },
+//         });
+  
+//         if (!bundle) {
+//           return res.status(404).json({
+//             success: false,
+//             message: "Bundle not found",
+//           });
+//         }
+  
+//         // 🔑 Create MyService entry for EACH service
+//         const myServicesData = bundle.services.map((service) => ({
+//           userId,
+//           serviceId: service.serviceId,
+//           bundleId,
+//           status: "NOT_STARTED",
+//         }));
+  
+//         await prisma.myService.createMany({
+//           data: myServicesData,
+//         });
+  
+//         return res.json({
+//           success: true,
+//           message: "Bundle purchased. All services unlocked.",
+//           unlockedServicesCount: bundle.services.length,
+//         });
+//       }
+//     } catch (error) {
+//       console.error("Buy service error:", error);
+//       return res.status(500).json({
+//         success: false,
+//         message: "Internal server error",
+//       });
+//     }
+//   });
+  
+
 
 
 router.post("/buy/service", async (req, res) => {
-    try {
-      const { userId, serviceId, bundleId } = req.body;
-  
-      /* ---------------------------------------------------
-       1️⃣ Validation
-      --------------------------------------------------- */
-      if ((!serviceId && !bundleId) || (serviceId && bundleId)) {
-        return res.status(400).json({
-          success: false,
-          message: "Provide either serviceId or bundleId",
-        });
-      }
-  
-      /* ---------------------------------------------------
-       2️⃣ Buy Single Service
-      --------------------------------------------------- */
+  try {
+    const { userId, serviceId, bundleId } = req.body;
+
+    if ((!serviceId && !bundleId) || (serviceId && bundleId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide either serviceId or bundleId",
+      });
+    }
+
+    // 🔑 Get payment settings
+    const setting = await prisma.paymentSetting.findFirst();
+
+    /* ===================================================
+       PAYMENT DISABLED → DIRECT UNLOCK
+    =================================================== */
+    if (!setting?.isRazorpayEnabled) {
+
       if (serviceId) {
-        const service = await prisma.service.findUnique({
-          where: { serviceId },
-        });
-  
-        if (!service) {
-          return res.status(404).json({
-            success: false,
-            message: "Service not found",
-          });
-        }
-  
         const myService = await prisma.myService.create({
-          data: {
-            userId,
-            serviceId,
-            status: "NOT_STARTED",
-          },
+          data: { userId, serviceId, status: "NOT_STARTED" },
         });
-  
+
         return res.json({
           success: true,
-          message: "Service purchased successfully",
-          myServices: [myService],
+          message: "Service unlocked (payment disabled)",
+          myService,
         });
       }
-  
-      /* ---------------------------------------------------
-       3️⃣ Buy Bundle → Unlock all services
-      --------------------------------------------------- */
+
       if (bundleId) {
         const bundle = await prisma.serviceBundle.findUnique({
           where: { bundleId },
           include: { services: true },
         });
-  
-        if (!bundle) {
-          return res.status(404).json({
-            success: false,
-            message: "Bundle not found",
-          });
-        }
-  
-        // 🔑 Create MyService entry for EACH service
-        const myServicesData = bundle.services.map((service) => ({
+
+        const data = bundle.services.map(s => ({
           userId,
-          serviceId: service.serviceId,
+          serviceId: s.serviceId,
           bundleId,
           status: "NOT_STARTED",
         }));
-  
-        const myServices = await prisma.myService.createMany({
-          data: myServicesData,
-        });
-  
+
+        await prisma.myService.createMany({ data });
+
         return res.json({
           success: true,
-          message: "Bundle purchased. All services unlocked.",
-          unlockedServicesCount: bundle.services.length,
+          message: "Bundle unlocked (payment disabled)",
         });
       }
-    } catch (error) {
-      console.error("Buy service error:", error);
-      return res.status(500).json({
-        success: false,
-        message: "Internal server error",
-      });
     }
-  });
-  
+
+    /* ===================================================
+       PAYMENT ENABLED → CREATE RAZORPAY ORDER
+    =================================================== */
+
+    const razorpay = new Razorpay({
+      key_id: setting.razorpayKeyId,
+      key_secret: setting.razorpaySecret,
+    });
+
+    let amount = 0;
+
+    if (serviceId) {
+      const service = await prisma.service.findUnique({ where: { serviceId }});
+      amount = service.price * 100;
+    }
+
+    if (bundleId) {
+      const bundle = await prisma.serviceBundle.findUnique({ where: { bundleId }});
+      amount = bundle.price * 100;
+    }
+
+    const order = await razorpay.orders.create({
+      amount,
+      currency: "INR",
+      receipt: `rcpt_${Date.now()}`,
+    });
+
+    // 🔑 Save payment record (NOT PAID YET)
+    await prisma.payment.create({
+      data: {
+        userId,
+        serviceId,
+        bundleId,
+        razorpayOrderId: order.id,
+        amount: amount / 100,
+        status: "CREATED",
+      },
+    });
+
+    return res.json({
+      success: true,
+      paymentRequired: true,
+      orderId: order.id,
+      key: setting.razorpayKeyId,
+      amount,
+      currency: "INR",
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success:false, message:"Server error"});
+  }
+});
+
+
+
+
+router.post("/razorpay/webhook", async (req, res) => {
+  try {
+
+    const secret = (await prisma.paymentSetting.findFirst()).webhookSecret;
+
+    const shasum = crypto.createHmac("sha256", secret);
+    shasum.update(JSON.stringify(req.body));
+    const digest = shasum.digest("hex");
+
+    if (digest !== req.headers["x-razorpay-signature"]) {
+      return res.status(400).send("Invalid signature");
+    }
+
+    const event = req.body;
+
+    /* ===============================
+       PAYMENT SUCCESS
+    =============================== */
+
+    if (event.event === "payment.captured") {
+
+      const orderId = event.payload.payment.entity.order_id;
+
+      const payment = await prisma.payment.update({
+        where: { razorpayOrderId: orderId },
+        data: { status: "PAID" },
+      });
+
+      // 🔓 UNLOCK SERVICE
+
+      if (payment.serviceId) {
+        await prisma.myService.create({
+          data: {
+            userId: payment.userId,
+            serviceId: payment.serviceId,
+            status: "NOT_STARTED",
+          },
+        });
+      }
+
+      if (payment.bundleId) {
+        const bundle = await prisma.serviceBundle.findUnique({
+          where: { bundleId: payment.bundleId },
+          include: { services: true },
+        });
+
+        const data = bundle.services.map(s => ({
+          userId: payment.userId,
+          serviceId: s.serviceId,
+          bundleId: payment.bundleId,
+          status: "NOT_STARTED",
+        }));
+
+        await prisma.myService.createMany({ data });
+      }
+    }
+
+    res.json({ received: true });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Webhook error");
+  }
+});
 
 router.get("/my-services/:userId", async (req, res) => {
     const {userId} = req.params;
