@@ -51,7 +51,7 @@ model Blog {
 
 model PaymentSetting {
   paymentSettingId   String   @id @default(cuid())
-  isRazorpayEnabled  Boolean  @default(false)
+  isRazorpayEnabled  Boolean  @default(true)
   razorpayKeyId      String?
   razorpaySecret     String?
   webhookSecret      String?
