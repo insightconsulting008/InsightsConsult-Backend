@@ -105,7 +105,7 @@ const crypto = require("crypto");
 
 router.post("/buy/service", async (req, res) => {
   try {
-    const { userId, serviceId, bundleId } = req.body;
+    const { userId, serviceId, bundleId, amount } = req.body;
 
     if ((!serviceId && !bundleId) || (serviceId && bundleId)) {
       return res.status(400).json({
@@ -165,22 +165,10 @@ router.post("/buy/service", async (req, res) => {
       key_secret: setting.razorpaySecret,
     });
 
-    let amount = 0;
-
-    if (serviceId) {
-      const service = await prisma.service.findUnique({ where: { serviceId }});
-      amount = Number(service.price) * 100;
-    }
-
-    if (bundleId) {
-      const bundle = await prisma.serviceBundle.findUnique({ where: { bundleId }});
-      amount = Number(bundle.price) * 100;
-    }
 
     const order = await razorpay.orders.create({
       amount,
       currency: "INR",
-      receipt: `rcpt_${Date.now()}`,
     });
 
     // 🔑 Save payment record (NOT PAID YET)
