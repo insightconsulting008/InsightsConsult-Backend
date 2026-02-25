@@ -482,7 +482,7 @@ router.get("/my-services/:userId", async (req, res) => {
       where: { servicePeriod: { applicationId: application.applicationId }, order: 1 },
     });
   
-    const requiredDocs = service.requiredDocuments || [];
+    const requiredDocs = JSON.parse(service.requiredDocuments || "[]");
   
     const docsToCreate = [];
     for (const step of periodSteps) {
