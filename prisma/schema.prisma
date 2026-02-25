@@ -134,7 +134,7 @@ model Payment {
   serviceId String?
   bundleId  String?
 
-  amount String
+  amount Float
 
   status String @default("PENDING") 
   // PENDING | PAID | FAILED
