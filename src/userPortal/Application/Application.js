@@ -167,7 +167,7 @@ router.post("/buy/service", async (req, res) => {
 
 
     const order = await razorpay.orders.create({
-      amount,
+      amount : amount * 100,
       currency: "INR",
     });
 
