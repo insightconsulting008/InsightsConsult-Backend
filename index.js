@@ -33,7 +33,7 @@ app.use(cors({
 }));
 
 /* -------------------- ROUTES -------------------- */
-app.get("/test", (req, res) => {
+app.get("/test", async(req, res) => {
   res.json({
     message: "Insight Consulting Project Server is running 🚀"
   });

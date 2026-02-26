@@ -54,7 +54,6 @@ model PaymentSetting {
   isRazorpayEnabled  Boolean  @default(true)
   razorpayKeyId      String?
   razorpaySecret     String?
-  webhookSecret      String?
   updatedAt          DateTime @updatedAt
 }
 

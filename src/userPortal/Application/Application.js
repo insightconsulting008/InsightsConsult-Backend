@@ -227,12 +227,10 @@ router.post("/buy/service", async (req, res) => {
 });
 
 
-
-
 router.post("/razorpay/webhook", async (req, res) => {
   try {
 
-    const secret = (await prisma.paymentSetting.findFirst()).webhookSecret;
+    const secret = (await prisma.paymentSetting.findFirst()).razorpaySecret;
 
     const shasum = crypto.createHmac("sha256", secret);
     shasum.update(JSON.stringify(req.body));
