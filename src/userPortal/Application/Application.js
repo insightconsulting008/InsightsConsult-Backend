@@ -43,7 +43,7 @@ router.get("/users", async (req, res) => {
 router.post("/create/amendment-link", async (req, res) => {
   try {
 
-    const {employeeId, amount, note } = req.body;
+    const {employeeId, amount, note , userId} = req.body;
 
     if (!amount) {
       return res.status(400).json({ message: "Amount required" });
@@ -88,7 +88,8 @@ router.post("/create/amendment-link", async (req, res) => {
         razorpayOrderId: paymentLink.id,
         paymentLink: paymentLink.short_url,
         status: "CREATED",
-        createdById:employeeId
+        createdById:employeeId,
+        userId:userId
       },
     });
 
