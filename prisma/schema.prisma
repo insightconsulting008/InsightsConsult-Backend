@@ -125,13 +125,18 @@ model User {
 model Payment {
   paymentId String @id @default(cuid())
 
-  userId String
-  user   User @relation(fields: [userId], references: [userId])
+  userId String?
+  user   User? @relation(fields: [userId], references: [userId])
+
+  createdById String?
+  createdBy   Employee? @relation( fields: [createdById], references: [employeeId])
 
 
   // what user is paying for
   serviceId String?
   bundleId  String?
+
+  type  String?
 
   amount Float
 
@@ -170,6 +175,8 @@ model Employee {
   department   Department     @relation(fields: [departmentId], references: [departmentId])
   service Service[]
   application Application[]
+
+  payment  Payment[]
 
     // ✅ ADD THESE TWO LINES
   applicationTrackStepsUpdated ApplicationTrackStep[]

@@ -9,6 +9,69 @@ const crypto = require("crypto");
 
 
 
+router.post("/create/amendment-link", async (req, res) => {
+  try {
+
+    const {employeeId, amount, note } = req.body;
+
+    if (!amount) {
+      return res.status(400).json({ message: "Amount required" });
+    }
+
+    const setting = await prisma.paymentSetting.findFirst({
+      where:{
+        isRazorpayEnabled:true
+      }
+    });
+
+    if (!setting?.isRazorpayEnabled) {
+      return res.status(400).json({
+        message: "Payment disabled"
+      });
+    }
+
+    const razorpay = new Razorpay({
+      key_id: setting.razorpayKeyId,
+      key_secret: setting.razorpaySecret,
+    });
+
+    const paymentLink = await razorpay.paymentLink.create({
+      amount: Number(amount) * 100,
+      currency: "INR",
+      description: "Amendment Payment",
+      notify: {
+        sms: true,
+        email: true,
+      },
+      notes: {
+        type: "AMENDMENT",
+        note: note || "Manual Amendment"
+      }
+    });
+
+    // Save payment record
+    await prisma.payment.create({
+      data: {
+        type: "AMENDMENT",
+        amount: amount,
+        razorpayOrderId: paymentLink.id,
+        paymentLink: paymentLink.short_url,
+        status: "CREATED",
+        createdById:employeeId
+      },
+    });
+
+    return res.json({
+      success: true,
+      paymentLink: paymentLink.short_url,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 
 router.post("/buy/service", async (req, res) => {
@@ -195,6 +258,37 @@ router.post("/razorpay/webhook", async (req, res) => {
         await prisma.myService.createMany({ data });
       }
     }
+
+
+    //payment link but confuse 
+    if (event.event === "payment_link.paid") {
+
+      const linkId = event.payload.payment_link.entity.id;
+      const paymentId = event.payload.payment.entity.id;
+
+      const payment = await prisma.payment.update({
+        where: { razorpayOrderId: linkId },
+        data: {
+          status: "PAID",
+          razorpayPaymentId: paymentId,
+          paidAt: new Date(),
+        },
+      });
+
+      if (payment.type === "AMENDMENT") {
+
+        await prisma.amendment.create({
+          data: {
+            paymentId: payment.paymentId,
+            status: "ACTIVE",
+          },
+        });
+
+        console.log("Amendment activated");
+      }
+    }
+
+
 
     res.json({ received: true });
 
