@@ -39,6 +39,38 @@ router.get("/users", async (req, res) => {
   }
 });
 
+router.get("/payments/:employeeId", async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+
+    const payments = await prisma.payment.findMany({
+      where: {
+        createdById: employeeId, // employee filter
+      },
+      include: {
+        createdBy: {
+          select: {
+            name: true, // employee name
+          },
+        },
+        user: {
+          select: {
+            name: true,
+            email: true,
+            phoneNumber: true,
+          },
+        },
+      },
+    });
+
+    res.status(200).json(payments);
+  } catch (error) {
+    console.error("Error fetching payments:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
 
 router.post("/create/amendment-link", async (req, res) => {
   try {
