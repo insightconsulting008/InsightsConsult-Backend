@@ -7,99 +7,7 @@ const{ authenticate,authorizeRoles } = require("../../authMiddleware/authMiddlew
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 
-// router.post("/buy/service", async (req, res) => {
-//     try {
-//       const { userId, serviceId, bundleId } = req.body;
-  
-//       /* ---------------------------------------------------
-//        1️⃣ Validation
-//       --------------------------------------------------- */
-//       if ((!serviceId && !bundleId) || (serviceId && bundleId)) {
-//         return res.status(400).json({
-//           success: false,
-//           message: "Provide either serviceId or bundleId",
-//         });
-//       }
 
-//       // 🔑 Get payment settings
-//       // const setting = await prisma.paymentSetting.findFirst();
-
-  
-//       /* ---------------------------------------------------
-//        2️⃣ Buy Single Service
-//       --------------------------------------------------- */
-
-      
-//       if (serviceId) {
-//         const service = await prisma.service.findUnique({
-//           where: { serviceId },
-//         });
-  
-//         if (!service) {
-//           return res.status(404).json({
-//             success: false,
-//             message: "Service not found",
-//           });
-//         }
-  
-//         const myService = await prisma.myService.create({
-//           data: {
-//             userId,
-//             serviceId,
-//             status: "NOT_STARTED",
-//           },
-//         });
-  
-//         return res.json({
-//           success: true,
-//           message: "Service purchased successfully",
-//           myServices: [myService],
-//         });
-//       }
-  
-//       /* ---------------------------------------------------
-//        3️⃣ Buy Bundle → Unlock all services
-//       --------------------------------------------------- */
-//       if (bundleId) {
-//         const bundle = await prisma.serviceBundle.findUnique({
-//           where: { bundleId },
-//           include: { services: true },
-//         });
-  
-//         if (!bundle) {
-//           return res.status(404).json({
-//             success: false,
-//             message: "Bundle not found",
-//           });
-//         }
-  
-//         // 🔑 Create MyService entry for EACH service
-//         const myServicesData = bundle.services.map((service) => ({
-//           userId,
-//           serviceId: service.serviceId,
-//           bundleId,
-//           status: "NOT_STARTED",
-//         }));
-  
-//         await prisma.myService.createMany({
-//           data: myServicesData,
-//         });
-  
-//         return res.json({
-//           success: true,
-//           message: "Bundle purchased. All services unlocked.",
-//           unlockedServicesCount: bundle.services.length,
-//         });
-//       }
-//     } catch (error) {
-//       console.error("Buy service error:", error);
-//       return res.status(500).json({
-//         success: false,
-//         message: "Internal server error",
-//       });
-//     }
-//   });
-  
 
 
 
@@ -206,7 +114,7 @@ router.post("/buy/service", async (req, res) => {
         serviceId,
         bundleId,
         razorpayOrderId: order.id,
-        amount: amount / 100,
+        amount: (order.amount) / 100,
         status: "CREATED",
       },
     });
