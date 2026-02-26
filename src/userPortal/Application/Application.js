@@ -105,7 +105,7 @@ const crypto = require("crypto");
 
 router.post("/buy/service", async (req, res) => {
   try {
-    const { userId, serviceId, bundleId, amount } = req.body;
+    const { userId, serviceId, bundleId } = req.body;
 
     if ((!serviceId && !bundleId) || (serviceId && bundleId)) {
       return res.status(400).json({
@@ -129,7 +129,7 @@ router.post("/buy/service", async (req, res) => {
 
         return res.json({
           success: true,
-          message: "Service unlocked (payment disabled)",
+          message: "Service unlocked",
           myService,
         });
       }
@@ -151,7 +151,7 @@ router.post("/buy/service", async (req, res) => {
 
         return res.json({
           success: true,
-          message: "Bundle unlocked (payment disabled)",
+          message: "Bundle unlocked ",
         });
       }
     }
@@ -160,6 +160,32 @@ router.post("/buy/service", async (req, res) => {
        PAYMENT ENABLED → CREATE RAZORPAY ORDER
     =================================================== */
 
+    let amount;
+
+    if (serviceId) {
+      const service = await prisma.service.findUnique({
+        where: { serviceId },
+      });
+
+      if (!service) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+
+      amount = service.finalIndividualPrice;
+    }
+
+    if (bundleId) {
+      const bundle = await prisma.serviceBundle.findUnique({
+        where: { bundleId },
+      });
+
+      if (!bundle) {
+        return res.status(404).json({ message: "Bundle not found" });
+      }
+
+      amount = bundle.finalBundlePrice;
+    }
+
     const razorpay = new Razorpay({
       key_id: setting.razorpayKeyId,
       key_secret: setting.razorpaySecret,
@@ -167,7 +193,7 @@ router.post("/buy/service", async (req, res) => {
 
 
     const order = await razorpay.orders.create({
-      amount : amount * 100,
+      amount :  Number(amount) * 100,
       currency: "INR",
     });
 
