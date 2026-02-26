@@ -23,7 +23,11 @@ router.post("/buy/service", async (req, res) => {
     }
 
     // 🔑 Get payment settings
-    const setting = await prisma.paymentSetting.findFirst();
+    const setting = await prisma.paymentSetting.findFirst({
+      where:{
+        isRazorpayEnabled:true
+      }
+    });
 
     /* ===================================================
        PAYMENT DISABLED → DIRECT UNLOCK
