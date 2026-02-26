@@ -282,6 +282,7 @@ router.post("/buy/service", async (req, res) => {
         userId,
         serviceId,
         bundleId,
+        type: "ORDER",
         razorpayOrderId: order.id,
         amount: (order.amount) / 100,
         status: "CREATED",
