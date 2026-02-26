@@ -130,6 +130,7 @@ router.post("/buy/service", async (req, res) => {
         return res.json({
           success: true,
           message: "Service unlocked",
+          paymentRequired: false,
           myService,
         });
       }
@@ -151,6 +152,7 @@ router.post("/buy/service", async (req, res) => {
 
         return res.json({
           success: true,
+          paymentRequired: false,
           message: "Bundle unlocked ",
         });
       }
