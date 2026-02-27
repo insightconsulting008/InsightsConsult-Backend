@@ -17,7 +17,7 @@ router.post("/settings/payment",async (req, res) => {
       isRazorpayEnabled,
       razorpayKeyId,
       razorpaySecret,
-      // profilePassword
+      profilePassword
     } = req.body;
 
     // // 🔹 Verify profile password
@@ -89,7 +89,6 @@ router.get("/settings/payment", async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
-
 
 router.put("/settings/payment/:paymentSettingId", async (req, res) => {
     try {

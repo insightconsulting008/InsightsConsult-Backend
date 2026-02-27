@@ -110,7 +110,6 @@ model User {
   password    String // hashed password
   role        Role      @default(USER)
   otp         String? // for forgot password / login otp
-  refreshToken  String?
   otpExpiry   DateTime? // expiry time
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -119,7 +118,19 @@ model User {
   myServices  MyService[]   // ✅ relation
   applications Application[] // ✅ relation
   payments   Payment[]
+  refreshToken RefreshToken[]
 
+}
+
+model RefreshToken {
+  refreshTokenId        String   @id @default(cuid())
+  token     String @unique
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [userId])
+  employeeId String?
+  employee  Employee? @relation(fields: [employeeId], references: [employeeId])
 }
 
 model Payment {
@@ -163,6 +174,7 @@ model Department {
 
 model Employee {
   employeeId   String         @id @unique @default(cuid())
+  employeeCode String?  @unique
   name         String
   email        String         @unique
   password     String
@@ -181,6 +193,7 @@ model Employee {
     // ✅ ADD THESE TWO LINES
   applicationTrackStepsUpdated ApplicationTrackStep[]
   periodStepsUpdated           PeriodStep[]
+  refreshToken RefreshToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
