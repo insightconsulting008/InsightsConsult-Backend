@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": " nodemon index.js"
+    "dev": "cross-env NODE_ENV=development nodemon index.js",
+    "start": "cross-env NODE_ENV=production node index.js"
   },
   "author": "Jaromthiyanesh",
   "license": "ISC",
@@ -25,5 +25,8 @@
     "prisma": "^6.19.0",
     "razorpay": "^2.9.6",
     "studio": "^0.13.5"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
   }
 }

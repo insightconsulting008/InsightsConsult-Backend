@@ -8,7 +8,8 @@ const config = {
   AWS_REGION: process.env.AWS_REGION,
   S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
   ACCESS_SECRET: process.env.ACCESS_SECRET,
-  REFRESH_SECRET: process.env.REFRESH_SECRET
+  REFRESH_SECRET: process.env.REFRESH_SECRET,
+  NODE_ENV:process.env.NODE_ENV
 };
 
 

@@ -54,6 +54,17 @@ app.use("/",contact)
 app.use("/",services)
 
 
+
+/* =====================================================
+   EMPLOYEE CODE GENERATOR (nice ID)
+===================================================== */
+
+const generateEmployeeCode = async () => {
+  const count = await prisma.employee.count();
+  const next = count + 1;
+  return `EMP${String(next).padStart(4, "0")}`;
+};
+
 /* -------------------- ROUTES -------------------- */
 
 
@@ -243,6 +254,8 @@ app.delete("/department/:departmentId", async (req, res) => {
         departmentId
       } = req.body;
 
+
+      const employeeCode = await generateEmployeeCode();
      
       // Check if department exists
       const department = await prisma.department.findUnique({
@@ -274,6 +287,7 @@ app.delete("/department/:departmentId", async (req, res) => {
           name,
           email,
           mobileNumber,
+          employeeCode,
           password,
           role,
           designation,

@@ -14,18 +14,10 @@ const{ authenticate,authorizeRoles } = require("../../authMiddleware/authMiddlew
 const generateAccessToken = (payload) =>
   jwt.sign(payload, config.ACCESS_SECRET, { expiresIn: "15m" });
 
-const generateRefreshToken = () =>
+const generateRefreshToken = (payload) =>
   jwt.sign(payload, config.REFRESH_SECRET, { expiresIn: "7d" });
 
-/* =====================================================
-   EMPLOYEE CODE GENERATOR (nice ID)
-===================================================== */
 
-const generateEmployeeCode = async () => {
-  const count = await prisma.employee.count();
-  const next = count + 1;
-  return `EMP${String(next).padStart(4, "0")}`;
-};
 
 /* =====================================================
    USER REGISTER
@@ -58,38 +50,35 @@ router.post("/user/login", async (req, res) => {
     const { email, password } = req.body;
 
     const user = await prisma.user.findUnique({ where: { email } });
-    console.log(user)
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     const valid = await bcrypt.compare(password, user.password);
-    console.log(valid)
     if (!valid) return res.status(401).json({ message: "Invalid credentials" });
 
     const accessToken = generateAccessToken({
       id: user.userId,
       role: user.role,
     });
-console.log(accessToken)
+
     const refreshToken = generateRefreshToken({
       id:user.userId,
       role:user.role
     });
 
- const  jaromjery= await prisma.refreshToken.create({
+    await prisma.refreshToken.create({
       data: {
         token: refreshToken,
         userId: user.userId,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       },
     });
 
 
-    console.log(jaromjery)
-
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       sameSite: "lax",
-      secure: false,
+      secure: config.NODE_ENV === "production",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     res.json({ accessToken });
@@ -126,14 +115,15 @@ router.post("/staff/login", async (req, res) => {
       data: {
         token: refreshToken,
         employeeId: emp.employeeId,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       },
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       sameSite: "lax",
-      secure: false,
+      secure: config.NODE_ENV === "production",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     res.json({ accessToken });
@@ -196,9 +186,7 @@ router.post("/auth/refresh", async (req, res) => {
     await prisma.refreshToken.update({
       where: { token },
       data: {
-        expiresAt: new Date(
-          Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 days extend
-        ),
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000 ),//30 days extend
       },
     });
 
@@ -239,17 +227,24 @@ router.post("/auth/logout", async (req, res) => {
 });
 
 
-router.post("/auth/logout-all", authenticate, async (req, res) => {
+router.post("/auth/logout-all", async (req, res) => {
   try {
-    const { id, role } = req.user;
+    const token = req.cookies.refreshToken;
 
-    if (role === "USER") {
+    if (!token) {
+      return res.status(401).json({ message: "No refresh token" });
+    }
+
+    const decoded = jwt.verify(token, config.REFRESH_SECRET);
+
+
+    if (decoded.role === "USER") {
       await prisma.refreshToken.deleteMany({
-        where: { userId: id },
+        where: { userId: decoded.id },
       });
     } else {
       await prisma.refreshToken.deleteMany({
-        where: { employeeId: id },
+        where: { employeeId: decoded.id },
       });
     }
 
