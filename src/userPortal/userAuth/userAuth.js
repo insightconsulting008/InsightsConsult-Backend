@@ -81,7 +81,7 @@ router.post("/user/login", async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    res.json({ accessToken });
+    res.json({ accessToken ,role:user.role});
   } catch {
     res.status(500).json({ message: "Error" });
   }
@@ -98,8 +98,10 @@ router.post("/staff/login", async (req, res) => {
     const emp = await prisma.employee.findUnique({ where: { email } });
     if (!emp) return res.status(401).json({ message: "Invalid credentials" });
 
-    const valid = await bcrypt.compare(password, emp.password);
-    if (!valid) return res.status(401).json({ message: "Invalid credentials" });
+    // ✅ Direct password comparison (no bcrypt)
+  if (password !== emp.password) {
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
 
     const accessToken = generateAccessToken({
       id: emp.employeeId,
@@ -126,7 +128,7 @@ router.post("/staff/login", async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    res.json({ accessToken });
+    res.json({ accessToken ,role:emp.role});
   } catch {
     res.status(500).json({ message: "Error" });
   }
