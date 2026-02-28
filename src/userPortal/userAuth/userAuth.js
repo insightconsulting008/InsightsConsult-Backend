@@ -78,7 +78,7 @@ router.post("/user/login", async (req, res) => {
       httpOnly: true,
       sameSite: "lax",
       secure: config.NODE_ENV === "production",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+     
     });
 
     res.json({ accessToken ,role:user.role});
@@ -125,7 +125,7 @@ router.post("/staff/login", async (req, res) => {
       httpOnly: true,
       sameSite: "lax",
       secure: config.NODE_ENV === "production",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+   
     });
 
     res.json({ accessToken ,role:emp.role});
@@ -185,12 +185,12 @@ router.post("/auth/refresh", async (req, res) => {
     // ===============================
     // 🚀 SLIDING SESSION (KEY PART)
     // ===============================
-    await prisma.refreshToken.update({
-      where: { token },
-      data: {
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000 ),//30 days extend
-      },
-    });
+  // await prisma.refreshToken.update({
+  //     where: { token },
+  //     data: {
+  //       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000 ),//30 days extend
+  //     },
+  //   });
 
     // ===============================
     // 🔐 NEW ACCESS TOKEN
@@ -260,6 +260,64 @@ router.post("/auth/logout-all", async (req, res) => {
     res.status(500).json({ message: "Error" });
   }
 });
+
+
+
+
+router.get(
+  "/user/dashboard",
+  authenticate,
+  authorizeRoles("USER"),
+  async (req, res) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { userId: req.user.id },
+        select: {
+          userId: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          role: true,
+        },
+      });
+
+      res.json({
+        success: true,
+        data: user,
+      });
+    } catch (err) {
+      res.status(500).json({ message: "Error fetching user dashboard" });
+    }
+  }
+);
+
+router.get(
+  "/employee/dashboard",
+  authenticate,
+  authorizeRoles("STAFF","ADMIN"),
+  async (req, res) => {
+    try {
+      const staff = await prisma.employee.findUnique({
+        where: { employeeId: req.user.id },
+        select: {
+          employeeId: true,
+          name: true,
+          email: true,
+          role: true,
+          mobileNumber:true
+        },
+      });
+
+      res.json({
+        success: true,
+        data: staff,
+      });
+    } catch (err) {
+      res.status(500).json({ message: "Error fetching staff dashboard" });
+    }
+  }
+);
+
 
 
 
