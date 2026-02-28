@@ -12,7 +12,7 @@ const{ authenticate,authorizeRoles } = require("../../authMiddleware/authMiddlew
 ===================================================== */
 
 const generateAccessToken = (payload) =>
-  jwt.sign(payload, config.ACCESS_SECRET, { expiresIn: "15m" });
+  jwt.sign(payload, config.ACCESS_SECRET, { expiresIn: "15min" });
 
 const generateRefreshToken = (payload) =>
   jwt.sign(payload, config.REFRESH_SECRET, { expiresIn: "7d" });
@@ -69,7 +69,7 @@ router.post("/user/login", async (req, res) => {
       data: {
         token: refreshToken,
         userId: user.userId,
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
       },
     });
 
@@ -118,6 +118,7 @@ router.post("/staff/login", async (req, res) => {
         token: refreshToken,
         employeeId: emp.employeeId,
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        
       },
     });
 
@@ -141,11 +142,14 @@ router.post("/staff/login", async (req, res) => {
 router.post("/auth/refresh", async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
-    if (!token) return res.status(401).json({ message: "No token" });
+    if (!token) {
+      return res.status(401).json({ message: "No token" });
+    }
 
     const stored = await prisma.refreshToken.findUnique({
       where: { token },
     });
+ 
 
     // ❌ invalid or expired
     if (!stored || stored.expiresAt < new Date()) {
@@ -159,8 +163,11 @@ router.post("/auth/refresh", async (req, res) => {
       const user = await prisma.user.findUnique({
         where: { userId: stored.userId },
       });
+ 
 
-      if (!user) return res.status(404).json({ message: "User not found" });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
 
       payload = {
         id: user.userId,
@@ -174,23 +181,15 @@ router.post("/auth/refresh", async (req, res) => {
         where: { employeeId: stored.employeeId },
       });
 
-      if (!emp) return res.status(404).json({ message: "Employee not found" });
+      if (!emp) {
+        return res.status(404).json({ message: "Employee not found" });
+      }
 
       payload = {
         id: emp.employeeId,
         role: emp.role,
       };
     }
-
-    // ===============================
-    // 🚀 SLIDING SESSION (KEY PART)
-    // ===============================
-  // await prisma.refreshToken.update({
-  //     where: { token },
-  //     data: {
-  //       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000 ),//30 days extend
-  //     },
-  //   });
 
     // ===============================
     // 🔐 NEW ACCESS TOKEN
@@ -267,7 +266,7 @@ router.post("/auth/logout-all", async (req, res) => {
 router.get(
   "/user/dashboard",
   authenticate,
-  authorizeRoles("USER"),
+  authorizeRoles(["USER"]),
   async (req, res) => {
     try {
       const user = await prisma.user.findUnique({
@@ -294,7 +293,7 @@ router.get(
 router.get(
   "/employee/dashboard",
   authenticate,
-  authorizeRoles("STAFF","ADMIN"),
+  authorizeRoles(["STAFF","ADMIN"]),
   async (req, res) => {
     try {
       const staff = await prisma.employee.findUnique({

@@ -1,68 +1,54 @@
-const jwt = require("jsonwebtoken");
-const config = require('../utils/config')
+const jwt = require('jsonwebtoken');
+const config = require('../../src/utils/config')
 
-/* ======================
-   AUTHENTICATION MIDDLEWARE
-   (Checks JWT Access Token)
-====================== */
-const authenticate = (req, res, next) => {
-  try {
+
+function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
-
-  // No Authorization header
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+console.log("header:",authHeader)
+  if (!authHeader) {
     return res.status(401).json({
-      success: false,
-      message: "Access token missing or invalid"
+      message: "Token Not Found",
     });
   }
 
-  const token = authHeader.split(" ")[1];
+const token = authHeader.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({
+      message: "Token Malformed",
+    });
+  }
 
-  jwt.verify(token, config.ACCESS_SECRET, (err, decoded) => {
+jwt.verify(token, config.ACCESS_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).json({ message: "Invalid or expired token" });
+      console.log(err)
+      return res.status(401).json({
+        message: "Token Invalid",
+        error: err.message,
+      });
     }
 
-    // decoded = { userId, email, role, iat, exp }
-    req.user = decoded;
+    req.user = decoded; // ✅ IMPORTANT
     next();
   });
-
-} catch (error) {
-  return res.status(500).json({
-    success: false,
-    message: "Authentication failed"
-  });
 }
-};
 
-/* ======================
-   ROLE AUTHORIZATION
-   (USER / STAFF / ADMIN)
-====================== */
-const authorizeRoles = (allowedRoles) => {
-   
-    return (req, res, next) => {
+function authorizeRoles(requiredRoles) {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
 
-      if (!req.user || !req.user.role) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized"
-        });
-      }
+    if (requiredRoles && !requiredRoles.includes(req.user.role)) {
+      return res.status(403).json({
+        message: "Access Denied: Insufficient Permissions",
+      });
+    }
 
-
-      if (!allowedRoles.includes(req.user.role)) {
-        return res.status(403).json({
-          success: false,
-          message: "You do not have permission to perform this action"
-        });
-      }
-      next();
-    };
+    next();
   };
-  
+}
 
 /* ======================
    EXPORT BOTH
