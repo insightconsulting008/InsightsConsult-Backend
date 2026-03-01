@@ -81,7 +81,7 @@ router.post("/user/login", async (req, res) => {
      
     });
 
-    res.json({ accessToken ,role:user.role});
+    res.json({ accessToken ,role:user.role,userId:user.userId});
   } catch {
     res.status(500).json({ message: "Error" });
   }
@@ -129,7 +129,7 @@ router.post("/staff/login", async (req, res) => {
    
     });
 
-    res.json({ accessToken ,role:emp.role});
+    res.json({ accessToken ,role:emp.role, employeeId :emp.employeeId});
   } catch {
     res.status(500).json({ message: "Error" });
   }
