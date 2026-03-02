@@ -21,7 +21,16 @@ const services = require("./src/landingPage/services/Services")
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://insightsconsult-frontend.onrender.com",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "https://insightconsultancy.netlify.app"
+  ], // frontend URL
+  credentials: true
+}));
 
 /* -------------------- ROUTES -------------------- */
 app.get("/test", async(req, res) => {
