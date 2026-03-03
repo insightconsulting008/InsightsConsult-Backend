@@ -362,6 +362,30 @@ model ServiceBundle {
   updatedAt    DateTime    @updatedAt
 }
 
+model ApplicationHistory {
+  historyId String @id @default(cuid())
+
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [applicationId])
+
+  applicationTrackStepId String?
+  servicePeriodId        String?
+  periodStepId           String?
+  documentId             String?
+
+  action      HistoryAction
+  oldValue    String?
+  newValue    String?
+
+  doneByRole  String   // USER | STAFF | ADMIN | SYSTEM
+  doneById    String?
+
+  message     String?
+
+  createdAt   DateTime @default(now())
+
+}
+
 model Application {
   applicationId String            @id @default(cuid())
 
@@ -393,6 +417,7 @@ model Application {
   // Live progress tracking
   applicationTrackStep    ApplicationTrackStep[]
   servicePeriod   ServicePeriod[]
+  applicationHistory ApplicationHistory[]
 
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
@@ -500,4 +525,15 @@ enum DocumentStatus {
 enum DocumentFlow {
   REQUESTED
   ISSUED
+}
+
+enum HistoryAction {
+  APPLICATION_CREATED
+  STATUS_CHANGED
+  ASSIGNED_TO_EMPLOYEE
+  STEP_STATUS_CHANGED
+  PERIOD_LOCKED
+  DOCUMENT_UPLOADED
+  DOCUMENT_VERIFIED
+  DOCUMENT_REJECTED
 }
