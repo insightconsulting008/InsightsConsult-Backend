@@ -6,7 +6,7 @@ const {applicationImgUpload,myDocuments} = require('../../utils/multer')
 const{ authenticate,authorizeRoles } = require("../../authMiddleware/authMiddleware")
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
-const logHistory = require("../../../src/utils/historyService")
+const {logHistory} = require("../../../src/utils/historyService")
 
 
 router.get("/users", async (req, res) => {
