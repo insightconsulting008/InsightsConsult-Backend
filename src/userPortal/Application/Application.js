@@ -6,6 +6,7 @@ const {applicationImgUpload,myDocuments} = require('../../utils/multer')
 const{ authenticate,authorizeRoles } = require("../../authMiddleware/authMiddleware")
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
+const logHistory = require("../../../src/utils/historyService")
 
 
 router.get("/users", async (req, res) => {
@@ -38,6 +39,7 @@ router.get("/users", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 router.get("/payments/:employeeId", async (req, res) => {
   try {
@@ -173,7 +175,6 @@ router.post("/create/amendment-link", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 
 router.post("/buy/service", async (req, res) => {
@@ -400,6 +401,7 @@ router.post("/razorpay/webhook", async (req, res) => {
     res.status(500).send("Webhook error");
   }
 });
+
 
 router.get("/my-services/:userId", async (req, res) => {
     const {userId} = req.params;
@@ -664,6 +666,17 @@ router.get("/my-services/:userId", async (req, res) => {
           },
         });
 
+        await logHistory({
+          applicationId: application.applicationId,
+          action: "APPLICATION_CREATED",
+          newValue: "PENDING",
+          doneByRole: "USER",
+          doneById: userId,
+          message: "Application submitted by user",
+        });
+  
+        
+
         // console.log("jarom",application)
 
         if (service.serviceType === "ONE_TIME") {
@@ -682,6 +695,13 @@ router.get("/my-services/:userId", async (req, res) => {
             order: step.order,
             status: "PENDING",
             })),
+            });
+
+            await logHistory({
+              applicationId: application.applicationId,
+              action: "APPLICATION_STEPS_CREATED",
+              doneByRole: "SYSTEM",
+              message: "Application track steps initialized",
             });
             }
         }
@@ -746,6 +766,13 @@ router.get("/my-services/:userId", async (req, res) => {
   
           if (periods.length > 0) {
             await prisma.servicePeriod.createMany({ data: periods });
+
+            await logHistory({
+              applicationId: application.applicationId,
+              action: "PERIODS_GENERATED",
+              doneByRole: "SYSTEM",
+              message: "Recurring service periods generated",
+            });
           }
         }
   
@@ -756,6 +783,14 @@ router.get("/my-services/:userId", async (req, res) => {
           where: { myServiceId },
           data: { status: "IN_PROGRESS" },
         });
+
+         await logHistory({
+        applicationId: application.applicationId,
+        action: "SERVICE_STARTED",
+        newValue: "IN_PROGRESS",
+        doneByRole: "SYSTEM",
+        message: "Service moved to IN_PROGRESS",
+      });
 
  // 2️⃣ Fetch them back (needed because createMany doesn't return IDs)
  const savedPeriods = await prisma.servicePeriod.findMany({
@@ -781,6 +816,15 @@ router.get("/my-services/:userId", async (req, res) => {
     });
   }
 
+
+  if (savedPeriods.length > 0 && serviceSteps.length > 0) {
+    await logHistory({
+      applicationId: application.applicationId,
+      action: "PERIOD_STEPS_CREATED",
+      doneByRole: "SYSTEM",
+      message: "Steps created for each service period",
+    });
+  }
 
   if (service.documentsRequired === "true") {
     console.log("📄 Auto Document Request Enabled");
@@ -808,6 +852,14 @@ router.get("/my-services/:userId", async (req, res) => {
   
     if (docsToCreate.length > 0) {
       await prisma.serviceDocument.createMany({ data: docsToCreate });
+
+      await logHistory({
+        applicationId: application.applicationId,
+        action: "DOCUMENTS_AUTO_REQUESTED",
+        doneByRole: "SYSTEM",
+        message: "Required documents automatically requested",
+      });
+
       console.log("✅ Documents auto-created");
     } else {
       console.log("⚠️ No required documents found for this service");
@@ -850,6 +902,20 @@ router.get("/my-services/:userId", async (req, res) => {
             message: "employeeId is required",
           });
         }
+
+        /* 2️⃣ Fetch existing application */
+      const existingApplication = await prisma.application.findUnique({
+        where: { applicationId },
+      });
+
+      if (!existingApplication) {
+        return res.status(404).json({
+          success: false,
+          message: "Application not found",
+        });
+      }
+
+      const oldEmployeeId = existingApplication.employeeId;
   
         // 2️⃣ Update application
         const application = await prisma.application.update({
@@ -860,6 +926,21 @@ router.get("/my-services/:userId", async (req, res) => {
             status: "ASSIGNED",
           },
         });
+
+        /* 4️⃣ Log history (Assign or Reassign only) */
+      await logHistory({
+        applicationId,
+        action: oldEmployeeId
+          ? "APPLICATION_REASSIGNED"
+          : "APPLICATION_ASSIGNED",
+        oldValue: oldEmployeeId || null,
+        newValue: employeeId,
+        doneByRole: "ADMIN",
+        doneById: req.user?.id || null,
+        message: oldEmployeeId
+          ? `Reassigned from ${oldEmployeeId} to ${employeeId}`
+          : `Assigned to ${employeeId}`,
+      });
   
         res.json({
           success: true,
@@ -1095,11 +1176,33 @@ router.get("/my-services/:userId", async (req, res) => {
 
   
       let updatedStep;
+      let applicationId;
+      let oldStatus;
+      
   
       // ===============================
       // 🟢 ONE-TIME STEP UPDATE
       // ===============================
       if (applicationTrackStepId) {
+
+        const existing = await prisma.applicationTrackStep.findUnique({
+          where: { applicationTrackStepId },
+          select: {
+            applicationId: true,
+            status: true,
+          },
+        });
+
+        if (!existing) {
+          return res.status(404).json({
+            success: false,
+            message: "Step not found",
+          });
+        }
+  
+        applicationId = existing.applicationId;
+        oldStatus = existing.status;
+
         updatedStep = await prisma.applicationTrackStep.update({
           where: { applicationTrackStepId },
           data: {
@@ -1109,12 +1212,45 @@ router.get("/my-services/:userId", async (req, res) => {
             updatedAt: new Date(),
           },
         });
+
+        await logHistory({
+          applicationId,
+          action: "STEP_UPDATED",
+          oldValue: oldStatus,
+          newValue: status,
+          doneByRole: "STAFF",
+          doneById: req.user?.id || null,
+          message: `Step changed from ${oldStatus} to ${status}`,
+        });
+
       }
   
       // ===============================
       // 🔵 PERIOD STEP UPDATE
       // ===============================
       if (periodStepId) {
+
+        const existing = await prisma.periodStep.findUnique({
+          where: { periodStepId },
+          select: {
+            status: true,
+            servicePeriodId: true,
+            servicePeriod: {
+              select: { applicationId: true }
+            }
+          },
+        });
+
+        if (!existing) {
+          return res.status(404).json({
+            success: false,
+            message: "Period step not found",
+          });
+        }
+
+        applicationId = existing.servicePeriod.applicationId;
+        oldStatus = existing.status;
+  
         
         updatedStep = await prisma.periodStep.update({
           where: { periodStepId },
@@ -1160,6 +1296,17 @@ router.get("/my-services/:userId", async (req, res) => {
             status: periodStatus,
           },
         });
+
+        await logHistory({
+          applicationId,
+          action: "PERIOD_STEP_UPDATED",
+          oldValue: oldStatus,
+          newValue: status,
+          doneByRole: "STAFF",
+          doneById: req.user?.id || null,
+          message: `Period step changed from ${oldStatus} to ${status}`,
+        });
+
       }
   
       return res.json({
@@ -1178,165 +1325,7 @@ router.get("/my-services/:userId", async (req, res) => {
   });
   
    
-//CHUMAA EADUTHU VACHU ERUKEN
-  // router.put("/staff/update/step", async (req, res) => {
-  //   try {
-  //     const {
-  //       applicationTrackStepId,
-  //       periodStepId,
-  //       status,
-  //       description,
-  //       remarks,
-  //     } = req.body;
-  
-  //     // ❌ Must provide at least one step ID
-  //     if (!applicationTrackStepId && !periodStepId) {
-  //       return res.status(400).json({
-  //         success: false,
-  //         message: "Step ID is required",
-  //       });
-  //     }
-  
-  //     let updatedStep;
-  
-  //     // 🟢 ONE-TIME STEP UPDATE
-  //     if (applicationTrackStepId) {
-  //       updatedStep = await prisma.applicationTrackStep.update({
-  //         where: { applicationTrackStepId },
-  //         data: {
-  //           status,
-  //           description,
-  //           remarks,
-  //           updatedAt: new Date(),
-  //         },
-  //       });
-  //     }
-  
-  //     // 🔵 RECURRING PERIOD STEP UPDATE
-  //     if (periodStepId) {
-  //       updatedStep = await prisma.periodStep.update({
-  //         where: { periodStepId },
-  //         data: {
-  //           status,
-  //           description,
-  //           remarks,
-  //           updatedAt: new Date(),
-  //         },
-  //         select: {
-  //           periodStepId: true,
-  //           servicePeriodId: true,
-  //         },
-  //       });
-  //     }
 
-  //   console.log(updatedStep)
-
-  //   const totalSteps = await prisma.periodStep.count({
-  //     where: {servicePeriodId : updatedStep.servicePeriodId },
-  //   });
-
-    
-
-  //   console.log(totalSteps)
-  
-  //     return res.json({
-  //       success: true,
-  //       message: "Step updated successfully",
-  //       step: updatedStep,
-  //     });
-  //   } catch (error) {
-  //     console.error("Step update error:", error);
-  //     res.status(500).json({
-  //       success: false,
-  //       message: "Unable to update step",
-  //     });
-  //   }
-  // });
-  
-
-//document request
-// ------------------------------
-// 1️⃣ Staff requests a document (text or file)
-// ------------------------------
-// router.post("/staff/request-document", async (req, res) => {
-//   try {
-//     const {
-//       applicationTrackStepId,
-//       servicePeriodId,
-//       requestedBy,
-//       documentType,
-//       remark,
-//       inputType 
-//     } = req.body;
-
-//     // ✅ Must provide ONE parent
-//     if (!applicationTrackStepId && !servicePeriodId) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "applicationTrackStepId OR servicePeriodId required"
-//       });
-//     }
-
-//     // ❌ Prevent both at same time (clean DB design)
-//     if (applicationTrackStepId && servicePeriodId) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Provide only one parent id"
-//       });
-//     }
-
-//      // ✅ Validate input type
-//      if (!["FILE","TEXT"].includes(inputType)) {
-//       return res.status(400).json({
-//         success:false,
-//         message:"inputType must be FILE, TEXT"
-//       });
-//     }
-
-//     const doc = await prisma.serviceDocument.create({
-//       data: {
-//         applicationTrackStepId,
-//         servicePeriodId,
-//         requestedBy,
-//         documentType,
-//         remark,
-//         inputType,     
-//         status: "PENDING",
-//         version: 0,
-//         flow: "REQUESTED", // 🟢 ADD
-//       }
-//     });
-
-//     res.json({ success: true, document: doc });
-
-//   } catch (error) {
-//     console.error("Request document error:", error);
-//     res.status(500).json({ success: false, message: "Server error" });
-//   }
-// });
-
-// router.get("/user/:applicationTrackStepId/documents", async (req, res) => {
-//   try {
-//     const { applicationTrackStepId } = req.params;
-
-//     const docs = await prisma.serviceDocument.findMany({
-//       where: {
-//         applicationTrackStepId,
-//         status: "PENDING",
-//         flow: "REQUESTED",   // 🟢 ADD
-//       },
-//       orderBy: { createdAt: "asc" },
-//     });
-
-//     res.json({ success: true, documents: docs });
-//   } catch (error) {
-//     console.error("Get pending documents error:", error);
-//     res.status(500).json({ success: false, message: "Server error" });
-//   }
-// });
-// ------------------------------
-// 2️⃣ User submits document or text
-// ------------------------------
 
 
 router.put("/user/upload-document/:documentId",myDocuments.single("file"), async (req, res) => {
@@ -1387,126 +1376,25 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       },
     });
 
+     // 🔥 Log
+     await logHistory({
+      applicationId: existing.applicationId,
+      action: "DOCUMENT_UPLOADED",
+      newValue: documentId,
+      doneByRole: "USER",
+      doneById: req.user?.id || null,
+      message: `User uploaded document (v${doc.version})`,
+    });
+
+
+
     res.json({ success: true, document: doc });
   } catch (error) {
     console.error("User upload document error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
-// ------------------------------
-// 3️⃣ Staff verifies or rejects document/text
-// ------------------------------
-router.put("/staff/review-document/:documentId", async (req, res) => {
-  try {
-    const { documentId } = req.params;
-    const { status, remark } = req.body; // VERIFIED or REJECTED
 
-    if (!["VERIFIED", "REJECTED","FOR_REVIEW"].includes(status)) {
-      return res.status(400).json({ success: false, message: "Invalid status" });
-    }
-
-    
-    const existing = await prisma.serviceDocument.findUnique({
-      where: { documentId }
-    });
-
-    if (!existing) {
-      return res.status(404).json({
-        success: false,
-        message: "Document not found"
-      });
-    }
-
-
-    if (!existing.fileUrl && !existing.textValue) {
-      return res.status(400).json({
-        success: false,
-        message: "User has not uploaded document yet"
-      });
-    }
-
-    const doc = await prisma.serviceDocument.update({
-      where: { documentId },
-      data: { status, remark, uploadedBy:"staff" },
-    });
-
-    res.json({ success: true, document: doc });
-  } catch (error) {
-    console.error("Review document error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
-
-
-
-
-
-// =======================================================
-// 6️⃣ 🟢 NEW — User downloads issued documents
-// =======================================================
-// router.get(
-//   "/user/:applicationTrackStepId/issued-documents",
-//   async (req, res) => {
-//     const { applicationTrackStepId } = req.params;
-
-//     const docs = await prisma.serviceDocument.findMany({
-//       where: {
-//         applicationTrackStepId,
-//         flow: "ISSUED"
-//       },
-//       orderBy: { createdAt: "desc" }
-//     });
-
-//     res.json({ success: true, documents: docs });
-//   }
-// );
-
-// ------------------------------
-// 4️⃣ Optional: List all document requests for an application
-// ------------------------------
-
-
-
-router.get("/application/:applicationId/documents", async (req, res) => {
-  try {
-    const { applicationId } = req.params;
-
-    const docs = await prisma.serviceDocument.findMany({
-      where: {
-        OR: [
-          // Track step documents
-          {
-            applicationTrackStep: {
-              applicationId: applicationId,
-            },
-          },
-
-          // Period step documents
-          {
-            periodStep: {
-              servicePeriod: {
-                applicationId: applicationId,
-              },
-            },
-          },
-        ],
-      },
-      include: {
-        applicationTrackStep: true,
-        periodStep: true,
-      },
-      orderBy: [
-        { flow: "asc" },
-        { createdAt: "asc" },
-      ],
-    });
-
-    res.json({ success: true, documents: docs });
-  } catch (error) {
-    console.error("List documents error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
 
 
 router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
@@ -1572,6 +1460,17 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
             version: 0
           }
         });
+        
+
+        await logHistory({
+          applicationId: doc.applicationId,
+          action: "DOCUMENT_REQUESTED",
+          newValue: documentType,
+          doneByRole: "STAFF",
+          doneById: req.user?.id || null,
+          message: `Document requested: ${documentType}`,
+        });
+
 
         return res.json({ success: true, document: doc });
       }
@@ -1596,6 +1495,17 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
           }
         });
 
+
+        await logHistory({
+          applicationId: doc.applicationId,
+          action: "DOCUMENT_ISSUED",
+          newValue: documentType,
+          doneByRole: "STAFF",
+          doneById: req.user?.id || null,
+          message: `Document issued: ${documentType}`,
+        });
+
+
         return res.json({ success: true, document: doc });
       }
 
@@ -1605,6 +1515,132 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
     }
   }
 );
+
+
+// ------------------------------
+// 3️⃣ Staff verifies or rejects document/text
+// ------------------------------
+router.put("/staff/review-document/:documentId", async (req, res) => {
+  try {
+    const { documentId } = req.params;
+    const { status, remark } = req.body; // VERIFIED or REJECTED
+
+    if (!["VERIFIED", "REJECTED","FOR_REVIEW"].includes(status)) {
+      return res.status(400).json({ success: false, message: "Invalid status" });
+    }
+
+    
+    const existing = await prisma.serviceDocument.findUnique({
+      where: { documentId }
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: "Document not found"
+      });
+    }
+
+
+    if (!existing.fileUrl && !existing.textValue) {
+      return res.status(400).json({
+        success: false,
+        message: "User has not uploaded document yet"
+      });
+    }
+
+    const doc = await prisma.serviceDocument.update({
+      where: { documentId },
+      data: { status, remark, uploadedBy:"staff" },
+    });
+
+
+    await logHistory({
+      applicationId: existing.applicationId,
+      action:
+      status === "VERIFIED"
+      ? "DOCUMENT_VERIFIED"
+      : "DOCUMENT_REJECTED",
+      oldValue: existing.status,
+      newValue: status,
+      doneByRole: "STAFF",
+      doneById: req.user?.id || null,
+      message: `Document ${status}`,
+    });
+
+
+    res.json({ success: true, document: doc });
+  } catch (error) {
+    console.error("Review document error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
+
+router.get("/application/:applicationId/documents", async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    const docs = await prisma.serviceDocument.findMany({
+      where: {
+        OR: [
+          // Track step documents
+          {
+            applicationTrackStep: {
+              applicationId: applicationId,
+            },
+          },
+
+          // Period step documents
+          {
+            periodStep: {
+              servicePeriod: {
+                applicationId: applicationId,
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        applicationTrackStep: true,
+        periodStep: true,
+      },
+      orderBy: [
+        { flow: "asc" },
+        { createdAt: "asc" },
+      ],
+    });
+
+    res.json({ success: true, documents: docs });
+  } catch (error) {
+    console.error("List documents error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+router.get("/applications/:applicationId/history", async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    const history = await prisma.applicationHistory.findMany({
+      where: { applicationId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return res.json({
+      success: true,
+      history,
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch history",
+    });
+  }
+});
 
 
 
