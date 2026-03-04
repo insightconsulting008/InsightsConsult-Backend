@@ -705,7 +705,7 @@ router.get("/my-services/:userId", async (req, res) => {
             });
             }
         }
-   
+      
 
         /* ---------------------------------------------------
          9️⃣ Handle recurring service periods
@@ -774,6 +774,7 @@ router.get("/my-services/:userId", async (req, res) => {
               message: "Recurring service periods generated",
             });
           }
+     
         }
   
         /* ---------------------------------------------------
@@ -791,6 +792,8 @@ router.get("/my-services/:userId", async (req, res) => {
         doneByRole: "SYSTEM",
         message: "Service moved to IN_PROGRESS",
       });
+
+   
 
  // 2️⃣ Fetch them back (needed because createMany doesn't return IDs)
  const savedPeriods = await prisma.servicePeriod.findMany({
@@ -941,6 +944,8 @@ router.get("/my-services/:userId", async (req, res) => {
           ? `Reassigned from ${oldEmployeeId} to ${employeeId}`
           : `Assigned to ${employeeId}`,
       });
+
+    
   
         res.json({
           success: true,
@@ -1224,6 +1229,7 @@ router.get("/my-services/:userId", async (req, res) => {
         });
 
       }
+      
   
       // ===============================
       // 🔵 PERIOD STEP UPDATE
@@ -1306,7 +1312,7 @@ router.get("/my-services/:userId", async (req, res) => {
           doneById: req.user?.id || null,
           message: `Period step changed from ${oldStatus} to ${status}`,
         });
-
+       
       }
   
       return res.json({
@@ -1385,7 +1391,7 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       doneById: req.user?.id || null,
       message: `User uploaded document (v${doc.version})`,
     });
-
+    
 
 
     res.json({ success: true, document: doc });
@@ -1471,7 +1477,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
           message: `Document requested: ${documentType}`,
         });
 
-
+      
         return res.json({ success: true, document: doc });
       }
 
@@ -1505,7 +1511,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
           message: `Document issued: ${documentType}`,
         });
 
-
+      
         return res.json({ success: true, document: doc });
       }
 
