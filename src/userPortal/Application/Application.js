@@ -1496,7 +1496,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
                   message: "Application track step not found",
                 });
               }
-      
+              applicationId = track.application.applicationId;
               assignedEmployeeId = track.application.employeeId;
               assignedEmployeeName = track.application.employee?.name;
             }
@@ -1530,7 +1530,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
         }
 
         const app = period.servicePeriod.application;
-
+        applicationId = app.applicationId;
         assignedEmployeeId = app.employeeId;
         assignedEmployeeName = app.employee?.name;
       }
@@ -1555,7 +1555,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
         
 
         await logHistory({
-          applicationId: doc.applicationId,
+          applicationId,
           action: "DOCUMENT_REQUESTED",
           newValue: documentType,
           doneByRole: "STAFF",
@@ -1589,7 +1589,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
 
 
         await logHistory({
-          applicationId: doc.applicationId,
+          applicationId,
           action: "DOCUMENT_ISSUED",
           newValue: documentType,
           doneByRole: "STAFF",
