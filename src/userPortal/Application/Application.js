@@ -1584,6 +1584,13 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
     }
 
 
+    // ✅ Get staff name
+    const staff = await prisma.user.findUnique({
+      where: { userId: req.user?.id },
+      select: { name: true },
+    });
+
+
     const doc = await prisma.serviceDocument.update({
       where: { documentId },
       data: { status, remark, uploadedBy:"staff" },
@@ -1600,7 +1607,7 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
       newValue: status,
       doneByRole: "STAFF",
       doneById: req.user?.id || null,
-      message: `Document ${status}`,
+      message: `Document ${status} by ${staff?.name }`,
     });
 
 
