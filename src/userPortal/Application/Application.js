@@ -1407,8 +1407,8 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       action: "DOCUMENT_UPLOADED",
       newValue: documentId,
       doneByRole: "USER",
-      doneById: req.user?.id || null,
-      message: `User (${application?.name})  uploaded document (v${doc.version})`,
+      doneById: application.userId || null,
+      message: `User (${application?.user?.name}) uploaded document (v${doc.version})`,
     });
     
 
