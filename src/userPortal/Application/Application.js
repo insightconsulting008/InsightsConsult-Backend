@@ -1376,10 +1376,19 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { userId: req.user?.id },
-      select: { name: true },
+    const application = await prisma.application.findUnique({
+      where: { applicationId },
+      select: {
+        userId: true,
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
+
+   
 
     const doc = await prisma.serviceDocument.update({
       where: { documentId },
@@ -1399,7 +1408,7 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       newValue: documentId,
       doneByRole: "USER",
       doneById: req.user?.id || null,
-      message: `User (${user?.name})  uploaded document (v${doc.version})`,
+      message: `User (${application?.name})  uploaded document (v${doc.version})`,
     });
     
 
@@ -1586,13 +1595,27 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
       });
     }
 
-
-    // ✅ Get staff name
-    const staff = await prisma.user.findUnique({
-      where: { userId: req.user?.id },
-      select: { name: true },
+    const application = await prisma.application.findUnique({
+      where: { applicationId },
+      select: {
+        employeeId: true,
+        employee: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
-
+    
+    if (!application || !application.employeeId) {
+      return res.status(400).json({
+        success: false,
+        message: "No employee assigned to this application",
+      });
+    }
+    
+    const employeeId = application.employeeId;
+    const employeeName = application.employee.name;
 
     const doc = await prisma.serviceDocument.update({
       where: { documentId },
@@ -1609,8 +1632,8 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
       oldValue: existing.status,
       newValue: status,
       doneByRole: "STAFF",
-      doneById: req.user?.id || null,
-      message: `Document ${status} by ${staff?.name }`,
+      doneById: employeeId || null,
+      message: `Document ${status} by ${employeeName}`,
     });
 
 
