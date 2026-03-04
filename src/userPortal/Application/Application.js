@@ -1376,7 +1376,10 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       });
     }
 
-   
+    const user = await prisma.user.findUnique({
+      where: { userId: req.user?.id },
+      select: { name: true },
+    });
 
     const doc = await prisma.serviceDocument.update({
       where: { documentId },
@@ -1396,7 +1399,7 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       newValue: documentId,
       doneByRole: "USER",
       doneById: req.user?.id || null,
-      message: `User uploaded document (v${doc.version})`,
+      message: `User (${user?.name})  uploaded document (v${doc.version})`,
     });
     
 
