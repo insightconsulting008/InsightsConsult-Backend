@@ -1468,6 +1468,73 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
         });
       }
 
+
+      let assignedEmployeeId = null;
+      let assignedEmployeeName = null;
+
+
+            // ---------- TRACK STEP PATH ----------
+            if (applicationTrackStepId) {
+              const track = await prisma.applicationTrackStep.findUnique({
+                where: { applicationTrackStepId },
+                select: {
+                  application: {
+                    select: {
+                      applicationId: true,
+                      employeeId: true,
+                      employee: {
+                        select: { name: true },
+                      },
+                    },
+                  },
+                },
+              });
+      
+              if (!track?.application) {
+                return res.status(404).json({
+                  success: false,
+                  message: "Application track step not found",
+                });
+              }
+      
+              assignedEmployeeId = track.application.employeeId;
+              assignedEmployeeName = track.application.employee?.name;
+            }
+
+              // ---------- PERIOD STEP PATH ----------
+      if (periodStepId) {
+        const period = await prisma.periodStep.findUnique({
+          where: { periodStepId },
+          select: {
+            servicePeriod: {
+              select: {
+                application: {
+                  select: {
+                    applicationId: true,
+                    employeeId: true,
+                    employee: {
+                      select: { name: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        if (!period?.servicePeriod?.application) {
+          return res.status(404).json({
+            success: false,
+            message: "Period step not found",
+          });
+        }
+
+        const app = period.servicePeriod.application;
+
+        assignedEmployeeId = app.employeeId;
+        assignedEmployeeName = app.employee?.name;
+      }
+
       // ------------------------
       // REQUEST DOCUMENT
       // ------------------------
@@ -1492,8 +1559,8 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
           action: "DOCUMENT_REQUESTED",
           newValue: documentType,
           doneByRole: "STAFF",
-          doneById: req.user?.id || null,
-          message: `Document requested: ${documentType}`,
+          doneById: assignedEmployeeId ,
+          message: `Document requested: ${documentType} by ${assignedEmployeeName}`,
         });
 
       
@@ -1526,8 +1593,8 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
           action: "DOCUMENT_ISSUED",
           newValue: documentType,
           doneByRole: "STAFF",
-          doneById: req.user?.id || null,
-          message: `Document issued: ${documentType}`,
+          doneById: assignedEmployeeId,
+          message: `Document issued: ${documentType} by ${ assignedEmployeeName }`
         });
 
       
