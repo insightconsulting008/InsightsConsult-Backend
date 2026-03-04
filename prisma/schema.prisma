@@ -383,7 +383,6 @@ model ApplicationHistory {
   message     String?
 
   createdAt   DateTime @default(now())
-
 }
 
 model Application {

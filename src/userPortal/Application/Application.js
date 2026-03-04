@@ -696,13 +696,6 @@ router.get("/my-services/:userId", async (req, res) => {
             status: "PENDING",
             })),
             });
-
-            await logHistory({
-              applicationId: application.applicationId,
-              action: "APPLICATION_STEPS_CREATED",
-              doneByRole: "SYSTEM",
-              message: "Application track steps initialized",
-            });
             }
         }
       
@@ -766,13 +759,6 @@ router.get("/my-services/:userId", async (req, res) => {
   
           if (periods.length > 0) {
             await prisma.servicePeriod.createMany({ data: periods });
-
-            await logHistory({
-              applicationId: application.applicationId,
-              action: "PERIODS_GENERATED",
-              doneByRole: "SYSTEM",
-              message: "Recurring service periods generated",
-            });
           }
      
         }
@@ -784,14 +770,6 @@ router.get("/my-services/:userId", async (req, res) => {
           where: { myServiceId },
           data: { status: "IN_PROGRESS" },
         });
-
-         await logHistory({
-        applicationId: application.applicationId,
-        action: "SERVICE_STARTED",
-        newValue: "IN_PROGRESS",
-        doneByRole: "SYSTEM",
-        message: "Service moved to IN_PROGRESS",
-      });
 
    
 
@@ -821,12 +799,6 @@ router.get("/my-services/:userId", async (req, res) => {
 
 
   if (savedPeriods.length > 0 && serviceSteps.length > 0) {
-    await logHistory({
-      applicationId: application.applicationId,
-      action: "PERIOD_STEPS_CREATED",
-      doneByRole: "SYSTEM",
-      message: "Steps created for each service period",
-    });
   }
 
   if (service.documentsRequired === "true") {
@@ -856,12 +828,6 @@ router.get("/my-services/:userId", async (req, res) => {
     if (docsToCreate.length > 0) {
       await prisma.serviceDocument.createMany({ data: docsToCreate });
 
-      await logHistory({
-        applicationId: application.applicationId,
-        action: "DOCUMENTS_AUTO_REQUESTED",
-        doneByRole: "SYSTEM",
-        message: "Required documents automatically requested",
-      });
 
       console.log("✅ Documents auto-created");
     } else {
@@ -909,6 +875,9 @@ router.get("/my-services/:userId", async (req, res) => {
         /* 2️⃣ Fetch existing application */
       const existingApplication = await prisma.application.findUnique({
         where: { applicationId },
+        include: {
+          employee: true, // 🔥 get old employee details
+        },
       });
 
       if (!existingApplication) {
@@ -919,6 +888,19 @@ router.get("/my-services/:userId", async (req, res) => {
       }
 
       const oldEmployeeId = existingApplication.employeeId;
+      const oldEmployeeName = existingApplication.employee?.name || null;
+
+
+      const newEmployee = await prisma.employee.findUnique({
+        where: { employeeId },
+      });
+  
+      if (!newEmployee) {
+        return res.status(404).json({
+          success: false,
+          message: "Employee not found",
+        });
+      }
   
         // 2️⃣ Update application
         const application = await prisma.application.update({
@@ -931,19 +913,21 @@ router.get("/my-services/:userId", async (req, res) => {
         });
 
         /* 4️⃣ Log history (Assign or Reassign only) */
-      await logHistory({
-        applicationId,
-        action: oldEmployeeId
-          ? "APPLICATION_REASSIGNED"
-          : "APPLICATION_ASSIGNED",
-        oldValue: oldEmployeeId || null,
-        newValue: employeeId,
-        doneByRole: "ADMIN",
-        doneById: req.user?.id || null,
-        message: oldEmployeeId
-          ? `Reassigned from ${oldEmployeeId} to ${employeeId}`
-          : `Assigned to ${employeeId}`,
-      });
+        await logHistory({
+          applicationId,
+          action: oldEmployeeId
+            ? "APPLICATION_REASSIGNED"
+            : "APPLICATION_ASSIGNED",
+          oldValue: oldEmployeeId
+            ? `${oldEmployeeId} (${oldEmployeeName})`
+            : null,
+          newValue: `${newEmployee.employeeId} (${newEmployee.name})`,
+          doneByRole: "ADMIN",
+          doneById: req.user?.id || null,
+          message: oldEmployeeId
+            ? `Reassigned from ${oldEmployeeName} to ${newEmployee.name}`
+            : `Assigned to ${newEmployee.name}`,
+        });
 
     
   
@@ -1349,8 +1333,19 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
     }
 
     const existing = await prisma.serviceDocument.findUnique({
-      where: { documentId }
+      where: { documentId },
+      include: {
+        periodStep: {
+          include: {
+            servicePeriod: true,
+          },
+        },
+        applicationTrackStep: true,
+      },
     });
+
+
+
 
     if (!existing) {
       return res.status(404).json({
@@ -1359,7 +1354,19 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       });
     }
 
-   
+     // 🔥 Resolve applicationId correctly
+     const applicationId =
+     existing.periodStep?.servicePeriod?.applicationId ||
+     existing.applicationTrackStep?.applicationId;
+
+   if (!applicationId) {
+     return res.status(400).json({
+       success: false,
+       message: "Cannot determine application for this document",
+     });
+   }
+
+   console.log(existing)
 
     // optional: lock verified docs
     if (existing.status === "VERIFIED") {
@@ -1384,7 +1391,7 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
 
      // 🔥 Log
      await logHistory({
-      applicationId: existing.applicationId,
+      applicationId: applicationId,
       action: "DOCUMENT_UPLOADED",
       newValue: documentId,
       doneByRole: "USER",
@@ -1625,28 +1632,170 @@ router.get("/application/:applicationId/documents", async (req, res) => {
   }
 });
 
-router.get("/applications/:applicationId/history", async (req, res) => {
-  try {
-    const { applicationId } = req.params;
 
-    const history = await prisma.applicationHistory.findMany({
-      where: { applicationId },
-      orderBy: { createdAt: "desc" },
-    });
+router.get("/application-history", async (req, res) => {
+  try {
+    // ✅ query params
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search?.trim() || "";
+
+    const skip = (page - 1) * limit;
+
+    // ✅ search filter
+    const where = search
+      ? {
+          OR: [
+            {
+              user: {
+                name: { contains: search, mode: "insensitive" },
+              },
+            },
+            {
+              user: {
+                email: { contains: search, mode: "insensitive" },
+              },
+            },
+            {
+              service: {
+                name: { contains: search, mode: "insensitive" },
+              },
+            },
+            {
+              employee: {
+                name: { contains: search, mode: "insensitive" },
+              },
+            },
+          ],
+        }
+      : {};
+
+    // ✅ get data
+    const [applications, total] = await Promise.all([
+      prisma.application.findMany({
+        where,
+        select: {
+          applicationId: true,
+          createdAt: true,
+
+          user: {
+            select: {
+              userId: true,
+              name: true,
+              email: true,
+            },
+          },
+
+          service: {
+            select: {
+              name: true,
+              serviceType: true,
+            },
+          },
+
+          employee: {
+            select: {
+              employeeId: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+
+      prisma.application.count({ where }),
+    ]);
 
     return res.json({
       success: true,
-      history,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+      applications,
     });
-
   } catch (error) {
-    console.error(error);
+    console.error("Application history error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch history",
+      message: "Failed to fetch applications",
     });
   }
 });
+
+router.get("/application-history/:applicationId", async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    const application = await prisma.application.findUnique({
+      where: { applicationId },
+
+      select: {
+        applicationId: true,
+        createdAt: true,
+
+        // ✅ USER DETAILS
+        user: {
+          select: {
+            userId: true,
+            name: true,
+            email: true,
+            phoneNumber: true,
+          },
+        },
+
+        // ✅ SERVICE DETAILS
+        service: {
+          select: {
+            serviceId: true,
+            name: true,
+            serviceType: true, // (remove if not in your schema)
+          },
+        },
+
+        // ✅ EMPLOYEE DETAILS
+        employee: {
+          select: {
+            employeeId: true,
+            name: true,
+            email: true,
+          },
+        },
+
+        // ✅ HISTORY
+        applicationHistory: {
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+      },
+    });
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      application,
+    });
+  } catch (error) {
+    console.error("Application history error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch application history",
+    });
+  }
+});
+
+
 
 
 
