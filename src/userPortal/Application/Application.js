@@ -1544,7 +1544,15 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
 
     
     const existing = await prisma.serviceDocument.findUnique({
-      where: { documentId }
+      where: { documentId },
+      include: {
+        periodStep: {
+          include: {
+            servicePeriod: true,
+          },
+        },
+        applicationTrackStep: true,
+      },
     });
 
     if (!existing) {
@@ -1554,6 +1562,8 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
       });
     }
 
+    
+
 
     if (!existing.fileUrl && !existing.textValue) {
       return res.status(400).json({
@@ -1561,6 +1571,18 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
         message: "User has not uploaded document yet"
       });
     }
+    // 🔥 Resolve applicationId properly
+    const applicationId =
+      existing.periodStep?.servicePeriod?.applicationId ||
+      existing.applicationTrackStep?.applicationId;
+
+    if (!applicationId) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot determine application for this document",
+      });
+    }
+
 
     const doc = await prisma.serviceDocument.update({
       where: { documentId },
@@ -1569,7 +1591,7 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
 
 
     await logHistory({
-      applicationId: existing.applicationId,
+      applicationId:applicationId,
       action:
       status === "VERIFIED"
       ? "DOCUMENT_VERIFIED"
