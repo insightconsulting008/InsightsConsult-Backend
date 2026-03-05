@@ -1916,59 +1916,65 @@ router.get("/application-history/:applicationId", async (req, res) => {
     });
   }
 });
-
-// ----------------------------
-// GET REQUESTED DOCUMENTS (User uploads)
-// ----------------------------
+// ===============================
+// GET Requested Documents (USER uploads)
+// ===============================
 router.get("/mydocuments/documents/user/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    const { month, year, page = 1, limit = 10 } = req.query;
 
-    const filters = {
-      flow: "REQUESTED",
-      OR: [
-        { applicationTrackStep: { application: { userId } } },
-        { periodStep: { servicePeriod: { application: { userId } } } }
-      ]
-    };
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit ) || 10;
+    const skip = (page - 1) * limit;
 
-    if (month || year) {
-      filters.AND = [
-        {
-          createdAt: {
-            gte: new Date(`${year || 1970}-${month || 1}-01T00:00:00.000Z`),
-            lt: new Date(
-              `${year || 3000}-${month || 12}-${new Date(
-                year || 3000,
-                (month || 12),
-                0
-              ).getDate()}T23:59:59.999Z`
-            )
-          }
-        }
-      ];
+    const month = parseInt(req.query.month );
+    const year = parseInt(req.query.year );
+
+    let dateFilter = {};
+
+    if (!isNaN(month) && !isNaN(year)) {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 1);
+
+      dateFilter = {
+        createdAt: {
+          gte: startDate,
+          lt: endDate,
+        },
+      };
     }
 
+    const whereCondition = {
+      flow: "REQUESTED",
+      NOT: { fileUrl: null },
+      ...dateFilter,
+      OR: [
+        { applicationTrackStep: { application: { userId } } },
+        { periodStep: { servicePeriod: { application: { userId } } } },
+      ],
+    };
+
     const documents = await prisma.serviceDocument.findMany({
-      where: filters,
+      where: whereCondition,
       select: {
         fileUrl: true,
-        createdAt: true
+        createdAt: true,
       },
       orderBy: { createdAt: "desc" },
-      skip: (page - 1) * limit,
-      take: Number(limit)
+      skip,
+      take: limit,
     });
 
-    const totalCount = await prisma.serviceDocument.count({ where: filters });
+    const total = await prisma.serviceDocument.count({
+      where: whereCondition,
+    });
 
     res.json({
       success: true,
-      totalCount,
-      page: Number(page),
-      limit: Number(limit),
-      documents
+      page,
+      limit,
+      total,
+      documents,
     });
   } catch (error) {
     console.error("Get requested documents error:", error);
@@ -1976,58 +1982,66 @@ router.get("/mydocuments/documents/user/:userId", async (req, res) => {
   }
 });
 
-// ----------------------------
-// GET ISSUED DOCUMENTS (Staff/Company uploads)
-// ----------------------------
+
+// ===============================
+// GET Issued Documents (COMPANY uploads)
+// ===============================
 router.get("/mycompany/documents/user/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    const { month, year, page = 1, limit = 10 } = req.query;
 
-    const filters = {
-      flow: "ISSUED",
-      OR: [
-        { applicationTrackStep: { application: { userId } } },
-        { periodStep: { servicePeriod: { application: { userId } } } }
-      ]
-    };
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-    if (month || year) {
-      filters.AND = [
-        {
-          createdAt: {
-            gte: new Date(`${year || 1970}-${month || 1}-01T00:00:00.000Z`),
-            lt: new Date(
-              `${year || 3000}-${month || 12}-${new Date(
-                year || 3000,
-                (month || 12),
-                0
-              ).getDate()}T23:59:59.999Z`
-            )
-          }
-        }
-      ];
+    const month = parseInt(req.query.month );
+    const year = parseInt(req.query.year );
+
+    let dateFilter = {};
+
+    if (!isNaN(month) && !isNaN(year)) {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 1);
+
+      dateFilter = {
+        createdAt: {
+          gte: startDate,
+          lt: endDate,
+        },
+      };
     }
 
+    const whereCondition = {
+      flow: "ISSUED",
+      NOT: { fileUrl: null },
+      ...dateFilter,
+      OR: [
+        { applicationTrackStep: { application: { userId } } },
+        { periodStep: { servicePeriod: { application: { userId } } } },
+      ],
+    };
+
     const documents = await prisma.serviceDocument.findMany({
-      where: filters,
+      where: whereCondition,
       select: {
         fileUrl: true,
-        createdAt: true
+        createdAt: true,
       },
       orderBy: { createdAt: "desc" },
-      skip: (page - 1) * limit,
-      take: Number(limit)
+      skip,
+      take: limit,
     });
 
-    const totalCount = await prisma.serviceDocument.count({ where: filters });
+    const total = await prisma.serviceDocument.count({
+      where: whereCondition,
+    });
 
     res.json({
       success: true,
-      totalCount,
-      page: Number(page),
-      limit: Number(limit),
-      documents
+      page,
+      limit,
+      total,
+      documents,
     });
   } catch (error) {
     console.error("Get issued documents error:", error);
