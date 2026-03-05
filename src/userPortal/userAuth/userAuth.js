@@ -27,15 +27,43 @@ router.post("/user/register", async (req, res) => {
   try {
     const { name, email, phoneNumber, password } = req.body;
 
+    // 1️⃣ Validate input
+    if (!name || !email || !phoneNumber || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+      // 2️⃣ Check if user already exists
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
+  
+      if (existingUser) {
+        return res.status(402).json({
+          success: false,
+          message: "Email already registered",
+        });
+      }
+
     const hashed = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
       data: { name, email, phoneNumber, password: hashed },
     });
 
-    res.json({ success: true, userId: user.userId });
+    return res.status(201).json({
+      success: true,
+      message: "User registered successfully",
+      userId: user.userId,
+    });
   } catch (err) {
-    res.status(500).json({ message: "Error" });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+
   }
 });
 
@@ -49,11 +77,31 @@ router.post("/user/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
+     // Validate input
+     if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required"
+      });
+    }
+
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+
+    if (!user) {
+      return res.status(402).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
 
     const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return res.status(401).json({ message: "Invalid credentials" });
+
+    if (!valid) {
+      return res.status(402).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
 
     const accessToken = generateAccessToken({
       id: user.userId,
@@ -81,9 +129,13 @@ router.post("/user/login", async (req, res) => {
      
     });
 
-    res.json({ accessToken ,role:user.role,userId:user.userId});
+    return res.status(200).json({
+      success: true,
+      message: "Login successful", accessToken ,role:user.role,userId:user.userId});
   } catch {
-    res.status(500).json({ message: "Error" });
+    res.status(500).json({  
+      success: false,
+      message: "Internal server error"});
   }
 });
 
@@ -95,13 +147,29 @@ router.post("/staff/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required"
+      });
+    }
+
     const emp = await prisma.employee.findUnique({ where: { email } });
-    if (!emp) return res.status(401).json({ message: "Invalid credentials" });
+
+    if (!emp) {
+      return res.status(402).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
 
     // ✅ Direct password comparison (no bcrypt)
-  if (password !== emp.password) {
-    return res.status(401).json({ message: "Invalid credentials" });
-  }
+   if (password !== emp.password) {
+      return res.status(402).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
 
     const accessToken = generateAccessToken({
       id: emp.employeeId,
@@ -129,9 +197,11 @@ router.post("/staff/login", async (req, res) => {
    
     });
 
-    res.json({ accessToken ,role:emp.role, employeeId :emp.employeeId});
+    return res.status(200).json({
+      message: "Login successful", accessToken ,role:emp.role, employeeId :emp.employeeId});
   } catch {
-    res.status(500).json({ message: "Error" });
+    res.status(500).json({ success: false,
+      message: "Internal server error" });
   }
 });
 
