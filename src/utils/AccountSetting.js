@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const prisma = require("../prisma/prisma");
 const { authenticate,authorizeRoles } = require("../authMiddleware/authMiddleware");
+const {profileUpload} = require("../utils/multer")
+const bcrypt = require("bcryptjs");
+
 
 
 /* =================================
@@ -214,5 +217,47 @@ router.put("/staff/change-password",authenticate,authorizeRoles("STAFF", "ADMIN"
       }
     }
   );
+
+
+  router.put(
+    "/staff/update-photo",
+    authenticate,
+    authorizeRoles("STAFF", "ADMIN"),
+    profileUpload.single('photoUrl'),
+    async (req, res) => {
+      try {
+        const photoUrl = req.file?.location || req.file?.path;
+  
+        if (!photoUrl) {
+          return res.status(400).json({
+            success: false,
+            message: "Photo is required",
+          });
+        }
+  
+        const staff = await prisma.employee.update({
+          where: { employeeId: req.user.id },
+          data: {
+            photoUrl: photoUrl,
+          },
+        });
+  
+        return res.json({
+          success: true,
+          message: "Profile photo updated",
+          data: staff,
+        });
+      } catch (error) {
+        console.error("Staff photo update error:", error);
+  
+        return res.status(500).json({
+          success: false,
+          message: "Server error",
+        });
+      }
+    }
+  );
+
+
 
 module.exports = router;
