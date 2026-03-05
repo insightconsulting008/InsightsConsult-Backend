@@ -4,6 +4,7 @@ const prisma = require("../prisma/prisma");
 const { authenticate,authorizeRoles } = require("../authMiddleware/authMiddleware");
 const {profileUpload} = require("../utils/multer")
 const bcrypt = require("bcryptjs");
+const { deleteS3Object } = require("../utils/deleteS3Object");
 
 
 
@@ -219,26 +220,31 @@ router.put("/staff/change-password",authenticate,authorizeRoles("STAFF", "ADMIN"
   );
 
 
-  router.put(
-    "/staff/update-photo",
-    authenticate,
-    authorizeRoles("STAFF", "ADMIN"),
-    profileUpload.single('photoUrl'),
+router.put("/staff/update-photo",authenticate,authorizeRoles("STAFF", "ADMIN"),profileUpload.single('photoUrl'),
     async (req, res) => {
       try {
-        const photoUrl = req.file?.location || req.file?.path;
+        const newPhoto = req.file?.location ;
   
-        if (!photoUrl) {
+        if (!newPhoto) {
           return res.status(400).json({
             success: false,
-            message: "Photo is required",
+            message: "Photo required",
           });
         }
   
+        const employee = await prisma.employee.findUnique({
+            where: { employeeId: req.user.id }
+          });
+
+           // Delete old photo
+      if (employee?.photoUrl) {
+        await deleteS3Object(employee.photoUrl);
+      }
+
         const staff = await prisma.employee.update({
           where: { employeeId: req.user.id },
           data: {
-            photoUrl: photoUrl,
+            photoUrl: newPhoto,
           },
         });
   
