@@ -71,6 +71,13 @@ router.post("/user/register", async (req, res) => {
       },
     });
 
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: config.NODE_ENV === "production",
+     
+    });
+
     return res.status(201).json({
       success: true,
       message: "User registered successfully",
