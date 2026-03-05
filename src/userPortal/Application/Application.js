@@ -1917,8 +1917,123 @@ router.get("/application-history/:applicationId", async (req, res) => {
   }
 });
 
+// ----------------------------
+// GET REQUESTED DOCUMENTS (User uploads)
+// ----------------------------
+router.get("/mydocuments/documents/user/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { month, year, page = 1, limit = 10 } = req.query;
 
+    const filters = {
+      flow: "REQUESTED",
+      OR: [
+        { applicationTrackStep: { application: { userId } } },
+        { periodStep: { servicePeriod: { application: { userId } } } }
+      ]
+    };
 
+    if (month || year) {
+      filters.AND = [
+        {
+          createdAt: {
+            gte: new Date(`${year || 1970}-${month || 1}-01T00:00:00.000Z`),
+            lt: new Date(
+              `${year || 3000}-${month || 12}-${new Date(
+                year || 3000,
+                (month || 12),
+                0
+              ).getDate()}T23:59:59.999Z`
+            )
+          }
+        }
+      ];
+    }
+
+    const documents = await prisma.serviceDocument.findMany({
+      where: filters,
+      select: {
+        fileUrl: true,
+        createdAt: true
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: Number(limit)
+    });
+
+    const totalCount = await prisma.serviceDocument.count({ where: filters });
+
+    res.json({
+      success: true,
+      totalCount,
+      page: Number(page),
+      limit: Number(limit),
+      documents
+    });
+  } catch (error) {
+    console.error("Get requested documents error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// ----------------------------
+// GET ISSUED DOCUMENTS (Staff/Company uploads)
+// ----------------------------
+router.get("/mycompany/documents/user/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { month, year, page = 1, limit = 10 } = req.query;
+
+    const filters = {
+      flow: "ISSUED",
+      OR: [
+        { applicationTrackStep: { application: { userId } } },
+        { periodStep: { servicePeriod: { application: { userId } } } }
+      ]
+    };
+
+    if (month || year) {
+      filters.AND = [
+        {
+          createdAt: {
+            gte: new Date(`${year || 1970}-${month || 1}-01T00:00:00.000Z`),
+            lt: new Date(
+              `${year || 3000}-${month || 12}-${new Date(
+                year || 3000,
+                (month || 12),
+                0
+              ).getDate()}T23:59:59.999Z`
+            )
+          }
+        }
+      ];
+    }
+
+    const documents = await prisma.serviceDocument.findMany({
+      where: filters,
+      select: {
+        fileUrl: true,
+        createdAt: true
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: Number(limit)
+    });
+
+    const totalCount = await prisma.serviceDocument.count({ where: filters });
+
+    res.json({
+      success: true,
+      totalCount,
+      page: Number(page),
+      limit: Number(limit),
+      documents
+    });
+  } catch (error) {
+    console.error("Get issued documents error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
 
 
 module.exports = router
