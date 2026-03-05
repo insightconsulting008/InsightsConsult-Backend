@@ -125,7 +125,15 @@ router.get("/staff/profile", authenticate, authorizeRoles("STAFF","ADMIN"), asyn
         email: true,
         mobileNumber: true,
         designation: true,
-        role: true
+        role: true,
+        employeeCode: true,   // ✅ Employee Code
+        status: true,         // ✅ Employee Status
+        department: {         // ✅ Department Relation
+            select: {
+              name: true,
+              departmentCode: true
+            }
+          }
       }
     });
 

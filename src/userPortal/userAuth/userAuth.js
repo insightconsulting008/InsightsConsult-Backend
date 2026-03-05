@@ -263,59 +263,59 @@ router.post("/auth/logout-all", async (req, res) => {
 
 
 
-router.get(
-  "/user/dashboard",
-  authenticate,
-  authorizeRoles(["USER"]),
-  async (req, res) => {
-    try {
-      const user = await prisma.user.findUnique({
-        where: { userId: req.user.id },
-        select: {
-          userId: true,
-          name: true,
-          email: true,
-          phoneNumber: true,
-          role: true,
-        },
-      });
+// router.get(
+//   "/user/dashboard",
+//   authenticate,
+//   authorizeRoles(["USER"]),
+//   async (req, res) => {
+//     try {
+//       const user = await prisma.user.findUnique({
+//         where: { userId: req.user.id },
+//         select: {
+//           userId: true,
+//           name: true,
+//           email: true,
+//           phoneNumber: true,
+//           role: true,
+//         },
+//       });
 
-      res.json({
-        success: true,
-        data: user,
-      });
-    } catch (err) {
-      res.status(500).json({ message: "Error fetching user dashboard" });
-    }
-  }
-);
+//       res.json({
+//         success: true,
+//         data: user,
+//       });
+//     } catch (err) {
+//       res.status(500).json({ message: "Error fetching user dashboard" });
+//     }
+//   }
+// );
 
-router.get(
-  "/employee/dashboard",
-  authenticate,
-  authorizeRoles(["STAFF","ADMIN"]),
-  async (req, res) => {
-    try {
-      const staff = await prisma.employee.findUnique({
-        where: { employeeId: req.user.id },
-        select: {
-          employeeId: true,
-          name: true,
-          email: true,
-          role: true,
-          mobileNumber:true
-        },
-      });
+// router.get(
+//   "/employee/dashboard",
+//   authenticate,
+//   authorizeRoles(["STAFF","ADMIN"]),
+//   async (req, res) => {
+//     try {
+//       const staff = await prisma.employee.findUnique({
+//         where: { employeeId: req.user.id },
+//         select: {
+//           employeeId: true,
+//           name: true,
+//           email: true,
+//           role: true,
+//           mobileNumber:true
+//         },
+//       });
 
-      res.json({
-        success: true,
-        data: staff,
-      });
-    } catch (err) {
-      res.status(500).json({ message: "Error fetching staff dashboard" });
-    }
-  }
-);
+//       res.json({
+//         success: true,
+//         data: staff,
+//       });
+//     } catch (err) {
+//       res.status(500).json({ message: "Error fetching staff dashboard" });
+//     }
+//   }
+// );
 
 
 
