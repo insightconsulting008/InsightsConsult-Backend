@@ -53,9 +53,28 @@ router.post("/user/register", async (req, res) => {
       data: { name, email, phoneNumber, password: hashed },
     });
 
+    const accessToken = generateAccessToken({
+      id: user.userId,
+      role: user.role,
+    });
+
+    const refreshToken = generateRefreshToken({
+      id:user.userId,
+      role:user.role
+    });
+
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.userId,
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      },
+    });
+
     return res.status(201).json({
       success: true,
       message: "User registered successfully",
+      accessToken,
       userId: user.userId,
     });
   } catch (err) {
