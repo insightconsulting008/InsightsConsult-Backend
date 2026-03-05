@@ -4,7 +4,7 @@ const config = require('../../src/utils/config')
 
 function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
-console.log("header:",authHeader)
+  
   if (!authHeader) {
     return res.status(401).json({
       message: "Token Not Found",
@@ -18,7 +18,10 @@ const token = authHeader.split(" ")[1];
     });
   }
 
+
 jwt.verify(token, config.ACCESS_SECRET, (err, decoded) => {
+
+ 
     if (err) {
       console.log(err)
       return res.status(401).json({
@@ -28,12 +31,15 @@ jwt.verify(token, config.ACCESS_SECRET, (err, decoded) => {
     }
 
     req.user = decoded; // ✅ IMPORTANT
+    
+
     next();
   });
 }
 
-function authorizeRoles(requiredRoles) {
+function authorizeRoles(...requiredRoles) {
   return (req, res, next) => {
+    // console.log(requiredRoles)
     if (!req.user) {
       return res.status(401).json({
         message: "Unauthorized",

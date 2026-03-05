@@ -15,6 +15,7 @@ const {deleteS3Object} = require("./src/utils/deleteS3Object")
 const blogs = require("./src/landingPage/blogs/Blogs")
 const contact = require("./src/landingPage/contact/Contact")
 const services = require("./src/landingPage/services/Services")
+const accountSetting = require("./src/utils/AccountSetting")
 
 
 
@@ -41,6 +42,7 @@ app.get("/test", async(req, res) => {
 });
 
 
+app.use("/",accountSetting)
 // Use routers with prefixes
 app.use("/", serviceUpdate)
 app.use("/", categoryRouter);
@@ -53,6 +55,7 @@ app.use("/", settings)
 app.use("/", blogs)
 app.use("/",contact)
 app.use("/",services)
+
 
 
 
