@@ -120,6 +120,7 @@ router.get("/staff/profile", authenticate, authorizeRoles("STAFF","ADMIN"), asyn
     const emp = await prisma.employee.findUnique({
       where: { employeeId: req.user.id },
       select: {
+        photoUrl:true,
         name: true,
         email: true,
         mobileNumber: true,
