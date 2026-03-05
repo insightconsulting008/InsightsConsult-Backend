@@ -91,7 +91,7 @@ router.post("/user/login", async (req, res) => {
    if (!user) {
     return res.status(402).json({
       success: false,
-      message: "No account found",
+      message: "No Account Found",
     });
   }
     const valid = await bcrypt.compare(password, user.password);
@@ -159,7 +159,7 @@ router.post("/staff/login", async (req, res) => {
     if (!emp) {
       return res.status(402).json({
         success: false,
-        message: "No account found with this email",
+        message: "No Account Found ",
       });
     }
 
