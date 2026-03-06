@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const prisma = require("../prisma/prisma");
 const { authenticate,authorizeRoles } = require("../authMiddleware/authMiddleware");
-const {profileUpload} = require("../utils/multer")
+const {profileUpload,userProfileUpload} = require("../utils/multer")
 const bcrypt = require("bcryptjs");
 const { deleteS3Object } = require("../utils/deleteS3Object");
 
@@ -273,6 +273,51 @@ router.put("/staff/update-photo",authenticate,authorizeRoles("STAFF", "ADMIN"),p
     }
   );
 
+
+  
+router.put("/user/update-photo",authenticate,authorizeRoles("USER"),userProfileUpload.single('photoUrl'),
+async (req, res) => {
+  try {
+    const newPhoto = req.file?.location ;
+
+    if (!newPhoto) {
+      return res.status(400).json({
+        success: false,
+        message: "Photo required",
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { userId: req.user.id }
+      });
+
+       // Delete old photo
+  if (user?.photoUrl) {
+    await deleteS3Object(user.photoUrl);
+  }
+
+    const userUpdate = await prisma.user.update({
+      where: { userId: req.user.id },
+      data: {
+        photoUrl: newPhoto,
+      },
+    });
+
+    return res.json({
+      success: true,
+      message: "Profile photo updated",
+      data: userUpdate,
+    });
+  } catch (error) {
+    console.error("User photo update error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+}
+);
 
 
 module.exports = router;
