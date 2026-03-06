@@ -703,16 +703,63 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
   // =============================
   app.get("/bundle", async (req, res) => {
     try {
-      const bundles = await prisma.serviceBundle.findMany({
-        include: { services: true },
-      });
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const search = req.query.search || "";
   
-      res.json({ success: true, bundles });
+      const skip = (page - 1) * limit;
+  
+      const whereCondition = search
+        ? {
+            name: {
+              contains: search,
+              mode: "insensitive",
+            },
+          }
+        : {};
+  
+      const [bundles, total] = await Promise.all([
+        prisma.serviceBundle.findMany({
+          where: whereCondition,
+          skip: skip,
+          take: limit,
+          orderBy: {
+            createdAt: "desc",
+          },
+          include: {
+            services: {
+              select: {
+                serviceId: true,
+                name: true,
+              },
+            },
+          },
+        }),
+  
+        prisma.serviceBundle.count({
+          where: whereCondition,
+        }),
+      ]);
+  
+      res.json({
+        success: true,
+        pagination: {
+          totalRecords: total,
+          currentPage: page,
+          limit: limit,
+          totalPages: Math.ceil(total / limit),
+        },
+        bundles,
+      });
     } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
     }
   });
 
+  
   app.get("/bundle/:bundleId/details", async (req, res) => {
     const { bundleId } = req.params;
   
@@ -720,60 +767,40 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
       const bundle = await prisma.serviceBundle.findUnique({
         where: { bundleId },
         include: {
-          services: {
-            include: {
-              inputFields: true,
-              trackSteps: true,
-            },
-          },
-        },
+          services:{
+            select:{
+             serviceId:true,
+             name:true,
+             description:true,
+             photoUrl:true,
+             serviceType:true,
+             offerPrice:true,
+             
+            }
+          }  // only services, no inputFields or trackSteps
+        }
       });
   
       if (!bundle) {
         return res.status(404).json({
           success: false,
-          message: "Bundle not found",
+          message: "Bundle not found"
         });
       }
   
-      // 👉 Merge and remove duplicate input fields
-      const allInputFields = bundle.services.flatMap(service => service.inputFields);
-  
-      const mergedInputFields = [];
-      const seen = new Set();
-  
-      for (const field of allInputFields) {
-        const key = field.label.trim().toLowerCase();
-  
-        if (!seen.has(key)) {
-          seen.add(key);
-  
-          mergedInputFields.push({
-            label: field.label,
-            type: field.type,
-            required: field.required,
-            options: field.options
-          });
-        }
-      }
-  
-      return res.json({
+      return res.status(200).json({
         success: true,
-        bundle: {
-          ...bundle,
-          mergedInputFields  // <-- sending merged input fields
-        }
+        bundle
       });
   
     } catch (error) {
-      console.error("Error fetching bundle details:", error);
+  
       return res.status(500).json({
         success: false,
-        message: "Internal Server Error",
+        message: "Internal Server Error"
       });
     }
   });
-  
   
   
   // =============================
