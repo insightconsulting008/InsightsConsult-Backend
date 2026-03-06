@@ -21,6 +21,7 @@ router.get("/user/profile", authenticate,authorizeRoles("USER"), async (req, res
       select: {
         name: true,
         email: true,
+        photoUrl:true,
         phoneNumber: true,
         role: true
       }
