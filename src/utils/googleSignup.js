@@ -84,6 +84,7 @@ router.post("/user/google-auth", async (req, res) => {
     res.json({
       success: true,
       message: "Google authentication successful",
+      role:user.role,
       accessToken,
       userId: user.userId,
     });
