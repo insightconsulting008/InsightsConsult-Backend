@@ -9,36 +9,36 @@ const crypto = require("crypto");
 const {logHistory} = require("../../../src/utils/historyService")
 
 
-router.get("/users", async (req, res) => {
-  try {
-    const { search } = req.query;
+// router.get("/users", async (req, res) => {
+//   try {
+//     const { search } = req.query;
 
-    const users = await prisma.user.findMany({
-      where: {
-        role: "USER", // 👈 condition added
-        ...(search && {
-          OR: [
-            { name: { contains: search, mode: "insensitive" } },
-            { email: { contains: search, mode: "insensitive" } },
-            { phoneNumber: { contains: search, mode: "insensitive" } },
-          ],
-        }),
-      },
-      select: {
-        userId: true,
-        name: true,
-        email: true,
-        phoneNumber: true,
-        role: true,
-      },
-    });
+//     const users = await prisma.user.findMany({
+//       where: {
+//         role: "USER", // 👈 condition added
+//         ...(search && {
+//           OR: [
+//             { name: { contains: search, mode: "insensitive" } },
+//             { email: { contains: search, mode: "insensitive" } },
+//             { phoneNumber: { contains: search, mode: "insensitive" } },
+//           ],
+//         }),
+//       },
+//       select: {
+//         userId: true,
+//         name: true,
+//         email: true,
+//         phoneNumber: true,
+//         role: true,
+//       },
+//     });
 
-    res.status(200).json(users);
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+//     res.status(200).json(users);
+//   } catch (error) {
+//     console.error("Error fetching users:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// });
 
 
 router.get("/payments/:employeeId", async (req, res) => {
