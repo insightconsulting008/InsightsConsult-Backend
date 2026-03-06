@@ -10,7 +10,7 @@ const serviceUpdate = require("./src/serviceUpdate/ServiceUpdate")
 const authUserRouter = require("./src/userPortal/userAuth/userAuth")
 const userApplicationApply = require("./src/userPortal/Application/Application")
 const settings = require("./src/paymentSetting/PaymentSetting")
-const {profileUpload,serviceImgUpload} = require("./src/utils/multer")
+const {profileUpload,serviceImgUpload,bundleServiceImgUpload} = require("./src/utils/multer")
 const {deleteS3Object} = require("./src/utils/deleteS3Object")
 const blogs = require("./src/landingPage/blogs/Blogs")
 const contact = require("./src/landingPage/contact/Contact")
@@ -671,17 +671,20 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
   // =============================
   // CREATE BUNDLE WITH SERVICES
   // =============================
-  app.post("/bundle", async (req, res) => {
+  app.post("/bundle", bundleServiceImgUpload.single("photoUrl"),async (req, res) => {
     try {
       const { name, description, bundlePrice,  bundleOfferPrice,isGstApplicable,
         gstPercentage, serviceIds ,finalBundlePrice } = req.body;
-    
+       
+        const photoUrl = req.file.location 
+
       const bundle = await prisma.serviceBundle.create({
         data: {
           name,
           description,
           bundlePrice,
           bundleOfferPrice,
+          photoUrl,
           isGstApplicable,
           gstPercentage,
           finalBundlePrice,
@@ -759,7 +762,7 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
     }
   });
 
-  
+
   app.get("/bundle/:bundleId/details", async (req, res) => {
     const { bundleId } = req.params;
   

@@ -46,6 +46,19 @@ const serviceImgUpload = multer({
   }),
 });
 
+
+const bundleServiceImgUpload = multer({
+  storage: multerS3({
+    s3: s3Client,
+    bucket: config.S3_BUCKET_NAME,
+    acl: 'public-read',
+    key: (req, file, cb) => {
+      cb(null, `BundleServiceImgUpload/${Date.now()}_${file.originalname}`);
+    },
+  }),
+});
+
+
 const applicationImgUpload = multer({
   storage: multerS3({
     s3: s3Client,
@@ -98,6 +111,6 @@ const myDocuments = multer({
 
 
 
-module.exports = {profileUpload ,serviceImgUpload ,applicationImgUpload,blogImgUpload, myDocuments ,userProfileUpload};
+module.exports = {profileUpload ,serviceImgUpload ,applicationImgUpload,blogImgUpload, myDocuments ,userProfileUpload ,bundleServiceImgUpload};
 
 

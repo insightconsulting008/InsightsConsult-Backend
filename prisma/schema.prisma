@@ -358,6 +358,7 @@ model ServiceBundle {
   bundleId     String      @id @default(cuid())
   name         String
   description  String?
+  photoUrl     String?
   
   // Pricing 
   bundlePrice Int 
