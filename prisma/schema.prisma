@@ -102,12 +102,24 @@ enum ApplicationStatus {
   REJECTED
 }
 
+enum Provider {
+  EMAIL
+  GOOGLE
+}
+
+
 model User {
   userId      String    @id @unique @default(cuid())
   name        String
   email       String    @unique
-  phoneNumber String    
-  password    String // hashed password
+  phoneNumber String?  
+  password    String? // hashed password
+
+  photoUrl    String?
+
+  provider    Provider @default(EMAIL)
+  providerId  String?  // Google sub id
+
   role        Role      @default(USER)
   otp         String? // for forgot password / login otp
   otpExpiry   DateTime? // expiry time

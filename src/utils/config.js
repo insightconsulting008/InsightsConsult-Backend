@@ -9,7 +9,11 @@ const config = {
   S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
   ACCESS_SECRET: process.env.ACCESS_SECRET,
   REFRESH_SECRET: process.env.REFRESH_SECRET,
-  NODE_ENV:process.env.NODE_ENV
+  NODE_ENV:process.env.NODE_ENV,
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  CLIENT_SECRET: process.env.CLIENT_SECRET
+  
+
 };
 
 

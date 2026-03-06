@@ -16,6 +16,7 @@ const blogs = require("./src/landingPage/blogs/Blogs")
 const contact = require("./src/landingPage/contact/Contact")
 const services = require("./src/landingPage/services/Services")
 const accountSetting = require("./src/utils/AccountSetting")
+const googleAuth = require("./src/utils/googleSignup")
 
 
 
@@ -43,6 +44,7 @@ app.get("/test", async(req, res) => {
 
 
 app.use("/",accountSetting)
+app.use("/",googleAuth)
 // Use routers with prefixes
 app.use("/", serviceUpdate)
 app.use("/", categoryRouter);
