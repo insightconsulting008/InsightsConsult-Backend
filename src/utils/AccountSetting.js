@@ -12,7 +12,7 @@ const { deleteS3Object } = require("../utils/deleteS3Object");
 USER PROFILE
 ================================= */
 
-router.get("/user/profile", authenticate,authorizeRoles("USER"),requirePhoneNumber, async (req, res) => {
+router.get("/user/profile", authenticate,authorizeRoles("USER"), async (req, res) => {
 
   try {
 
