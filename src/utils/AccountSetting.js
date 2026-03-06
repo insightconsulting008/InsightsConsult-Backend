@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../prisma/prisma");
-const { authenticate,authorizeRoles } = require("../authMiddleware/authMiddleware");
+const { authenticate,authorizeRoles ,requirePhoneNumber} = require("../authMiddleware/authMiddleware");
 const {profileUpload,userProfileUpload} = require("../utils/multer")
 const bcrypt = require("bcryptjs");
 const { deleteS3Object } = require("../utils/deleteS3Object");
@@ -12,7 +12,7 @@ const { deleteS3Object } = require("../utils/deleteS3Object");
 USER PROFILE
 ================================= */
 
-router.get("/user/profile", authenticate,authorizeRoles("USER"), async (req, res) => {
+router.get("/user/profile", authenticate,authorizeRoles("USER"),requirePhoneNumber, async (req, res) => {
 
   try {
 
@@ -53,11 +53,7 @@ router.get("/user/profile", authenticate,authorizeRoles("USER"), async (req, res
 });
 
 
-router.post(
-    "/user/add-phone",
-    authenticate,
-    authorizeRoles("USER"),
-    async (req, res) => {
+router.post("/complete-profile",authenticate,authorizeRoles("USER"),async (req, res) => {
       try {
         const { phoneNumber } = req.body;
   
