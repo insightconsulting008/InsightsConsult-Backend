@@ -57,28 +57,11 @@ function authorizeRoles(...requiredRoles) {
 }
 
 
-async function requirePhoneNumber(req, res, next) {
-  const userId = req.user.id;
-
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { phoneNumber: true },
-  });
-
-  if (!user.phoneNumber) {
-    return res.status(403).json({
-      success: false,
-      message: "Phone number required",
-    });
-  }
-
-  next();
-}
 
 /* ======================
    EXPORT BOTH
 ====================== */
 module.exports = {
   authenticate,
-  authorizeRoles,requirePhoneNumber
+  authorizeRoles,
 };

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../prisma/prisma");
-const { authenticate,authorizeRoles ,requirePhoneNumber} = require("../authMiddleware/authMiddleware");
+const { authenticate,authorizeRoles } = require("../authMiddleware/authMiddleware");
 const {profileUpload,userProfileUpload} = require("../utils/multer")
 const bcrypt = require("bcryptjs");
 const { deleteS3Object } = require("../utils/deleteS3Object");
