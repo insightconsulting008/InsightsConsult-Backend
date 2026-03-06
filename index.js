@@ -483,39 +483,54 @@ app.delete("/department/:departmentId", async (req, res) => {
 // =============================
 // GET ALL SERVICES WITH INPUTFIELDS + TRACKSTEPS
 // =============================
-  app.get("/service", async (req, res) => {
-    try {
-      let { page, limit } = req.query;
-  
-      page = parseInt(page);
-      limit = parseInt(limit);
-  
-      const skip = (page - 1) * limit;
-  
-      // Fetch services with pagination
-      const services = await prisma.service.findMany({
+app.get("/service", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search?.trim() || "";
+
+    const skip = (page - 1) * limit;
+
+    const where = search
+      ? {
+          name: {
+            contains: search,
+            mode: "insensitive",
+          },
+        }
+      : {};
+
+    const [services, total] = await Promise.all([
+      prisma.service.findMany({
+        where,
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" }, // optional
-      });
-  
-      // Total count
-      const totalServices = await prisma.service.count();
-  
-      res.json({
-        success: true,
-        pagination: {
-          page,
-          limit,
-          totalPages: Math.ceil(totalServices / limit),
-          
+        orderBy: {
+          createdAt: "desc",
         },
-        data: services,
-      });
-    } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
+      }),
+      prisma.service.count({
+        where,
+      }),
+    ]);
+
+    res.json({
+      success: true,
+      pagination: {
+        page,
+        limit,
+        totalRecords: total,
+        totalPages: Math.ceil(total / limit),
+      },
+      services,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
   
 
   app.get("/service/:serviceId", async (req, res) => {
