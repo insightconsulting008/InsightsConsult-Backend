@@ -311,12 +311,12 @@ router.post("/razorpay/webhook", async (req, res) => {
     const setting = await prisma.paymentSetting.findFirst({
            where: { isRazorpayEnabled: true }});
 
-    if (!paymentSetting) {
+    if (!setting) {
       console.error("Payment settings not found");
       return res.status(500).send("Payment settings not configured");
     }
     
-    const secret = paymentSetting.razorpaySecret;
+    const secret = setting.razorpaySecret;
 
     // Verify webhook signature
     const shasum = crypto.createHmac("sha256", secret);
