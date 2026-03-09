@@ -158,7 +158,7 @@ router.post("/create/amendment-link", async (req, res) => {
         type: "AMENDMENT",
         amount: amount,
         razorpayOrderId: paymentLink.id,
-        paymentLink: paymentLink.short_url,
+        razorpayPaymentLinkId: paymentLink.short_url,
         status: "CREATED",
         createdById:employeeId,
         userId:userId
@@ -308,7 +308,9 @@ router.post("/buy/service", async (req, res) => {
 router.post("/razorpay/webhook", async (req, res) => {
   try {
     // Get webhook secret from database
-    const paymentSetting = await prisma.paymentSetting.findFirst();
+    const setting = await prisma.paymentSetting.findFirst({
+           where: { isRazorpayEnabled: true }});
+
     if (!paymentSetting) {
       console.error("Payment settings not found");
       return res.status(500).send("Payment settings not configured");
@@ -526,7 +528,6 @@ router.post("/razorpay/webhook", async (req, res) => {
 });
 
 
-
 // old one checking the new one
 // router.post("/razorpay/webhook", async (req, res) => {
 //   try {
@@ -671,7 +672,6 @@ router.get("/my-services/:userId", async (req, res) => {
   
     res.json({ success: true, services });
   });
-  
 
   router.get("/applications", async (req, res) => {
     try {
@@ -1084,9 +1084,6 @@ router.get("/my-services/:userId", async (req, res) => {
     }
   );
   
-
-
-
 
   router.post("/admin/applications/:applicationId/assign",async (req, res) => {
       try {
