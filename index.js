@@ -697,12 +697,12 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
         data: {
           name,
           description,
-          bundlePrice,
-          bundleOfferPrice,
+          bundlePrice:Number(bundlePrice),
+          bundleOfferPrice:Number(bundleOfferPrice),
           photoUrl,
-          isGstApplicable,
-          gstPercentage,
-          finalBundlePrice,
+          isGstApplicable:isGstApplicable === "true",
+          gstPercentage:Number(gstPercentage),
+          finalBundlePrice:Number(finalBundlePrice),
           services: {
             connect: serviceIds.map((id) => ({ serviceId: id })),
           },
