@@ -316,7 +316,7 @@ router.post("/razorpay/webhook", async (req, res) => {
       return res.status(500).send("Payment settings not configured");
     }
     
-    const secret = setting.razorpaySecret;
+    const secret = setting.webhookSecret;
 
     // Verify webhook signature
     const shasum = crypto.createHmac("sha256", secret);
