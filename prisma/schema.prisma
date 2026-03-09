@@ -54,6 +54,11 @@ model PaymentSetting {
   isRazorpayEnabled  Boolean  @default(true)
   razorpayKeyId      String?
   razorpaySecret     String?
+  mode               String?
+  webhookId         String?  // store webhook ID from Razorpay
+  webhookSecret     String?  // store webhook secret securely
+  alertEmail        String?   // <-- new field
+  createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }
 
@@ -168,7 +173,11 @@ model Payment {
 
   razorpayOrderId   String? @unique
   razorpayPaymentId String?
-  paymentLink       String?
+  razorpayPaymentLinkId String? // ✅ Rename from paymentLink to this
+  
+  // Error tracking for failed payments
+  errorDescription String? // ✅ NEW
+  errorCode        String? // ✅ NEW
 
   paidAt DateTime?
   createdAt DateTime @default(now())

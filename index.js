@@ -692,6 +692,7 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
         gstPercentage, serviceIds ,finalBundlePrice } = req.body;
        
         const photoUrl = req.file.location 
+        
 
       const bundle = await prisma.serviceBundle.create({
         data: {
