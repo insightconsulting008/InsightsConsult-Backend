@@ -631,200 +631,200 @@ router.post("/razorpay/webhook", async (req, res) => {
 //   }
 // });
 
-// router.get("/my-services/:userId", async (req, res) => {
-//   try {
-//     const { userId } = req.params;
-
-//     const page = parseInt(req.query.page) || 1;
-//     const limit = parseInt(req.query.limit) || 10;
-//     const search = req.query.search || "";
-
-//     const skip = (page - 1) * limit;
-
-//     const whereCondition = {
-//       userId,
-//       OR: [
-//         {
-//           service: {
-//             name: {
-//               contains: search,
-//               mode: "insensitive",
-//             },
-//           },
-//         },
-//         {
-//           serviceBundle: {
-//             name: {
-//               contains: search,
-//               mode: "insensitive",
-//             },
-//           },
-//         },
-//       ],
-//     };
-
-//     const total = await prisma.myService.count({
-//       where: whereCondition,
-//     });
-
-//     const data = await prisma.myService.findMany({
-//       where: whereCondition,   // ✅ use search condition
-//       skip: skip,              // ✅ pagination
-//       take: limit,             // ✅ limit
-//       orderBy: {
-//         createdAt: "desc",     // ✅ latest first
-//       },
-//       select: {
-//         myServiceId:true,
-//         userId: true,
-//         serviceId: true,
-//         bundleId: true,
-//         status: true,
-//         createdAt: true,
-//         service: {
-//           select: {
-//             serviceId: true,
-//             name: true,
-//             description: true,
-//             photoUrl: true,
-//             serviceType:true,
-//           },
-//         },
-//         serviceBundle: {
-//           select: {
-//             bundleId: true,
-//             name: true,
-//           },
-//         },
-//       },
-//     });
-
-//     res.json({
-//       success: true,
-//       page,
-//       limit,
-//       total,
-//       totalPages: Math.ceil(total / limit),
-//       data,
-//     });
-
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({
-//       success: false,
-//       message: "Server error",
-//     });
-//   }
-// });
-
-// router.get("/my-services/details/:myServiceId", async (req, res) => {
-//   try {
-
-//     const { myServiceId } = req.params;
-
-//     const serviceDetails = await prisma.myService.findUnique({
-//       where: {
-//         myServiceId: myServiceId,
-//       },
-
-//       include: {
-
-//         // service: true,
-//         serviceBundle: {
-//           include: {
-//             services: true,
-//           },
-//         },
-
-//         application: {
-//           include: {
-
-//             applicationTrackStep: {
-//               include: {
-//                 serviceDocument: true,
-//               },
-//             },
-
-//             servicePeriod: {
-//               include: {
-//                 periodStep: {
-//                   include: {
-//                     serviceDocument: true,
-//                   },
-//                 },
-//               },
-//             },
-
-//           },
-//         },
-
-//       },
-//     });
-
-//     if (!serviceDetails) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Service not found",
-//       });
-//     }
-
-//     res.json({
-//       success: true,
-//       data: serviceDetails,
-//     });
-
-//   } catch (error) {
-
-//     console.error(error);
-
-//     res.status(500).json({
-//       success: false,
-//       message: "Server error",
-//     });
-
-//   }
-// });
-
-// this is old api once i finalList and get back to you 
 router.get("/my-services/:userId", async (req, res) => {
-    const {userId} = req.params;
-    const services = await prisma.myService.findMany({
-      where: { userId: userId},
-      include: {
-        service: true,
-        
-        serviceBundle: {
-            include: {
-              services: true,
+  try {
+    const { userId } = req.params;
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+
+    const skip = (page - 1) * limit;
+
+    const whereCondition = {
+      userId,
+      OR: [
+        {
+          service: {
+            name: {
+              contains: search,
+              mode: "insensitive",
             },
           },
+        },
+        {
+          serviceBundle: {
+            name: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+        },
+      ],
+    };
+
+    const total = await prisma.myService.count({
+      where: whereCondition,
+    });
+
+    const data = await prisma.myService.findMany({
+      where: whereCondition,   // ✅ use search condition
+      skip: skip,              // ✅ pagination
+      take: limit,             // ✅ limit
+      orderBy: {
+        createdAt: "desc",     // ✅ latest first
+      },
+      select: {
+        myServiceId:true,
+        userId: true,
+        serviceId: true,
+        bundleId: true,
+        status: true,
+        createdAt: true,
+        service: {
+          select: {
+            serviceId: true,
+            name: true,
+            description: true,
+            photoUrl: true,
+            serviceType:true,
+          },
+        },
+        serviceBundle: {
+          select: {
+            bundleId: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    res.json({
+      success: true,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      data,
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
+router.get("/my-services/details/:myServiceId", async (req, res) => {
+  try {
+
+    const { myServiceId } = req.params;
+
+    const serviceDetails = await prisma.myService.findUnique({
+      where: {
+        myServiceId: myServiceId,
+      },
+
+      include: {
+
+        // service: true,
+        serviceBundle: {
+          include: {
+            services: true,
+          },
+        },
+
         application: {
-          
-            include:{
-                applicationTrackStep:{
+          include: {
+
+            applicationTrackStep: {
+              include: {
+                serviceDocument: true,
+              },
+            },
+
+            servicePeriod: {
+              include: {
+                periodStep: {
                   include: {
                     serviceDocument: true,
                   },
                 },
-                servicePeriod: {
-                  include: {
-                 // MUST exist in schema
-                    periodStep: {
-                      include: {
-                        serviceDocument: true, // ✅ correct place
-                      },
-                    }
-                  },
-                },
-                
-            }
-        }
-        
+              },
+            },
+
+          },
+        },
+
       },
     });
+
+    if (!serviceDetails) {
+      return res.status(404).json({
+        success: false,
+        message: "Service not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: serviceDetails,
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+
+  }
+});
+
+// this is old api once i finalList and get back to you 
+// router.get("/my-services/:userId", async (req, res) => {
+//     const {userId} = req.params;
+//     const services = await prisma.myService.findMany({
+//       where: { userId: userId},
+//       include: {
+//         service: true,
+        
+//         serviceBundle: {
+//             include: {
+//               services: true,
+//             },
+//           },
+//         application: {
+          
+//             include:{
+//                 applicationTrackStep:{
+//                   include: {
+//                     serviceDocument: true,
+//                   },
+//                 },
+//                 servicePeriod: {
+//                   include: {
+//                  // MUST exist in schema
+//                     periodStep: {
+//                       include: {
+//                         serviceDocument: true, // ✅ correct place
+//                       },
+//                     }
+//                   },
+//                 },
+                
+//             }
+//         }
+        
+//       },
+//     });
   
-    res.json({ success: true, services });
-  });
+//     res.json({ success: true, services });
+//   });
 
   router.get("/applications", async (req, res) => {
     try {
