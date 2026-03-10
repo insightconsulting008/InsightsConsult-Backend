@@ -31,7 +31,7 @@ const verifyPassword = async (employeeId, profilePassword) => {
  * CREATE Payment Setting
  * Usually only ONE record is needed (admin level)
  */
-router.post("/settings/payment",passwordAttemptLimiter, authenticate,authorizeRoles("ADMIN"), async (req, res) => {
+router.post("/settings/payment",authenticate,authorizeRoles("ADMIN"), async (req, res) => {
   try {
     const { razorpayKeyId, razorpaySecret, alertEmail, isRazorpayEnabled, profilePassword} = req.body;
     const employeeId = req.user.id;
