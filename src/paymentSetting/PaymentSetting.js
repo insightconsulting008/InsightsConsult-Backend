@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../prisma/prisma");
-
 const detectMode = require("./detectMode");
 const createWebhook = require("./createWebhook");
 const {authenticate,authorizeRoles} =require("../authMiddleware/authMiddleware")
