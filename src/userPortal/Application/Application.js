@@ -717,7 +717,7 @@ router.get("/my-services/:userId", async (req, res) => {
   }
 });
 
-router.get("/my-services/details/:myServiceId", async (req, res) => {
+router.get("/my-services/:myServiceId/details", async (req, res) => {
   try {
 
     const { myServiceId } = req.params;
@@ -729,10 +729,20 @@ router.get("/my-services/details/:myServiceId", async (req, res) => {
 
       include: {
 
-        // service: true,
+        service: {
+          select: {
+            serviceId: true,
+            name: true,
+            description: true,
+            photoUrl: true,
+            serviceType: true,
+          },
+        },
+
         serviceBundle: {
-          include: {
-            services: true,
+          select: {
+            bundleId: true,
+            name: true,
           },
         },
 
@@ -785,46 +795,47 @@ router.get("/my-services/details/:myServiceId", async (req, res) => {
   }
 });
 
+
 // this is old api once i finalList and get back to you 
-// router.get("/my-services/:userId", async (req, res) => {
-//     const {userId} = req.params;
-//     const services = await prisma.myService.findMany({
-//       where: { userId: userId},
-//       include: {
-//         service: true,
+router.get("/my-services-demo/:userId", async (req, res) => {
+    const {userId} = req.params;
+    const services = await prisma.myService.findMany({
+      where: { userId: userId},
+      include: {
+        service: true,
         
-//         serviceBundle: {
-//             include: {
-//               services: true,
-//             },
-//           },
-//         application: {
+        serviceBundle: {
+            include: {
+              services: true,
+            },
+          },
+        application: {
           
-//             include:{
-//                 applicationTrackStep:{
-//                   include: {
-//                     serviceDocument: true,
-//                   },
-//                 },
-//                 servicePeriod: {
-//                   include: {
-//                  // MUST exist in schema
-//                     periodStep: {
-//                       include: {
-//                         serviceDocument: true, // ✅ correct place
-//                       },
-//                     }
-//                   },
-//                 },
+            include:{
+                applicationTrackStep:{
+                  include: {
+                    serviceDocument: true,
+                  },
+                },
+                servicePeriod: {
+                  include: {
+                 // MUST exist in schema
+                    periodStep: {
+                      include: {
+                        serviceDocument: true, // ✅ correct place
+                      },
+                    }
+                  },
+                },
                 
-//             }
-//         }
+            }
+        }
         
-//       },
-//     });
+      },
+    });
   
-//     res.json({ success: true, services });
-//   });
+    res.json({ success: true, services });
+  });
 
   router.get("/applications", async (req, res) => {
     try {
