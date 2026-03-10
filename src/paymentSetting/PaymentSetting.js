@@ -6,12 +6,12 @@ const createWebhook = require("./createWebhook");
 const {authenticate,authorizeRoles} =require("../authMiddleware/authMiddleware")
 const rateLimit = require('express-rate-limit');
 
-const passwordAttemptLimiter = rateLimit({
+// const passwordAttemptLimiter = rateLimit({
   
-  windowMs: 2 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts
-  message: 'Too many password attempts, please try again later'
-});
+//   windowMs: 2 * 60 * 1000, // 15 minutes
+//   max: 5, // 5 attempts
+//   message: 'Too many password attempts, please try again later'
+// });
 
 
 const verifyPassword = async (employeeId, profilePassword) => {
@@ -179,6 +179,64 @@ router.put("/settings/payment/:paymentSettingId",authenticate,authorizeRoles("AD
   }
 });
 
+
+// DELETE payment setting
+router.delete(
+  "/settings/payment/:paymentSettingId",
+  authenticate,
+  authorizeRoles("ADMIN"),
+  async (req, res) => {
+    try {
+      const { paymentSettingId } = req.params;
+      const { profilePassword } = req.body;
+      const employeeId = req.user.id;
+
+      // Verify admin password
+      const isValid = await verifyPassword(employeeId, profilePassword);
+      if (!isValid) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid password. Payment settings not deleted.",
+        });
+      }
+
+      // Check if payment setting exists
+      const setting = await prisma.paymentSetting.findUnique({
+        where: { paymentSettingId },
+      });
+
+      if (!setting) {
+        return res.status(404).json({
+          success: false,
+          message: "Payment setting not found",
+        });
+      }
+
+      // Optional safety check
+      if (setting.isRazorpayEnabled) {
+        return res.status(400).json({
+          success: false,
+          message: "Disable the Razorpay account before deleting it",
+        });
+      }
+
+      // Delete
+      await prisma.paymentSetting.delete({
+        where: { paymentSettingId },
+      });
+
+      res.json({
+        success: true,
+        message: "Payment setting deleted successfully",
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
 
 
 module.exports = router
