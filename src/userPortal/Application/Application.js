@@ -419,46 +419,46 @@ router.post("/razorpay/webhook", async (req, res) => {
 
       console.log(`Payment ${payment.paymentId} marked as PAID via payment link`);
 
-      // Handle AMENDMENT type payments
-      if (payment.type === "AMENDMENT") {
-        await prisma.amendment.create({
-          data: {
-            paymentId: payment.paymentId,
-            status: "ACTIVE",
-            activatedAt: new Date(),
-          },
-        });
-        console.log(`✅ Amendment activated for payment: ${payment.paymentId}`);
-      }
+      // // Handle AMENDMENT type payments
+      // if (payment.type === "AMENDMENT") {
+      //   await prisma.amendment.create({
+      //     data: {
+      //       paymentId: payment.paymentId,
+      //       status: "ACTIVE",
+      //       activatedAt: new Date(),
+      //     },
+      //   });
+      //   console.log(`✅ Amendment activated for payment: ${payment.paymentId}`);
+      // }
 
-      // If this is a service/bundle purchase via payment link
-      if (payment.serviceId) {
-        await prisma.myService.create({
-          data: {
-            userId: payment.userId,
-            serviceId: payment.serviceId,
-            status: "NOT_STARTED",
-          },
-        });
-        console.log(`Service ${payment.serviceId} unlocked via payment link`);
-      }
+      // // If this is a service/bundle purchase via payment link
+      // if (payment.serviceId) {
+      //   await prisma.myService.create({
+      //     data: {
+      //       userId: payment.userId,
+      //       serviceId: payment.serviceId,
+      //       status: "NOT_STARTED",
+      //     },
+      //   });
+      //   console.log(`Service ${payment.serviceId} unlocked via payment link`);
+      // }
 
-      if (payment.bundleId) {
-        const bundle = await prisma.serviceBundle.findUnique({
-          where: { bundleId: payment.bundleId },
-          include: { services: true },
-        });
+      // if (payment.bundleId) {
+      //   const bundle = await prisma.serviceBundle.findUnique({
+      //     where: { bundleId: payment.bundleId },
+      //     include: { services: true },
+      //   });
 
-        const data = bundle.services.map(s => ({
-          userId: payment.userId,
-          serviceId: s.serviceId,
-          bundleId: payment.bundleId,
-          status: "NOT_STARTED",
-        }));
+      //   const data = bundle.services.map(s => ({
+      //     userId: payment.userId,
+      //     serviceId: s.serviceId,
+      //     bundleId: payment.bundleId,
+      //     status: "NOT_STARTED",
+      //   }));
 
-        await prisma.myService.createMany({ data });
-        console.log(`Bundle ${payment.bundleId} unlocked via payment link`);
-      }
+      //   await prisma.myService.createMany({ data });
+      //   console.log(`Bundle ${payment.bundleId} unlocked via payment link`);
+      // }
     }
 
     /* ===============================

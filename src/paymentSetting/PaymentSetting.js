@@ -4,15 +4,46 @@ const prisma = require("../prisma/prisma");
 
 const detectMode = require("./detectMode");
 const createWebhook = require("./createWebhook");
+const {authenticate,authorizeRoles} =require("../authMiddleware/authMiddleware")
+const rateLimit = require('express-rate-limit');
 
+const passwordAttemptLimiter = rateLimit({
+  
+  windowMs: 2 * 60 * 1000, // 15 minutes
+  max: 5, // 5 attempts
+  message: 'Too many password attempts, please try again later'
+});
+
+
+const verifyPassword = async (employeeId, profilePassword) => {
+  const employee = await prisma.employee.findUnique({
+    where: { employeeId },
+    select: { profilePassword: true } // Select only password field
+  });
+  
+  if (!employee) return false;
+  
+  // Compare passwords directly (assuming plain text - though not recommended)
+  // Or use whatever comparison method you're currently using
+  return employee.profilePassword === profilePassword; // Simple comparison
+};
 
 /**
  * CREATE Payment Setting
  * Usually only ONE record is needed (admin level)
  */
-router.post("/settings/payment", async (req, res) => {
+router.post("/settings/payment",passwordAttemptLimiter, authenticate,authorizeRoles("ADMIN"), async (req, res) => {
   try {
-    const { razorpayKeyId, razorpaySecret, alertEmail, isRazorpayEnabled } = req.body;
+    const { razorpayKeyId, razorpaySecret, alertEmail, isRazorpayEnabled, profilePassword} = req.body;
+    const employeeId = req.user.id;
+
+    const isValid = await verifyPassword(employeeId, profilePassword);
+    if (!isValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid password. Payment settings not saved."
+      });
+    }
 
     // Detect TEST / LIVE
     const mode = detectMode(razorpayKeyId);
@@ -51,7 +82,7 @@ router.post("/settings/payment", async (req, res) => {
     }
 
     // Save to database
-    const setting = await prisma.paymentSetting.create({
+  await prisma.paymentSetting.create({
       data: {
         razorpayKeyId,
         razorpaySecret,
@@ -63,7 +94,7 @@ router.post("/settings/payment", async (req, res) => {
       },
     });
 
-    res.json({ success: true, data: setting });
+    res.json({ success: true, message: "Payment settings saved successfully",});
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -92,7 +123,16 @@ router.get("/settings/payment", async (req, res) => {
 router.put("/settings/payment/:paymentSettingId", async (req, res) => {
   try {
     const { paymentSettingId } = req.params;
-    const { razorpayKeyId, razorpaySecret, alertEmail, isRazorpayEnabled } = req.body;
+    const { razorpayKeyId, razorpaySecret, alertEmail, isRazorpayEnabled, profilePassword} = req.body;
+    const employeeId = req.user.id;
+
+    const isValid = await verifyPassword(employeeId, profilePassword);
+    if (!isValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid password. Payment settings not saved."
+      });
+    }
 
     const mode = detectMode(razorpayKeyId);
     if (mode === "UNKNOWN") {
@@ -121,8 +161,7 @@ router.put("/settings/payment/:paymentSettingId", async (req, res) => {
       }
     }
 
-    // Update database
-    const updated = await prisma.paymentSetting.update({
+ await prisma.paymentSetting.update({
       where: { paymentSettingId },
       data: {
         razorpayKeyId,
@@ -135,7 +174,7 @@ router.put("/settings/payment/:paymentSettingId", async (req, res) => {
       },
     });
 
-    res.json({ success: true, data: updated });
+    res.json({ success: true,  message: "Payment settings updated successfully"});
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

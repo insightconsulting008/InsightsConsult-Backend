@@ -201,6 +201,7 @@ model Employee {
   password     String
   mobileNumber String
   role         Role
+  profilePassword String?
   designation  String
   status       EmployeeStatus @default(ACTIVE)
   photoUrl     String?

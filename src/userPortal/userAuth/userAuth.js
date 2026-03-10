@@ -190,6 +190,14 @@ router.post("/staff/login", async (req, res) => {
       });
     }
 
+    if (emp.status !== 'ACTIVE') {
+      return res.status(402).json({
+        success: false,
+        message: "Account is inactive. Please contact administrator.",
+        status: emp.status // Optional: send status for debugging
+      });
+    }
+
     // ✅ Direct password comparison (no bcrypt)
    if (password !== emp.password) {
       return res.status(402).json({
