@@ -99,7 +99,7 @@ router.post("/settings/payment",authenticate,authorizeRoles("ADMIN"), async (req
   }
 });
 
-router.get("/settings/payment", async (req, res) => {
+router.get("/settings/payment",authenticate,authorizeRoles("ADMIN"), async (req, res) => {
   try {
     const settings = await prisma.paymentSetting.findMany({
       select: {
@@ -119,7 +119,7 @@ router.get("/settings/payment", async (req, res) => {
 });
 
 // UPDATE payment setting
-router.put("/settings/payment/:paymentSettingId", async (req, res) => {
+router.put("/settings/payment/:paymentSettingId",authenticate,authorizeRoles("ADMIN"), async (req, res) => {
   try {
     const { paymentSettingId } = req.params;
     const { razorpayKeyId, razorpaySecret, alertEmail, isRazorpayEnabled, profilePassword} = req.body;
