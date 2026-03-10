@@ -40,7 +40,7 @@ router.post("/settings/payment",authenticate,authorizeRoles("ADMIN"), async (req
     if (!isValid) {
       return res.status(402).json({
         success: false,
-        message: "Invalid password. Payment settings not saved."
+        message: "Invalid password."
       });
     }
 
@@ -129,7 +129,7 @@ router.put("/settings/payment/:paymentSettingId",authenticate,authorizeRoles("AD
     if (!isValid) {
       return res.status(402).json({
         success: false,
-        message: "Invalid password. Payment settings not saved."
+        message: "Invalid password."
       });
     }
 
