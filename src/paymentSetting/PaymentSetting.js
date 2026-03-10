@@ -38,7 +38,7 @@ router.post("/settings/payment",authenticate,authorizeRoles("ADMIN"), async (req
 
     const isValid = await verifyPassword(employeeId, profilePassword);
     if (!isValid) {
-      return res.status(401).json({
+      return res.status(402).json({
         success: false,
         message: "Invalid password. Payment settings not saved."
       });
@@ -127,7 +127,7 @@ router.put("/settings/payment/:paymentSettingId",authenticate,authorizeRoles("AD
 
     const isValid = await verifyPassword(employeeId, profilePassword);
     if (!isValid) {
-      return res.status(401).json({
+      return res.status(402).json({
         success: false,
         message: "Invalid password. Payment settings not saved."
       });
@@ -181,11 +181,7 @@ router.put("/settings/payment/:paymentSettingId",authenticate,authorizeRoles("AD
 
 
 // DELETE payment setting
-router.delete(
-  "/settings/payment/:paymentSettingId",
-  authenticate,
-  authorizeRoles("ADMIN"),
-  async (req, res) => {
+router.delete("/settings/payment/:paymentSettingId",authenticate,authorizeRoles("ADMIN"),async (req, res) => {
     try {
       const { paymentSettingId } = req.params;
       const { profilePassword } = req.body;
@@ -194,7 +190,7 @@ router.delete(
       // Verify admin password
       const isValid = await verifyPassword(employeeId, profilePassword);
       if (!isValid) {
-        return res.status(401).json({
+        return res.status(402).json({
           success: false,
           message: "Invalid password. Payment settings not deleted.",
         });
@@ -206,7 +202,7 @@ router.delete(
       });
 
       if (!setting) {
-        return res.status(404).json({
+        return res.status(402).json({
           success: false,
           message: "Payment setting not found",
         });
