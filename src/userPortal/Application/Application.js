@@ -750,45 +750,45 @@ router.get("/my-service/:myServiceId/details", async (req, res) => {
   }
 });
 
-router.get("/my-services-demo/:userId", async (req, res) => {
-    const {userId} = req.params;
-    const services = await prisma.myService.findMany({
-      where: { userId: userId},
-      include: {
-        service: true,
+// router.get("/my-services-demo/:userId", async (req, res) => {
+//     const {userId} = req.params;
+//     const services = await prisma.myService.findMany({
+//       where: { userId: userId},
+//       include: {
+//         service: true,
         
-        serviceBundle: {
-            include: {
-              services: true,
-            },
-          },
-        application: {
+//         serviceBundle: {
+//             include: {
+//               services: true,
+//             },
+//           },
+//         application: {
           
-            include:{
-                applicationTrackStep:{
-                  include: {
-                    serviceDocument: true,
-                  },
-                },
-                servicePeriod: {
-                  include: {
-                 // MUST exist in schema
-                    periodStep: {
-                      include: {
-                        serviceDocument: true, // ✅ correct place
-                      },
-                    }
-                  },
-                },
+//             include:{
+//                 applicationTrackStep:{
+//                   include: {
+//                     serviceDocument: true,
+//                   },
+//                 },
+//                 servicePeriod: {
+//                   include: {
+//                  // MUST exist in schema
+//                     periodStep: {
+//                       include: {
+//                         serviceDocument: true, // ✅ correct place
+//                       },
+//                     }
+//                   },
+//                 },
                 
-            }
-        }
+//             }
+//         }
         
-      },
-    });
+//       },
+//     });
   
-    res.json({ success: true, services });
-  });
+//     res.json({ success: true, services });
+//   });
 
   router.get("/applications", async (req, res) => {
     try {
