@@ -717,86 +717,39 @@ router.get("/my-services/:userId", async (req, res) => {
   }
 });
 
-router.get("/my-services/:myServiceId/details", async (req, res) => {
+router.get("/my-service/:myServiceId/details", async (req, res) => {
   try {
-
     const { myServiceId } = req.params;
 
-    const serviceDetails = await prisma.myService.findUnique({
-      where: {
-        myServiceId: myServiceId,
-      },
-
-      include: {
-
-        service: {
-          select: {
-            serviceId: true,
-            name: true,
-            description: true,
-            photoUrl: true,
-            serviceType: true,
-          },
-        },
-
-        serviceBundle: {
-          select: {
-            bundleId: true,
-            name: true,
-          },
-        },
-
-        application: {
-          include: {
-
-            applicationTrackStep: {
-              include: {
-                serviceDocument: true,
-              },
-            },
-
-            servicePeriod: {
-              include: {
-                periodStep: {
-                  include: {
-                    serviceDocument: true,
-                  },
-                },
-              },
-            },
-
-          },
-        },
-
-      },
-    });
-
-    if (!serviceDetails) {
-      return res.status(404).json({
-        success: false,
-        message: "Service not found",
-      });
+    if (!myServiceId) {
+      return res.status(400).json({ success: false, message: "myServiceId is required" });
     }
 
-    res.json({
-      success: true,
-      data: serviceDetails,
+    const service = await prisma.myService.findUnique({
+      where: { myServiceId },
+      include: {
+        service: true,
+        serviceBundle: { include: { services: true } },
+        application: {
+          include: {
+            applicationTrackStep: { include: { serviceDocument: true } },
+            servicePeriod: { include: { periodStep: { include: { serviceDocument: true } } } },
+          },
+        },
+      },
     });
 
+    if (!service) {
+      return res.status(404).json({ success: false, message: "Service not found" });
+    }
+
+    res.json({ success: true, data: service });
   } catch (error) {
-
     console.error(error);
-
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
-
-// this is old api once i finalList and get back to you 
 router.get("/my-services-demo/:userId", async (req, res) => {
     const {userId} = req.params;
     const services = await prisma.myService.findMany({
