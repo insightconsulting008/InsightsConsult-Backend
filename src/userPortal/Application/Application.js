@@ -840,8 +840,10 @@ router.get("/my-service/:myServiceId/details", async (req, res) => {
   
       const formatted = applications.map((app) => ({
         applicationId: app.applicationId,
+        userName: app.user?.name || null,
+        phoneNumber: app.user?.phoneNumber || null,
         serviceName: app.service?.name || app.bundle?.name,
-        serviceType: app.service?.serviceType || "BUNDLE",
+        serviceType: app.service?.serviceType,
         status: app.status,
         createdAt: app.createdAt,
         employeePhoto :app.employee?.photoUrl || null,
