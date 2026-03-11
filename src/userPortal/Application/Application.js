@@ -843,6 +843,7 @@ router.get("/my-service/:myServiceId/details", async (req, res) => {
         userName: app.user?.name || null,
         phoneNumber: app.user?.phoneNumber || null,
         serviceName: app.service?.name || app.bundle?.name,
+        servicePhoto: app.service?.photoUrl || null,
         serviceType: app.service?.serviceType,
         status: app.status,
         createdAt: app.createdAt,
