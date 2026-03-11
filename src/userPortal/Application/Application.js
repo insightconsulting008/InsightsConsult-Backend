@@ -800,11 +800,19 @@ router.get("/my-service/:myServiceId/details", async (req, res) => {
           applicationId: true,
           status: true,
           createdAt: true,
+
+          user: {
+            select: {
+              name: true,
+              phoneNumber: true,
+            },
+          },
                           
           service: {
             select: {
               name: true,
               serviceType: true,
+              photoUrl:true
             },
           },
   

@@ -267,7 +267,7 @@ model Service {
   duration    String?    // eg: 12
   durationUnit DurationUnit? // month | Stringr
 
- documentsRequired String @default("true") 
+ documentsRequired String @default("false") 
  requiredDocuments Json?
 
   // Pricing 

@@ -106,6 +106,7 @@ router.get("/api/subcategories/:subCategoryId/services", async (req, res) => {
 4️⃣ GET SERVICE DETAIL + SIMILAR SERVICES (MERGED)
 =====================================
 */
+//amose kettathu subCategory kodutha help full la erukum
 router.get("/api/services/:serviceId", async (req, res) => {
   try {
     const { serviceId } = req.params;
