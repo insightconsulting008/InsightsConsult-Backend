@@ -568,13 +568,14 @@ app.post("/service",serviceImgUpload.single('photoUrl') ,async (req, res) => {
     try {
       const {  name, description, serviceType, frequency, duration, durationUnit,
         individualPrice, offerPrice, isGstApplicable, gstPercentage, finalIndividualPrice,
-        subCategoryId, employeeId , requiredDocuments  } = req.body;
+        subCategoryId, employeeId , requiredDocuments , } = req.body;
       const photoUrl = req.file.location 
        
     
       const service = await prisma.service.create({
         data: { name, description, photoUrl, serviceType, frequency, duration, durationUnit, individualPrice,
-            offerPrice, isGstApplicable, gstPercentage, finalIndividualPrice, subCategoryId, employeeId , requiredDocuments },
+            offerPrice, isGstApplicable, gstPercentage, finalIndividualPrice, subCategoryId, employeeId , 
+            requiredDocuments,  points: JSON.parse(points)},
       });
   
       res.json({ success: true, service });

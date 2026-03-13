@@ -77,6 +77,7 @@ async function createMasterFields() {
         type: field.type,
         placeholder: field.placeholder,
         required: field.required,
+        documentType: "GENERAL",
       }
     });
     masterFields.push(masterField);
@@ -436,7 +437,7 @@ async function main() {
     finalIndividualPrice: "1768",
     subCategoryId: gstSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -454,12 +455,7 @@ async function main() {
     finalIndividualPrice: "1178",
     subCategoryId: gstSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true",
-    requiredDocuments: JSON.stringify([
-      "Sales Invoice (Monthly)",
-      "Purchase Invoice (Monthly)",
-      "Bank Statement (Monthly)"
-    ])
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -474,7 +470,7 @@ async function main() {
     finalIndividualPrice: "1532",
     subCategoryId: gstSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -489,7 +485,7 @@ async function main() {
     finalIndividualPrice: "2948",
     subCategoryId: gstSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -504,7 +500,7 @@ async function main() {
     finalIndividualPrice: "4718",
     subCategoryId: gstSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // Income Tax Services
@@ -520,7 +516,7 @@ async function main() {
     finalIndividualPrice: "1178",
     subCategoryId: incomeTaxSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -538,12 +534,7 @@ async function main() {
     finalIndividualPrice: "1768",
     subCategoryId: incomeTaxSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true",
-    requiredDocuments: JSON.stringify([
-      "TDS Challan (Quarterly)",
-      "TDS Return Statement (Quarterly)",
-      "PAN Cards of Deductees"
-    ])
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -558,7 +549,7 @@ async function main() {
     finalIndividualPrice: "4718",
     subCategoryId: taxPlanningSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // Company Registration Services
@@ -574,7 +565,7 @@ async function main() {
     finalIndividualPrice: "10618",
     subCategoryId: companySub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -589,7 +580,7 @@ async function main() {
     finalIndividualPrice: "8258",
     subCategoryId: llpSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -604,7 +595,7 @@ async function main() {
     finalIndividualPrice: "7078",
     subCategoryId: opcSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -619,7 +610,7 @@ async function main() {
     finalIndividualPrice: "4718",
     subCategoryId: partnershipSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -634,7 +625,7 @@ async function main() {
     finalIndividualPrice: "2358",
     subCategoryId: soleProprietorshipSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -649,7 +640,7 @@ async function main() {
     finalIndividualPrice: "14158",
     subCategoryId: ngoSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // MSME Services
@@ -665,7 +656,7 @@ async function main() {
     finalIndividualPrice: "943",
     subCategoryId: msmeSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -680,7 +671,7 @@ async function main() {
     finalIndividualPrice: "4718",
     subCategoryId: msmeSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -695,7 +686,7 @@ async function main() {
     finalIndividualPrice: "3538",
     subCategoryId: msmeSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // Food License Services
@@ -711,7 +702,7 @@ async function main() {
     finalIndividualPrice: "2358",
     subCategoryId: foodSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -726,7 +717,7 @@ async function main() {
     finalIndividualPrice: "1768",
     subCategoryId: foodSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -741,7 +732,7 @@ async function main() {
     finalIndividualPrice: "4718",
     subCategoryId: foodSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -756,7 +747,7 @@ async function main() {
     finalIndividualPrice: "7668",
     subCategoryId: foodSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // Import Export Code
@@ -772,7 +763,7 @@ async function main() {
     finalIndividualPrice: "1768",
     subCategoryId: importExportSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -787,7 +778,7 @@ async function main() {
     finalIndividualPrice: "1532",
     subCategoryId: importExportSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // Trade License
@@ -803,7 +794,7 @@ async function main() {
     finalIndividualPrice: "3538",
     subCategoryId: tradeSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -818,7 +809,7 @@ async function main() {
     finalIndividualPrice: "2358",
     subCategoryId: tradeSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // Shop & Establishment
@@ -834,7 +825,7 @@ async function main() {
     finalIndividualPrice: "1768",
     subCategoryId: shopSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -849,7 +840,7 @@ async function main() {
     finalIndividualPrice: "1532",
     subCategoryId: shopSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // Professional Tax
@@ -865,7 +856,7 @@ async function main() {
     finalIndividualPrice: "1178",
     subCategoryId: professionalTaxSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -883,12 +874,7 @@ async function main() {
     finalIndividualPrice: "825",
     subCategoryId: professionalTaxSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true",
-    requiredDocuments: JSON.stringify([
-      "Salary Register (Monthly)",
-      "Employee List (Monthly)",
-      "Challan (Monthly)"
-    ])
+    documentsRequired: "false"
   }, masterFields);
 
   // Trademark Services
@@ -904,7 +890,7 @@ async function main() {
     finalIndividualPrice: "5898",
     subCategoryId: trademarkSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -919,7 +905,7 @@ async function main() {
     finalIndividualPrice: "4718",
     subCategoryId: trademarkSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -934,7 +920,7 @@ async function main() {
     finalIndividualPrice: "5308",
     subCategoryId: trademarkSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -949,7 +935,7 @@ async function main() {
     finalIndividualPrice: "5308",
     subCategoryId: trademarkSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // Patent Services
@@ -965,7 +951,7 @@ async function main() {
     finalIndividualPrice: "9438",
     subCategoryId: patentSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -980,7 +966,7 @@ async function main() {
     finalIndividualPrice: "23598",
     subCategoryId: patentSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -995,7 +981,7 @@ async function main() {
     finalIndividualPrice: "2358",
     subCategoryId: patentSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // Contract Drafting
@@ -1011,7 +997,7 @@ async function main() {
     finalIndividualPrice: "4718",
     subCategoryId: contractSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -1026,7 +1012,7 @@ async function main() {
     finalIndividualPrice: "1768",
     subCategoryId: contractSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -1041,7 +1027,7 @@ async function main() {
     finalIndividualPrice: "2358",
     subCategoryId: contractSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // Legal Notices
@@ -1057,7 +1043,7 @@ async function main() {
     finalIndividualPrice: "2122",
     subCategoryId: legalNoticesSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -1072,7 +1058,7 @@ async function main() {
     finalIndividualPrice: "2594",
     subCategoryId: legalNoticesSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // Accounting Services
@@ -1091,13 +1077,7 @@ async function main() {
     finalIndividualPrice: "2358",
     subCategoryId: accountingSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true",
-    requiredDocuments: JSON.stringify([
-      "Bank Statement (Monthly)",
-      "Sales Invoices (Monthly)",
-      "Purchase Invoices (Monthly)",
-      "Expense Bills (Monthly)"
-    ])
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -1115,12 +1095,7 @@ async function main() {
     finalIndividualPrice: "1768",
     subCategoryId: accountingSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true",
-    requiredDocuments: JSON.stringify([
-      "Bank Statement (Monthly)",
-      "Credit Card Statement (Monthly)",
-      "Receipts & Payments (Monthly)"
-    ])
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -1135,7 +1110,7 @@ async function main() {
     finalIndividualPrice: "4718",
     subCategoryId: accountingSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // Audit Services
@@ -1151,7 +1126,7 @@ async function main() {
     finalIndividualPrice: "14158",
     subCategoryId: auditSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -1169,12 +1144,7 @@ async function main() {
     finalIndividualPrice: "4718",
     subCategoryId: auditSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true",
-    requiredDocuments: JSON.stringify([
-      "Financial Statements (Quarterly)",
-      "Ledger Reports (Quarterly)",
-      "Compliance Reports (Quarterly)"
-    ])
+    documentsRequired: "false"
   }, masterFields);
 
   // Payroll Services
@@ -1193,12 +1163,7 @@ async function main() {
     finalIndividualPrice: "1768",
     subCategoryId: payrollSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true",
-    requiredDocuments: JSON.stringify([
-      "Attendance Sheet (Monthly)",
-      "Salary Structure (Monthly)",
-      "Employee Joining/Leaving (Monthly)"
-    ])
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -1213,7 +1178,7 @@ async function main() {
     finalIndividualPrice: "1768",
     subCategoryId: payrollSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -1231,12 +1196,7 @@ async function main() {
     finalIndividualPrice: "825",
     subCategoryId: payrollSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true",
-    requiredDocuments: JSON.stringify([
-      "PF Challan (Monthly)",
-      "ESI Challan (Monthly)",
-      "Employee Contribution Sheet (Monthly)"
-    ])
+    documentsRequired: "false"
   }, masterFields);
 
   // Recruitment Services
@@ -1252,7 +1212,7 @@ async function main() {
     finalIndividualPrice: "9438",
     subCategoryId: recruitmentSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // Property Registration
@@ -1268,7 +1228,7 @@ async function main() {
     finalIndividualPrice: "9438",
     subCategoryId: propertySub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   await createService({
@@ -1283,7 +1243,7 @@ async function main() {
     finalIndividualPrice: "4718",
     subCategoryId: propertySub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // Pollution Control
@@ -1299,7 +1259,7 @@ async function main() {
     finalIndividualPrice: "7668",
     subCategoryId: pollutionSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   // Fire License
@@ -1315,7 +1275,7 @@ async function main() {
     finalIndividualPrice: "5308",
     subCategoryId: fireSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "true"
+    documentsRequired: "false"
   }, masterFields);
 
   console.log("================================");

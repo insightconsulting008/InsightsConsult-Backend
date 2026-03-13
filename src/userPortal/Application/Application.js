@@ -60,7 +60,7 @@ router.get("/payments/:employeeId", async (req, res) => {
           // 👇 Razorpay fields
           { razorpayOrderId: { contains: search, mode: "insensitive" } },
           { razorpayPaymentId: { contains: search, mode: "insensitive" } },
-          { paymentLink: { contains: search, mode: "insensitive" } },
+          { razorpayPaymentLink: { contains: search, mode: "insensitive" } },
 
           // 👇 User fields
           {
@@ -112,6 +112,100 @@ router.get("/payments/:employeeId", async (req, res) => {
 });
 
 
+router.get("/payments", async (req, res) => {
+  try {
+    let { page = 1, limit = 10, search = "", type, startDate, endDate } = req.query;
+
+    page = Number(page);
+    limit = Number(limit);
+
+    if (page < 1) page = 1;
+    if (limit < 1) limit = 10;
+
+    const skip = (page - 1) * limit;
+
+    let whereCondition = {};
+
+    // TYPE FILTER
+    if (type) {
+      whereCondition.type = type;
+    }
+
+    // SEARCH
+    if (search) {
+      whereCondition.OR = [
+        { paymentId: { contains: search } },
+        { razorpayOrderId: { contains: search } },
+        { razorpayPaymentId: { contains: search } },
+        { status: { contains: search } }
+      ];
+    }
+
+    // DATE FILTER
+    if (startDate && endDate) {
+      whereCondition.createdAt = {
+        gte: new Date(startDate),
+        lte: new Date(endDate)
+      };
+    }
+
+    const [payments, total] = await Promise.all([
+      prisma.payment.findMany({
+        where: whereCondition,
+        orderBy: {
+          createdAt: "desc"
+        },
+        skip,
+        take: limit,
+        include: {
+          // Include user details for the userId field
+          user: {
+            select: {
+     
+              name: true,
+              email: true,
+              phoneNumber: true
+            }
+          },
+          // Include creator details for the createdById field
+          createdBy: {
+            select: {
+   
+              name: true,
+              employeeCode: true,
+              email: true,
+              mobileNumber: true,
+              role: true
+            }
+          }
+        }
+      }),
+
+      prisma.payment.count({
+        where: whereCondition
+      })
+    ]);
+
+    res.json({
+      success: true,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      },
+      data: payments
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+
 router.post("/create/amendment-link", async (req, res) => {
   try {
 
@@ -158,7 +252,7 @@ router.post("/create/amendment-link", async (req, res) => {
         type: "AMENDMENT",
         amount: amount,
         razorpayOrderId: paymentLink.id,
-        razorpayPaymentLinkId: paymentLink.short_url,
+        razorpayPaymentLink: paymentLink.short_url,
         status: "CREATED",
         createdById:employeeId,
         userId:userId
@@ -175,6 +269,7 @@ router.post("/create/amendment-link", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 router.post("/buy/service", async (req, res) => {
   try {
@@ -304,6 +399,7 @@ router.post("/buy/service", async (req, res) => {
   }
 });
 
+
 router.post("/razorpay/webhook", async (req, res) => {
   try {
     // Get webhook secret from database
@@ -395,7 +491,7 @@ router.post("/razorpay/webhook", async (req, res) => {
         where: { 
           OR: [
             { razorpayOrderId: paymentLinkId },
-            { razorpayPaymentLinkId: paymentLinkId }
+            { razorpayPaymentLink: paymentLinkId }
           ]
         }
       });
@@ -411,7 +507,7 @@ router.post("/razorpay/webhook", async (req, res) => {
         data: {
           status: "PAID",
           razorpayPaymentId: paymentId,
-          razorpayPaymentLinkId: paymentLinkId,
+          razorpayPaymentLink: paymentLinkId,
           paidAt: new Date(),
         },
       });
@@ -492,7 +588,7 @@ router.post("/razorpay/webhook", async (req, res) => {
         where: { 
           OR: [
             { razorpayOrderId: paymentLinkId },
-            { razorpayPaymentLinkId: paymentLinkId }
+            { razorpayPaymentLink: paymentLinkId }
           ]
         },
         data: { status: "EXPIRED" },
@@ -511,7 +607,7 @@ router.post("/razorpay/webhook", async (req, res) => {
         where: { 
           OR: [
             { razorpayOrderId: paymentLinkId },
-            { razorpayPaymentLinkId: paymentLinkId }
+            { razorpayPaymentLink: paymentLinkId }
           ]
         },
         data: { status: "CANCELLED" },
