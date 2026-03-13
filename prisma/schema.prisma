@@ -49,6 +49,17 @@ model Blog {
   updatedAt   DateTime @updatedAt
 }
 
+model EmailConfig {
+  EmailConfig         String      @id @default(cuid())
+  provider   String   // resend or ses
+  apiKey     String?
+  accessKey  String?
+  secretKey  String?
+  region     String?
+  fromEmail  String
+  createdAt  DateTime @default(now())
+}
+
 model PaymentSetting {
   paymentSettingId   String   @id @default(cuid())
   isRazorpayEnabled  Boolean  @default(true)

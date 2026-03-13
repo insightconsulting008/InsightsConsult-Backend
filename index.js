@@ -17,6 +17,7 @@ const contact = require("./src/landingPage/contact/Contact")
 const services = require("./src/landingPage/services/Services")
 const accountSetting = require("./src/utils/AccountSetting")
 const googleAuth = require("./src/utils/googleSignup")
+const emailRoutes = require("./routes/emailRoutes.js")
 
 
 
@@ -42,7 +43,7 @@ app.get("/test", async(req, res) => {
   });
 });
 
-
+app.use("/email", emailRoutes);
 app.use("/",accountSetting)
 app.use("/",googleAuth)
 // Use routers with prefixes
@@ -568,7 +569,7 @@ app.post("/service",serviceImgUpload.single('photoUrl') ,async (req, res) => {
     try {
       const {  name, description, serviceType, frequency, duration, durationUnit,
         individualPrice, offerPrice, isGstApplicable, gstPercentage, finalIndividualPrice,
-        subCategoryId, employeeId , requiredDocuments , } = req.body;
+        subCategoryId, employeeId , requiredDocuments ,points } = req.body;
       const photoUrl = req.file.location 
        
     
