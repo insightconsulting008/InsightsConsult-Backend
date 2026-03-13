@@ -5,7 +5,7 @@ const {
   saveEmailConfig,
   sendTestEmail,
   sendCustomEmail
-} = require("../controllers/emailController");
+} = require("../emailController/emailController.js");
 
 router.post("/config", saveEmailConfig);
 router.post("/test", sendTestEmail);

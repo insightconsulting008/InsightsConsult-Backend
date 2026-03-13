@@ -17,7 +17,8 @@ const contact = require("./src/landingPage/contact/Contact")
 const services = require("./src/landingPage/services/Services")
 const accountSetting = require("./src/utils/AccountSetting")
 const googleAuth = require("./src/utils/googleSignup")
-const emailRoutes = require("./routes/emailRoutes.js")
+const emailRoutes = require("././src/email/routes/emailRoutes");
+
 
 
 

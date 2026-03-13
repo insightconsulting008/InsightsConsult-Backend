@@ -1,11 +1,13 @@
-const AWS = require("aws-sdk");
+const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 
 const sendSesEmail = async (config, to, subject, html) => {
 
-  const ses = new AWS.SES({
-    accessKeyId: config.accessKey,
-    secretAccessKey: config.secretKey,
-    region: config.region
+  const client = new SESClient({
+    region: config.region,
+    credentials: {
+      accessKeyId: config.accessKey,
+      secretAccessKey: config.secretKey
+    }
   });
 
   const params = {
@@ -14,14 +16,20 @@ const sendSesEmail = async (config, to, subject, html) => {
       ToAddresses: [to]
     },
     Message: {
-      Subject: { Data: subject },
+      Subject: {
+        Data: subject
+      },
       Body: {
-        Html: { Data: html }
+        Html: {
+          Data: html
+        }
       }
     }
   };
 
-  return await ses.sendEmail(params).promise();
+  const command = new SendEmailCommand(params);
+
+  return await client.send(command);
 };
 
 module.exports = {
