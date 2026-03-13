@@ -82,9 +82,7 @@ router.get("/api/subcategories/:subCategoryId/services", async (req, res) => {
         serviceId: true,
         name: true,
         description: true,
-        photoUrl: true,
-        finalIndividualPrice: true,
-        offerPrice: true,
+        points:true
       },
     });
 
@@ -101,79 +99,6 @@ router.get("/api/subcategories/:subCategoryId/services", async (req, res) => {
   }
 });
 
-/*
-=====================================
-4️⃣ GET SERVICE DETAIL + SIMILAR SERVICES (MERGED)
-=====================================
-*/
-//amose kettathu subCategory kodutha help full la erukum
-router.get("/api/services/:serviceId", async (req, res) => {
-  try {
-    const { serviceId } = req.params;
-
-    // Get service detail
-    const service = await prisma.service.findUnique({
-      where: { serviceId },
-      select: {
-        serviceId: true,
-        name: true,
-        description: true,
-        photoUrl: true,
-        finalIndividualPrice: true,
-        offerPrice: true,
-        serviceType: true,
-        frequency: true,
-        duration: true,
-        durationUnit: true,
-        subCategory: {
-          select: {
-            subCategoryId: true,
-            subCategoryName: true,
-            category: {
-              select: {
-                categoryId: true,
-                categoryName: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!service) {
-      return res.status(404).json({ success: false, message: "Service not found" });
-    }
-
-    // Get similar services (same subcategory, exclude current)
-    const similarServices = await prisma.service.findMany({
-      where: {
-        subCategoryId: service.subCategory.subCategoryId,
-        NOT: { serviceId },
-      },
-      take: 4,
-      select: {
-        serviceId: true,
-        name: true,
-        photoUrl: true,
-        finalIndividualPrice: true,
-      },
-    });
-
-    res.json({
-      success: true,
-      data: {
-        service,
-        similarServices,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch service detail",
-    });
-  }
-});
 
 
 
