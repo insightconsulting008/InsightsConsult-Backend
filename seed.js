@@ -1,32 +1,8 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const { S3Client } = require('@aws-sdk/client-s3');
-const multer = require('multer');
-const multerS3 = require('multer-s3');
-const config = require('./config');
-const path = require('path');
+const config = require('./src/utils/config');
 
-
-const s3Client = new S3Client({
-  region: config.AWS_REGION, 
-  credentials: {
-    accessKeyId: config.AWS_ACCESS_KEY_ID,
-    secretAccessKey:config.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-
-const serviceImgUpload = multer({
-  storage: multerS3({
-    s3: s3Client,
-    bucket: config.S3_BUCKET_NAME,
-    acl: 'public-read',
-    key: (req, file, cb) => {
-      cb(null, `ServiceCardPhoto/${Date.now()}_${file.originalname}`);
-    },
-  }),
-});
-
+// Remove all multer and S3 client imports - we don't need them for seeding
 
 /* =========================
    COMMON INPUT FIELDS
@@ -93,424 +69,258 @@ const defaultSteps = [
 ========================= */
 
 const servicePoints = {
-  // GST Services
+  // Registration Category - License and Certification Subcategory
+  twelveARegistration: [
+    "Eligibility Review & Documentation Preparation",
+    "Dedicated Support for NGO / Trust / Society Registration",
+    "Professional Income Tax & Compliance Consultation",
+    "Complete 12A & 80G Application Filing Assistance"
+  ],
+  
+  ngoDarpan: [
+    "Complete NGO Darpan Documentation",
+    "Dedicated Registration Support",
+    "Accurate Portal Filing Assistance",
+    "End-to-End NGO Darpan Registration"
+  ],
+  
+  dsc: [
+    "100% Online & Paperless Process",
+    "Same-Day Shipping",
+    "Secure & Compliant Certification",
+    "End-to-End Assistance",
+    "Hyper Token Enabled"
+  ],
+  
+  // Statutory Registration Subcategory
+  udyam: [
+    "Official MSME Business Recognition",
+    "Access Government Schemes & Subsidies",
+    "Supports Tenders & Business Growth",
+    "Fast Online Registration Support"
+  ],
+  
+  // Business Registration Subcategory
+  startupIndia: [
+    "Eligibility Check & Consultation",
+    "Document Collection & Review",
+    "DPIIT Application Filing",
+    "Government Review & Approval",
+    "Startup Recognition Certificate Issued"
+  ],
+
+  // GST Services - Registration Subcategory
   gstRegistration: [
-    "Get your business GST registered legally",
-    "Input tax credit benefits on purchases",
-    "Inter-state sales without restrictions",
-    "Legal recognition as a supplier",
-    "Compliance with tax laws"
+    "Complete Application Preparation",
+    "Instant TRN Generation",
+    "ARN Generation",
+    "GST Certificate Issuance",
+    "LEDGERS GST Software Access"
   ],
-  gstFiling: [
-    "Timely filing of GST returns",
-    "Avoid penalties and late fees",
-    "Professional handling of all GSTR forms",
-    "Reconciliation of sales and purchases",
-    "Expert guidance on GST compliance"
+  
+  gstRegistrationForeigners: [
+    "Complete Application Preparation",
+    "Instant TRN Generation",
+    "ARN Generation",
+    "GST Certificate Issuance",
+    "LEDGERS GST Software Access"
   ],
-  gstCancellation: [
-    "Proper closure of GST registration",
-    "Avoid future compliance requirements",
-    "Expert handling of cancellation process",
-    "Final return filing assistance",
-    "Smooth business closure"
+  
+  gstAmendment: [
+    "GST Amendment Preparation & Review",
+    "Online Filing on GST Portal",
+    "Application Tracking & Acknowledgement",
+    "Expert Compliance Verification"
   ],
+  
+  gstRevocation: [
+    "Review of Cancellation Order",
+    "Drafting Revocation Application",
+    "Filing on GST Portal",
+    "Follow-up & Approval Support"
+  ],
+  
+  virtualOffice: [
+    "Virtual Business Address",
+    "Document Handling",
+    "Fast Compliance",
+    "100% Refund Guarantee"
+  ],
+
+  // GST Services - Filings Subcategory
+  gstReturnFiling: [
+    "GSTR-1 & GSTR-3B Filing",
+    "GST Due Date Alerts",
+    "GST Software Access",
+    "Accountant-Managed Filing",
+    "eInvoice & eWay Bill Support"
+  ],
+  
+  gstLutFiling: [
+    "Preparation of LUT Application",
+    "Filing of LUT on GST Portal",
+    "LUT Acknowledgement",
+    "Export Without Payment of IGST"
+  ],
+  
+  gstNoticeResponse: [
+    "Expert Review of GST Notice",
+    "Drafting & Filing Reply",
+    "Deadline Tracking & Timely Response",
+    "Representation & Compliance Support"
+  ],
+  
   gstAnnualReturn: [
-    "Annual compliance fulfillment",
-    "Accurate GSTR-9 filing",
-    "Reconciliation of annual data",
-    "Expert review of returns",
-    "Avoid notices from department"
+    "Preparation of GSTR-9",
+    "Filing on GST Portal",
+    "Acknowledgement & Confirmation",
+    "Expert Review & Compliance Check"
   ],
-  gstNoticeReply: [
-    "Expert handling of GST notices",
-    "Proper documentation and response",
-    "Avoid penalties and demands",
-    "Representation before authorities",
-    "Quick resolution of issues"
-  ],
-
-  // Income Tax Services
-  incomeTaxReturn: [
-    "Accurate income tax filing",
-    "Maximize tax savings legally",
-    "Avoid notices from IT department",
-    "Quick processing of returns",
-    "Expert tax consultation"
-  ],
-  tdsReturn: [
-    "Timely TDS return filing",
-    "Avoid interest and penalties",
-    "Proper TDS reconciliation",
-    "Issue Form 16/16A to employees",
-    "Expert compliance management"
-  ],
-  taxPlanning: [
-    "Strategic tax planning",
-    "Legal tax saving methods",
-    "Investment planning advice",
-    "Retirement planning",
-    "Wealth management strategies"
+  
+  gstr10Filing: [
+    "Preparation of GSTR-10",
+    "Filing on GST Portal",
+    "Acknowledgement & Confirmation",
+    "Expert Review & Compliance Check"
   ],
 
-  // Company Registration
-  privateLimited: [
-    "Limited liability protection",
-    "Separate legal entity status",
-    "Easy fundraising ability",
-    "Perpetual succession",
-    "Credibility with stakeholders"
-  ],
-  llpRegistration: [
-    "Limited liability to partners",
-    "Lower compliance cost",
-    "No minimum capital requirement",
-    "Flexible management structure",
-    "Separate legal entity"
-  ],
-  opcRegistration: [
-    "Single owner business structure",
-    "Limited liability protection",
-    "Separate legal entity",
-    "Easy to manage and operate",
-    "Professional credibility"
-  ],
-  partnershipRegistration: [
-    "Easy to form and operate",
-    "Shared responsibility and risk",
-    "Combined capital and skills",
-    "Less compliance burden",
-    "Flexible decision making"
-  ],
-  soleProprietorship: [
-    "Complete control over business",
-    "Easy to start and close",
-    "Minimal compliance requirements",
-    "All profits belong to owner",
-    "Quick decision making"
-  ],
-  ngoRegistration: [
-    "Legal status for social work",
-    "Tax exemption benefits",
-    "Eligible for grants and funding",
-    "Credibility with donors",
-    "Perpetual existence"
+  // Compliance Category - Secretarial Compliance Subcategory
+  partnershipCompliance: [
+    "Income Tax Return Filing (ITR-5)",
+    "Bookkeeping & Financial Statement Preparation",
+    "GST & TDS Compliance Support",
+    "Annual Compliance & Partner Reporting"
   ],
 
-  // MSME Services
-  msmeRegistration: [
-    "Priority sector lending benefits",
-    "Subsidy on various schemes",
-    "Protection against delayed payments",
-    "Concession in electricity bills",
-    "Preference in government tenders"
-  ],
-  msmeLoan: [
-    "Easy access to collateral-free loans",
-    "Lower interest rates",
-    "Government guarantee coverage",
-    "Quick processing and disbursement",
-    "Flexible repayment options"
-  ],
-  msmeSubsidy: [
-    "Capital investment subsidy",
-    "Technology upgradation benefits",
-    "Marketing assistance",
-    "Export promotion benefits",
-    "Quality certification reimbursement"
+  proprietorshipCompliance: [
+    "Income Tax Return Filing (ITR-3 / ITR-4)",
+    "GST Return Filing & Reconciliation",
+    "TDS Filing & Compliance Support",
+    "Bookkeeping & Profit Computation"
   ],
 
-  // Food License
-  fssaiRegistration: [
-    "Legal compliance for food business",
-    "Build customer trust",
-    "Avoid penalties and legal issues",
-    "Quality assurance",
-    "Business credibility"
-  ],
-  fssaiRenewal: [
-    "Continuous business operations",
-    "Maintain legal compliance",
-    "Avoid business interruption",
-    "Updated license validity",
-    "Peace of mind"
-  ],
-  fssaiStateLicense: [
-    "Medium scale business compliance",
-    "State-wide operations permitted",
-    "Higher business credibility",
-    "Quality certification",
-    "Market expansion"
-  ],
-  fssaiCentralLicense: [
-    "Pan-India operations permitted",
-    "Highest level of compliance",
-    "International recognition",
-    "Large business credibility",
-    "Export-import benefits"
+  // MCA Category - Event Based Compliance Subcategory
+  removeDirector: [
+    "Legal Compliance",
+    "MCA Filings",
+    "Efficient Process",
+    "Complete Documentation",
+    "LEDGERS Accounting Software"
   ],
 
-  // Import Export Code
-  iecRegistration: [
-    "Mandatory for import/export business",
-    "Access to international markets",
-    "Avail export benefits and schemes",
-    "Custom clearance facilitation",
-    "Foreign exchange earnings"
-  ],
-  iecModification: [
-    "Keep IEC details updated",
-    "Avoid issues in customs clearance",
-    "Smooth import/export operations",
-    "Compliance with DGFT requirements",
-    "Business continuity"
+  companyNameChange: [
+    "Check Company Name Availability",
+    "MGT-14 and INC-24 Filings",
+    "New Certificate of Incorporation",
+    "LEDGERS Accounting Software"
   ],
 
-  // Trade License
-  tradeLicense: [
-    "Legal permission to trade",
-    "Compliance with municipal laws",
-    "Avoid legal notices and penalties",
-    "Business credibility",
-    "Smooth business operations"
-  ],
-  tradeRenewal: [
-    "Continuous business operations",
-    "Maintain legal compliance",
-    "Avoid business interruption",
-    "Updated license validity",
-    "Peace of mind"
+  moaAmendment: [
+    "MGT-14 / SH-7 / INC-24 / INC-22 Filings",
+    "Board Resolution Preparation",
+    "Dedicated Compliance Manager",
+    "LEDGERS Accounting Software"
   ],
 
-  // Shop & Establishment
-  shopRegistration: [
-    "Legal compliance with state law",
-    "Register employees for benefits",
-    "Fixed business hours compliance",
-    "Legal protection for business",
-    "Avoid penalties"
-  ],
-  shopRenewal: [
-    "Continuous compliance",
-    "Avoid legal issues",
-    "Updated registration",
-    "Business continuity",
-    "Legal protection"
+  aoaAmendment: [
+    "MGT-14 Filing",
+    "Board Resolution Preparation",
+    "Dedicated Compliance Manager",
+    "LEDGERS Accounting Software"
   ],
 
-  // Professional Tax
-  professionalTaxReg: [
-    "State law compliance",
-    "Legal business operation",
-    "Avoid penalties and notices",
-    "Employee record maintenance",
-    "Professional credibility"
-  ],
-  professionalTaxFiling: [
-    "Timely tax payment",
-    "Avoid interest and penalties",
-    "Compliance certificate",
-    "Proper record maintenance",
-    "Peace of mind"
+  // MCA Category - Secretarial Compliance Subcategory
+  shareTransfer: [
+    "Board Resolution Preparation",
+    "Form SH-4 Documentation",
+    "Dedicated Compliance Manager",
+    "LEDGERS Accounting Software"
   ],
 
-  // Trademark
-  trademarkRegistration: [
-    "Exclusive brand ownership",
-    "Legal protection against infringement",
-    "Brand asset creation",
-    "Nationwide protection",
-    "Business goodwill protection"
-  ],
-  trademarkObjection: [
-    "Expert response to objections",
-    "Protect your brand rights",
-    "Legal representation",
-    "Higher success rate",
-    "Timely resolution"
-  ],
-  trademarkRenewal: [
-    "Continuous brand protection",
-    "Maintain exclusive rights",
-    "Avoid trademark expiration",
-    "Asset protection",
-    "Business continuity"
-  ],
-  copyrightRegistration: [
-    "Protect creative works",
-    "Legal ownership proof",
-    "Monetary damages in infringement",
-    "Nationwide protection",
-    "Intellectual property asset"
+  dinReactivation: [
+    "Form DIR-3 KYC (E-Form) Filing",
+    "Professional Certification",
+    "Compliance Setup",
+    "LEDGERS Accounting Software"
   ],
 
-  // Patent
-  provisionalPatent: [
-    "Early filing date advantage",
-    "12 months to develop invention",
-    "'Patent Pending' status",
-    "Lower initial cost",
-    "Time to assess commercial value"
-  ],
-  completePatent: [
-    "Full patent protection",
-    "Exclusive monopoly rights",
-    "Commercialize invention safely",
-    "Asset creation",
-    "Competitive advantage"
-  ],
-  patentSearch: [
-    "Check patentability of invention",
-    "Avoid infringement risks",
-    "Save time and costs",
-    "Prior art analysis",
-    "Informed decision making"
+  // Income Tax Category - Tax Filing Subcategory
+  incomeTaxEFiling: [
+    "Complete ITR preparation & review",
+    "Form 16 & document verification",
+    "Quick ITR filing & acknowledgement",
+    "Expert support for notices",
+    "Tax planning assistance"
   ],
 
-  // Contract Drafting
-  contractDrafting: [
-    "Legally sound agreements",
-    "Protect your interests",
-    "Clear terms and conditions",
-    "Dispute prevention",
-    "Professional documentation"
-  ],
-  rentalAgreement: [
-    "Legal protection for landlord/tenant",
-    "Clear terms for rent and deposit",
-    "Dispute resolution mechanism",
-    "Proper documentation",
-    "Legal compliance"
-  ],
-  partnershipDeed: [
-    "Clear partner roles and duties",
-    "Profit sharing terms",
-    "Dispute resolution mechanism",
-    "Legal validity",
-    "Business clarity"
+  fifteenCAFifteenCB: [
+    "CA Certificate (Form 15CB) Preparation",
+    "Online Filing of Form 15CA",
+    "Quick Processing for Foreign Remittance",
+    "DTAA & TDS Compliance Verification"
   ],
 
-  // Legal Notices
-  legalNoticeDrafting: [
-    "Professional legal communication",
-    "Proper legal format",
-    "Clear demands and timelines",
-    "Evidence for legal proceedings",
-    "Cost-effective dispute resolution"
-  ],
-  legalNoticeReply: [
-    "Expert response to notices",
-    "Protect your legal rights",
-    "Avoid unnecessary litigation",
-    "Professional representation",
-    "Timely response"
+  partnershipFirmITR: [
+    "Complete ITR preparation & review",
+    "Financial data review & reconciliation",
+    "Quick ITR filing & acknowledgement",
+    "Expert support for notices",
+    "Tax planning assistance"
   ],
 
-  // Accounting
-  monthlyAccounting: [
-    "Accurate financial records",
-    "Timely management reports",
-    "Tax compliance ready",
-    "Business performance tracking",
-    "Expert accounting support"
-  ],
-  bookkeeping: [
-    "Daily transaction recording",
-    "Bank reconciliation",
-    "Expense tracking",
-    "Financial clarity",
-    "Ready for audits"
-  ],
-  financialStatements: [
-    "Professional P&L and Balance Sheet",
-    "Investor-ready reports",
-    "Loan application support",
-    "Business valuation basis",
-    "Regulatory compliance"
+  companyITRFiling: [
+    "Complete ITR preparation & review",
+    "Financial data review & reconciliation",
+    "Quick ITR filing & acknowledgement",
+    "Expert support for notices",
+    "Tax planning assistance"
   ],
 
-  // Audit
-  statutoryAudit: [
-    "Legal compliance for companies",
-    "Independent financial opinion",
-    "Shareholder confidence",
-    "Regulatory requirement met",
-    "Fraud detection and prevention"
-  ],
-  internalAudit: [
-    "Process improvement",
-    "Risk identification",
-    "Operational efficiency",
-    "Internal control enhancement",
-    "Management support"
+  trustNgoTaxFiling: [
+    "Complete ITR preparation & review",
+    "Financial data review & reconciliation",
+    "Quick ITR filing & acknowledgement",
+    "Expert support for notices",
+    "Tax planning assistance"
   ],
 
-  // Payroll
-  payrollProcessing: [
-    "Accurate salary calculation",
-    "Timely employee payments",
-    "Tax deduction compliance",
-    "Payslip generation",
-    "Employee satisfaction"
-  ],
-  pfEsiRegistration: [
-    "Social security compliance",
-    "Employee benefits registration",
-    "Avoid legal penalties",
-    "Statutory compliance",
-    "Employee trust building"
-  ],
-  pfEsiFiling: [
-    "Timely statutory filings",
-    "Avoid interest and penalties",
-    "Compliance certificates",
-    "Proper record maintenance",
-    "Peace of mind"
+  revisedITR: [
+    "Correction of errors in original ITR",
+    "Income, deduction & tax credit updates",
+    "Quick revised filing before due date",
+    "Expert review & compliance check",
+    "Support for tax notices & mismatches"
   ],
 
-  // Recruitment
-  recruitmentServices: [
-    "Find right talent quickly",
-    "Screening and shortlisting",
-    "Interview coordination",
-    "Skill assessment",
-    "Quality candidate pipeline"
+  // Income Tax Category - Taxation Subcategory
+  businessTaxFiling: [
+    "Complete ITR preparation & review",
+    "Financial data review & reconciliation",
+    "Quick ITR filing & acknowledgement",
+    "Expert support for notices",
+    "Tax planning assistance"
   ],
 
-  // Property
-  propertyRegistration: [
-    "Legal ownership transfer",
-    "Title clearance",
-    "Avoid future disputes",
-    "Proper documentation",
-    "Government records update"
-  ],
-  propertyValuation: [
-    "Accurate property worth",
-    "Loan application support",
-    "Sale/purchase assistance",
-    "Investment decision help",
-    "Expert valuation report"
+  tanRegistration: [
+    "TAN Application Filing",
+    "TAN Certificate and Number Issuance"
   ],
 
-  // Pollution Control
-  pollutionControlLicense: [
-    "Environmental compliance",
-    "Avoid legal penalties",
-    "Green business certification",
-    "Sustainable operations",
-    "Community goodwill"
+  tdsReturnFiling: [
+    "Preparation & Validation of TDS Returns",
+    "Quarterly Filing (24Q, 26Q, 27Q)",
+    "Timely Filing & Acknowledgement",
+    "Expert Compliance & Error Resolution"
   ],
 
-  // Fire License
-  fireLicense: [
-    "Safety compliance",
-    "Insurance validity",
-    "Employee safety assurance",
-    "Legal requirement met",
-    "Emergency preparedness"
+  incomeTaxNotice: [
+    "Expert Review of Tax Notice",
+    "Drafting & Filing Reply to IT Department",
+    "Deadline Tracking & Timely Response",
+    "Representation & Compliance Support"
   ]
 };
+
 
 /* =========================
    CREATE MASTER FIELDS FIRST
@@ -528,7 +338,6 @@ async function createMasterFields() {
         type: field.type,
         placeholder: field.placeholder,
         required: field.required,
-        documentType: "GENERAL",
       }
     });
     masterFields.push(masterField);
@@ -575,7 +384,7 @@ async function createService(serviceData, masterFields, points) {
     }))
   });
 
-  console.log(`  ✅ Created service: ${serviceData.name} with ${defaultSteps.length} track steps`);
+  console.log(`  ✅ Created service: ${serviceData.name}`);
   return service;
 }
 
@@ -598,1144 +407,679 @@ async function main() {
 
   console.log("Creating categories...");
   
-  const tax = await prisma.category.create({
-    data: { categoryName: "Tax Services" }
+  const registration = await prisma.category.create({
+    data: { categoryName: "Registration" }
   });
-  console.log(`  ✅ Created category: Tax Services`);
+  console.log(`  ✅ Created category: Registration`);
 
-  const business = await prisma.category.create({
-    data: { categoryName: "Business Registration" }
+  const gstServices = await prisma.category.create({
+    data: { categoryName: "GST Services" }
   });
-  console.log(`  ✅ Created category: Business Registration`);
+  console.log(`  ✅ Created category: GST Services`);
 
-  const license = await prisma.category.create({
-    data: { categoryName: "Licenses & Compliance" }
+  const incomeTax = await prisma.category.create({
+    data: { categoryName: "Income Tax" }
   });
-  console.log(`  ✅ Created category: Licenses & Compliance`);
+  console.log(`  ✅ Created category: Income Tax`);
 
-  const legal = await prisma.category.create({
-    data: { categoryName: "Legal Services" }
+  const compliance = await prisma.category.create({
+    data: { categoryName: "Compliance" }
   });
-  console.log(`  ✅ Created category: Legal Services`);
+  console.log(`  ✅ Created category: Compliance`);
 
-  const finance = await prisma.category.create({
-    data: { categoryName: "Financial Services" }
+  const mca = await prisma.category.create({
+    data: { categoryName: "MCA" }
   });
-  console.log(`  ✅ Created category: Financial Services`);
-
-  const hr = await prisma.category.create({
-    data: { categoryName: "HR & Payroll" }
-  });
-  console.log(`  ✅ Created category: HR & Payroll`);
-
-  const realEstate = await prisma.category.create({
-    data: { categoryName: "Real Estate Services" }
-  });
-  console.log(`  ✅ Created category: Real Estate Services`);
+  console.log(`  ✅ Created category: MCA`);
   
   console.log("================================");
 
 
-  /* SUB CATEGORIES (belong to categories) */
+  /* SUB CATEGORIES */
 
   console.log("Creating sub-categories...");
 
-  // Tax Services Sub-categories
-  const gstSub = await prisma.subCategory.create({
+  // Registration Category Subcategories
+  const licenseCertification = await prisma.subCategory.create({
     data: {
-      subCategoryName: "GST Services",
-      categoryId: tax.categoryId
+      subCategoryName: "License and Certification",
+      categoryId: registration.categoryId
     }
   });
-  console.log(`  ✅ Created sub-category: GST Services under Tax Services`);
+  console.log(`  ✅ Created sub-category: License and Certification under Registration`);
 
-  const incomeTaxSub = await prisma.subCategory.create({
+  const statutoryRegistration = await prisma.subCategory.create({
     data: {
-      subCategoryName: "Income Tax",
-      categoryId: tax.categoryId
+      subCategoryName: "Statutory Registration",
+      categoryId: registration.categoryId
     }
   });
-  console.log(`  ✅ Created sub-category: Income Tax under Tax Services`);
+  console.log(`  ✅ Created sub-category: Statutory Registration under Registration`);
 
+  const businessRegistration = await prisma.subCategory.create({
+    data: {
+      subCategoryName: "Business Registration",
+      categoryId: registration.categoryId
+    }
+  });
+  console.log(`  ✅ Created sub-category: Business Registration under Registration`);
+
+  // GST Services Subcategories
+  const gstRegistrationSub = await prisma.subCategory.create({
+    data: {
+      subCategoryName: "Registration",
+      categoryId: gstServices.categoryId
+    }
+  });
+  console.log(`  ✅ Created sub-category: Registration under GST Services`);
+
+  const gstFilingsSub = await prisma.subCategory.create({
+    data: {
+      subCategoryName: "Filings",
+      categoryId: gstServices.categoryId
+    }
+  });
+  console.log(`  ✅ Created sub-category: Filings under GST Services`);
+
+  // Income Tax Category Subcategories
   const taxFilingSub = await prisma.subCategory.create({
     data: {
       subCategoryName: "Tax Filing",
-      categoryId: tax.categoryId
+      categoryId: incomeTax.categoryId
     }
   });
-  console.log(`  ✅ Created sub-category: Tax Filing under Tax Services`);
+  console.log(`  ✅ Created sub-category: Tax Filing under Income Tax`);
 
-  const taxPlanningSub = await prisma.subCategory.create({
+  const taxationSub = await prisma.subCategory.create({
     data: {
-      subCategoryName: "Tax Planning",
-      categoryId: tax.categoryId
+      subCategoryName: "Taxation",
+      categoryId: incomeTax.categoryId
     }
   });
-  console.log(`  ✅ Created sub-category: Tax Planning under Tax Services`);
+  console.log(`  ✅ Created sub-category: Taxation under Income Tax`);
 
-  // Business Registration Sub-categories
-  const companySub = await prisma.subCategory.create({
+  // Compliance Category Subcategories
+  const secretarialCompliance = await prisma.subCategory.create({
     data: {
-      subCategoryName: "Company Registration",
-      categoryId: business.categoryId
+      subCategoryName: "Secretarial Compliance",
+      categoryId: compliance.categoryId
     }
   });
-  console.log(`  ✅ Created sub-category: Company Registration under Business Registration`);
+  console.log(`  ✅ Created sub-category: Secretarial Compliance under Compliance`);
 
-  const msmeSub = await prisma.subCategory.create({
+  // MCA Category Subcategories
+  const eventBasedCompliance = await prisma.subCategory.create({
     data: {
-      subCategoryName: "MSME Registration",
-      categoryId: business.categoryId
+      subCategoryName: "Event Based Compliance",
+      categoryId: mca.categoryId
     }
   });
-  console.log(`  ✅ Created sub-category: MSME Registration under Business Registration`);
+  console.log(`  ✅ Created sub-category: Event Based Compliance under MCA`);
 
-  const partnershipSub = await prisma.subCategory.create({
+  const mcaSecretarialCompliance = await prisma.subCategory.create({
     data: {
-      subCategoryName: "Partnership Firm",
-      categoryId: business.categoryId
+      subCategoryName: "Secretarial Compliance",
+      categoryId: mca.categoryId
     }
   });
-  console.log(`  ✅ Created sub-category: Partnership Firm under Business Registration`);
-
-  const llpSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "LLP Registration",
-      categoryId: business.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: LLP Registration under Business Registration`);
-
-  const opcSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "One Person Company",
-      categoryId: business.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: One Person Company under Business Registration`);
-
-  const soleProprietorshipSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Sole Proprietorship",
-      categoryId: business.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Sole Proprietorship under Business Registration`);
-
-  const ngoSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "NGO Registration",
-      categoryId: business.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: NGO Registration under Business Registration`);
-
-  // Licenses & Compliance Sub-categories
-  const foodSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Food License",
-      categoryId: license.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Food License under Licenses & Compliance`);
-
-  const tradeSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Trade License",
-      categoryId: license.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Trade License under Licenses & Compliance`);
-
-  const importExportSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Import Export Code",
-      categoryId: license.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Import Export Code under Licenses & Compliance`);
-
-  const professionalTaxSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Professional Tax",
-      categoryId: license.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Professional Tax under Licenses & Compliance`);
-
-  const shopSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Shop & Establishment",
-      categoryId: license.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Shop & Establishment under Licenses & Compliance`);
-
-  const pollutionSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Pollution Control",
-      categoryId: license.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Pollution Control under Licenses & Compliance`);
-
-  const fireSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Fire License",
-      categoryId: license.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Fire License under Licenses & Compliance`);
-
-  // Legal Services Sub-categories
-  const trademarkSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Trademark & Copyright",
-      categoryId: legal.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Trademark & Copyright under Legal Services`);
-
-  const patentSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Patent Registration",
-      categoryId: legal.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Patent Registration under Legal Services`);
-
-  const contractSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Contract Drafting",
-      categoryId: legal.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Contract Drafting under Legal Services`);
-
-  const legalNoticesSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Legal Notices",
-      categoryId: legal.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Legal Notices under Legal Services`);
-
-  // Financial Services Sub-categories
-  const accountingSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Accounting & Bookkeeping",
-      categoryId: finance.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Accounting & Bookkeeping under Financial Services`);
-
-  const auditSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Audit Services",
-      categoryId: finance.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Audit Services under Financial Services`);
-
-  // HR & Payroll Sub-categories
-  const payrollSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Payroll Services",
-      categoryId: hr.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Payroll Services under HR & Payroll`);
-
-  const recruitmentSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Recruitment Services",
-      categoryId: hr.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Recruitment Services under HR & Payroll`);
-
-  // Real Estate Sub-categories
-  const propertySub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Property Registration",
-      categoryId: realEstate.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Property Registration under Real Estate Services`);
-
-  const legalComplianceSub = await prisma.subCategory.create({
-    data: {
-      subCategoryName: "Legal Compliance",
-      categoryId: realEstate.categoryId
-    }
-  });
-  console.log(`  ✅ Created sub-category: Legal Compliance under Real Estate Services`);
+  console.log(`  ✅ Created sub-category: Secretarial Compliance under MCA`);
   
   console.log("================================");
 
 
   /* =========================
-     LOCAL IMAGE PATH
+     SINGLE S3 IMAGE URL FOR ALL SERVICES
   ========================= */
-  const baseImagePath = '/assets/service-images/default-service.jpg';
+  const s3ImageUrl = "https://insightconsulting.s3.ap-south-1.amazonaws.com/ServiceCardPhoto/Gemini_Generated_Image_lq3q4dlq3q4dlq3q.png";
 
-  /* SERVICES (belong to sub-categories) */
+  /* SERVICES */
 
-  console.log("Creating services with track steps and benefits...");
+  console.log("Creating services with points...");
 
-  // GST Services
+  // ==================== REGISTRATION CATEGORY ====================
+  
+  // License and Certification Subcategory
   await createService({
-    name: "GST Registration",
-    description: "Register your business under GST",
-    photoUrl: '/assets/service-images/gst-registration.jpg',
+    name: "12A & 80G Registration",
+    description: "Register your NGO, Trust, or Society under 12A and 80G to receive tax exemptions and enable tax benefits for donors. Our experts handle documentation and provide fast registration support across India.",
+    photoUrl: s3ImageUrl,
     serviceType: "ONE_TIME",
-    individualPrice: "2500",
+    individualPrice: "6999",
+    offerPrice: "5999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "7079", // 5999 + 18% GST
+    subCategoryId: licenseCertification.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.twelveARegistration);
+
+  await createService({
+    name: "NGO Darpan Registration",
+    description: "Register your NGO on the NITI Aayog NGO Darpan Portal to access government grants and schemes. We provide complete documentation and hassle-free NGO Darpan registration support.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "4999",
+    offerPrice: "3999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "4718", // 3999 + 18% GST
+    subCategoryId: licenseCertification.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.ngoDarpan);
+
+  await createService({
+    name: "Digital Signature Certificate (DSC)",
+    description: "Buy a Digital Signature Certificate online from eMudhra or Care4Sign with same-day shipping. We provide end-to-end support for application, token download, and shipping.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "2499",
+    offerPrice: "1999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "2358", // 1999 + 18% GST
+    subCategoryId: licenseCertification.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.dsc);
+
+  // Statutory Registration Subcategory
+  await createService({
+    name: "Udyam (MSME) Registration",
+    description: "Register under Udyam (MSME) Registration to access government schemes, subsidies, easier loans, and priority business opportunities. Get your MSME certificate quickly with expert support and smooth online processing.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "2499",
     offerPrice: "1499",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "1768",
-    subCategoryId: gstSub.subCategoryId,
+    finalIndividualPrice: "1769", // 1499 + 18% GST
+    subCategoryId: statutoryRegistration.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.udyam);
+
+  // Business Registration Subcategory
+  await createService({
+    name: "Startup India Registration",
+    description: "Start your journey toward funding opportunities, tax benefits, and national recognition. Register your startup under the Startup India Initiative and unlock long-term growth potential.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "7999",
+    offerPrice: "6999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "8258", // 6999 + 18% GST
+    subCategoryId: businessRegistration.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.startupIndia);
+
+  // ==================== GST SERVICES CATEGORY ====================
+  
+  // GST Registration Subcategory
+  await createService({
+    name: "GST Registration",
+    description: "Register for GST online with expert assistance. We handle documentation, application filing, query resolution, and approval so you can focus on your business.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "3999",
+    offerPrice: "2999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "3538", // 2999 + 18% GST
+    subCategoryId: gstRegistrationSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
   }, masterFields, servicePoints.gstRegistration);
 
   await createService({
-    name: "GST Filing",
-    description: "Monthly GST return filing",
-    photoUrl: '/assets/service-images/gst-filing.jpg',
+    name: "GST Registration for Foreigners",
+    description: "Foreign businesses supplying goods or services in India must register for GST. We assist with the complete registration process and compliance.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "9999",
+    offerPrice: "8999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "10619", // 8999 + 18% GST
+    subCategoryId: gstRegistrationSub.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.gstRegistrationForeigners);
+
+  await createService({
+    name: "GST Amendment",
+    description: "Update or modify GST registration details such as business name, address, partners, authorized signatory, or bank details.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "2999",
+    offerPrice: "2499",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "2949", // 2499 + 18% GST
+    subCategoryId: gstRegistrationSub.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.gstAmendment);
+
+  await createService({
+    name: "GST Revocation",
+    description: "If your GST registration was cancelled due to non-filing or other issues, apply for GST Revocation to restore your GST number and continue business legally.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "4999",
+    offerPrice: "3999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "4718", // 3999 + 18% GST
+    subCategoryId: gstRegistrationSub.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.gstRevocation);
+
+  await createService({
+    name: "Virtual Office + GSTIN",
+    description: "Establish your business presence anywhere in India with a Virtual Office address and GST registration trusted by startups, freelancers, and SMEs.",
+    photoUrl: s3ImageUrl,
+    serviceType: "RECURRING",
+    frequency: "YEARLY",
+    duration: "12",
+    durationUnit: "MONTH",
+    individualPrice: "6999",
+    offerPrice: "5999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "7079", // 5999 + 18% GST
+    subCategoryId: gstRegistrationSub.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.virtualOffice);
+
+  // GST Filings Subcategory
+  await createService({
+    name: "GST Return Filing by Accountants",
+    description: "Professional GST return filing covering GSTR-1 and GSTR-3B. Expert accountants manage filings using LEDGERS GST software for smooth and hassle-free compliance.",
+    photoUrl: s3ImageUrl,
     serviceType: "RECURRING",
     frequency: "MONTHLY",
     duration: "12",
     durationUnit: "MONTH",
-    individualPrice: "1500",
-    offerPrice: "999",
+    individualPrice: "9999",
+    offerPrice: "7999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "1178",
-    subCategoryId: gstSub.subCategoryId,
+    finalIndividualPrice: "9438", // 7999 + 18% GST (per year)
+    subCategoryId: gstFilingsSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.gstFiling);
+  }, masterFields, servicePoints.gstReturnFiling);
 
   await createService({
-    name: "GST Cancellation",
-    description: "Cancel GST registration",
-    photoUrl: '/assets/service-images/gst-cancellation.jpg',
+    name: "GST LUT Filing",
+    description: "GST LUT allows exporters to supply goods or services without payment of IGST by submitting a Letter of Undertaking on the GST portal.",
+    photoUrl: s3ImageUrl,
     serviceType: "ONE_TIME",
-    individualPrice: "2000",
-    offerPrice: "1299",
+    individualPrice: "1999",
+    offerPrice: "1499",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "1532",
-    subCategoryId: gstSub.subCategoryId,
+    finalIndividualPrice: "1769", // 1499 + 18% GST
+    subCategoryId: gstFilingsSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.gstCancellation);
+  }, masterFields, servicePoints.gstLutFiling);
 
   await createService({
-    name: "GST Annual Return",
-    description: "Annual GST return filing",
-    photoUrl: '/assets/service-images/gst-annual.jpg',
+    name: "GST Notice Response",
+    description: "GST notices may be issued due to mismatches, non-filing, defective returns, or verification issues. Our professionals help analyze the notice and submit the correct response.",
+    photoUrl: s3ImageUrl,
     serviceType: "ONE_TIME",
-    individualPrice: "3500",
-    offerPrice: "2499",
+    individualPrice: "3999",
+    offerPrice: "2999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "2948",
-    subCategoryId: gstSub.subCategoryId,
+    finalIndividualPrice: "3538", // 2999 + 18% GST
+    subCategoryId: gstRegistrationSub.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.gstNoticeResponse);
+
+  await createService({
+    name: "GST Annual Return Filing (GSTR-9)",
+    description: "GSTR-9 is the annual GST return filed by regular taxpayers. It consolidates all monthly or quarterly returns filed during the financial year.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "3999",
+    offerPrice: "2999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "3538", // 2999 + 18% GST
+    subCategoryId: gstFilingsSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
   }, masterFields, servicePoints.gstAnnualReturn);
 
   await createService({
-    name: "GST Notice Reply",
-    description: "Reply to GST notices",
-    photoUrl: '/assets/service-images/gst-notice.jpg',
+    name: "GSTR-10 Filing",
+    description: "GSTR-10 is the final return that must be filed when GST registration is cancelled or surrendered.",
+    photoUrl: s3ImageUrl,
     serviceType: "ONE_TIME",
-    individualPrice: "5000",
-    offerPrice: "3999",
+    individualPrice: "2999",
+    offerPrice: "1999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "4718",
-    subCategoryId: gstSub.subCategoryId,
+    finalIndividualPrice: "2358", // 1999 + 18% GST
+    subCategoryId: gstFilingsSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.gstNoticeReply);
+  }, masterFields, servicePoints.gstr10Filing);
 
-  // Income Tax Services
+  // ==================== INCOME TAX CATEGORY ====================
+  
+  // Tax Filing Subcategory
   await createService({
-    name: "Income Tax Return Filing",
-    description: "File your income tax returns",
-    photoUrl: '/assets/service-images/income-tax.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "1500",
-    offerPrice: "999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "1178",
-    subCategoryId: incomeTaxSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.incomeTaxReturn);
-
-  await createService({
-    name: "TDS Return Filing",
-    description: "File TDS returns",
-    photoUrl: '/assets/service-images/tds-filing.jpg',
+    name: "Income Tax E-Filing",
+    description: "File your Income Tax Return online with dedicated tax experts from IndiaFilings. We handle document verification, tax computation, filing, and compliance — so you can stay stress-free.",
+    photoUrl: s3ImageUrl,
     serviceType: "RECURRING",
-    frequency: "QUARTERLY",
-    duration: "12",
-    durationUnit: "MONTH",
-    individualPrice: "2000",
-    offerPrice: "1499",
+    frequency: "YEARLY",
+    duration: "1",
+    durationUnit: "YEAR",
+    individualPrice: "2999",
+    offerPrice: "1999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "1768",
-    subCategoryId: incomeTaxSub.subCategoryId,
+    finalIndividualPrice: "2358", // 1999 + 18% GST
+    subCategoryId: taxFilingSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.tdsReturn);
+  }, masterFields, servicePoints.incomeTaxEFiling);
 
   await createService({
-    name: "Tax Planning & Consultation",
-    description: "Expert tax planning advice",
-    photoUrl: '/assets/service-images/tax-planning.jpg',
+    name: "15CA – 15CB Filing",
+    description: "Form 15CA and Form 15CB filing is mandatory for making payments to non-residents under the Income Tax Act. We assist with tax determination, DTAA benefit analysis, CA certification, and online filing to ensure hassle-free foreign remittance compliance.",
+    photoUrl: s3ImageUrl,
     serviceType: "ONE_TIME",
-    individualPrice: "5000",
+    individualPrice: "3999",
+    offerPrice: "2999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "3538", // 2999 + 18% GST
+    subCategoryId: taxFilingSub.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.fifteenCAFifteenCB);
+
+  await createService({
+    name: "Partnership Firm / LLP ITR Filing",
+    description: "File Income Tax Returns for Partnership Firms or LLPs with expert guidance. We ensure accurate computation, documentation verification, and smooth filing with the Income Tax Department.",
+    photoUrl: s3ImageUrl,
+    serviceType: "RECURRING",
+    frequency: "YEARLY",
+    duration: "1",
+    durationUnit: "YEAR",
+    individualPrice: "4999",
     offerPrice: "3999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "4718",
-    subCategoryId: taxPlanningSub.subCategoryId,
+    finalIndividualPrice: "4718", // 3999 + 18% GST
+    subCategoryId: taxFilingSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.taxPlanning);
-
-  // Company Registration Services
-  await createService({
-    name: "Private Limited Company Registration",
-    description: "Register private limited company",
-    photoUrl: '/assets/service-images/private-limited.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "12000",
-    offerPrice: "8999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "10618",
-    subCategoryId: companySub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.privateLimited);
+  }, masterFields, servicePoints.partnershipFirmITR);
 
   await createService({
-    name: "Limited Liability Partnership (LLP)",
-    description: "Register LLP",
-    photoUrl: '/assets/service-images/llp-registration.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "9000",
-    offerPrice: "6999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "8258",
-    subCategoryId: llpSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.llpRegistration);
-
-  await createService({
-    name: "One Person Company Registration",
-    description: "Register OPC",
-    photoUrl: '/assets/service-images/opc-registration.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "8000",
+    name: "Company ITR Filing",
+    description: "File your company Income Tax Return online with professional assistance. Our experts handle financial review, tax computation, filing, and compliance.",
+    photoUrl: s3ImageUrl,
+    serviceType: "RECURRING",
+    frequency: "YEARLY",
+    duration: "1",
+    durationUnit: "YEAR",
+    individualPrice: "6999",
     offerPrice: "5999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "7078",
-    subCategoryId: opcSub.subCategoryId,
+    finalIndividualPrice: "7079", // 5999 + 18% GST
+    subCategoryId: taxFilingSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.opcRegistration);
+  }, masterFields, servicePoints.companyITRFiling);
 
   await createService({
-    name: "Partnership Firm Registration",
-    description: "Register partnership firm",
-    photoUrl: '/assets/service-images/partnership.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "5000",
-    offerPrice: "3999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "4718",
-    subCategoryId: partnershipSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.partnershipRegistration);
-
-  await createService({
-    name: "Sole Proprietorship Registration",
-    description: "Register sole proprietorship",
-    photoUrl: '/assets/service-images/sole-proprietorship.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "3000",
-    offerPrice: "1999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "2358",
-    subCategoryId: soleProprietorshipSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.soleProprietorship);
-
-  await createService({
-    name: "NGO Registration",
-    description: "Register NGO/Trust/Society",
-    photoUrl: '/assets/service-images/ngo-registration.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "15000",
-    offerPrice: "11999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "14158",
-    subCategoryId: ngoSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.ngoRegistration);
-
-  // MSME Services
-  await createService({
-    name: "Udyam MSME Registration",
-    description: "MSME registration",
-    photoUrl: '/assets/service-images/msme-registration.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "1500",
-    offerPrice: "799",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "943",
-    subCategoryId: msmeSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.msmeRegistration);
-
-  await createService({
-    name: "MSME Loan Assistance",
-    description: "Get loans for MSME",
-    photoUrl: '/assets/service-images/msme-loan.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "5000",
-    offerPrice: "3999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "4718",
-    subCategoryId: msmeSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.msmeLoan);
-
-  await createService({
-    name: "MSME Subsidy Application",
-    description: "Apply for government subsidies",
-    photoUrl: '/assets/service-images/msme-subsidy.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "4000",
-    offerPrice: "2999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "3538",
-    subCategoryId: msmeSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.msmeSubsidy);
-
-  // Food License Services
-  await createService({
-    name: "FSSAI Registration",
-    description: "Food license registration",
-    photoUrl: '/assets/service-images/fssai-registration.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "3000",
-    offerPrice: "1999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "2358",
-    subCategoryId: foodSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.fssaiRegistration);
-
-  await createService({
-    name: "FSSAI Renewal",
-    description: "Renew your food license",
-    photoUrl: '/assets/service-images/fssai-renewal.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "2500",
-    offerPrice: "1499",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "1768",
-    subCategoryId: foodSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.fssaiRenewal);
-
-  await createService({
-    name: "FSSAI State License",
-    description: "State level food license",
-    photoUrl: '/assets/service-images/fssai-state.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "5000",
-    offerPrice: "3999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "4718",
-    subCategoryId: foodSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.fssaiStateLicense);
-
-  await createService({
-    name: "FSSAI Central License",
-    description: "Central level food license",
-    photoUrl: '/assets/service-images/fssai-central.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "8000",
-    offerPrice: "6499",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "7668",
-    subCategoryId: foodSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.fssaiCentralLicense);
-
-  // Import Export Code
-  await createService({
-    name: "IEC Registration",
-    description: "Import Export Code registration",
-    photoUrl: '/assets/service-images/iec-registration.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "2500",
-    offerPrice: "1499",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "1768",
-    subCategoryId: importExportSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.iecRegistration);
-
-  await createService({
-    name: "IEC Modification",
-    description: "Modify Import Export Code",
-    photoUrl: '/assets/service-images/iec-modification.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "2000",
-    offerPrice: "1299",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "1532",
-    subCategoryId: importExportSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.iecModification);
-
-  // Trade License
-  await createService({
-    name: "Trade License Registration",
-    description: "Get trade license for business",
-    photoUrl: '/assets/service-images/trade-license.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "4000",
-    offerPrice: "2999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "3538",
-    subCategoryId: tradeSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.tradeLicense);
-
-  await createService({
-    name: "Trade License Renewal",
-    description: "Renew your trade license",
-    photoUrl: '/assets/service-images/trade-renewal.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "3000",
-    offerPrice: "1999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "2358",
-    subCategoryId: tradeSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.tradeRenewal);
-
-  // Shop & Establishment
-  await createService({
-    name: "Shop & Establishment Registration",
-    description: "Register under Shop & Establishment Act",
-    photoUrl: '/assets/service-images/shop-establishment.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "2500",
-    offerPrice: "1499",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "1768",
-    subCategoryId: shopSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.shopRegistration);
-
-  await createService({
-    name: "Shop & Establishment Renewal",
-    description: "Renew shop license",
-    photoUrl: '/assets/service-images/shop-renewal.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "2000",
-    offerPrice: "1299",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "1532",
-    subCategoryId: shopSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.shopRenewal);
-
-  // Professional Tax
-  await createService({
-    name: "Professional Tax Registration",
-    description: "Register for professional tax",
-    photoUrl: '/assets/service-images/professional-tax.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "1500",
-    offerPrice: "999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "1178",
-    subCategoryId: professionalTaxSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.professionalTaxReg);
-
-  await createService({
-    name: "Professional Tax Filing",
-    description: "File professional tax returns",
-    photoUrl: '/assets/service-images/professional-tax-filing.jpg',
+    name: "Trust / NGO Tax Filing",
+    description: "File Income Tax Returns for Trusts or NGOs with expert assistance. We handle documentation verification, tax computation, and compliance to ensure smooth filing.",
+    photoUrl: s3ImageUrl,
     serviceType: "RECURRING",
-    frequency: "MONTHLY",
-    duration: "12",
-    durationUnit: "MONTH",
-    individualPrice: "1000",
-    offerPrice: "699",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "825",
-    subCategoryId: professionalTaxSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.professionalTaxFiling);
-
-  // Trademark Services
-  await createService({
-    name: "Trademark Registration",
-    description: "Register brand trademark",
-    photoUrl: '/assets/service-images/trademark.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "7000",
+    frequency: "YEARLY",
+    duration: "1",
+    durationUnit: "YEAR",
+    individualPrice: "5999",
     offerPrice: "4999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "5898",
-    subCategoryId: trademarkSub.subCategoryId,
+    finalIndividualPrice: "5898", // 4999 + 18% GST
+    subCategoryId: taxFilingSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.trademarkRegistration);
+  }, masterFields, servicePoints.trustNgoTaxFiling);
 
   await createService({
-    name: "Trademark Objection Reply",
-    description: "Reply to trademark objections",
-    photoUrl: '/assets/service-images/trademark-objection.jpg',
+    name: "Revised ITR Return (ITR-U)",
+    description: "Easily file your Revised Income Tax Return online with expert assistance. We help correct errors, update financial details, and ensure accurate compliance with the Income Tax Department.",
+    photoUrl: s3ImageUrl,
     serviceType: "ONE_TIME",
-    individualPrice: "5000",
-    offerPrice: "3999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "4718",
-    subCategoryId: trademarkSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.trademarkObjection);
-
-  await createService({
-    name: "Trademark Renewal",
-    description: "Renew your trademark",
-    photoUrl: '/assets/service-images/trademark-renewal.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "6000",
-    offerPrice: "4499",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "5308",
-    subCategoryId: trademarkSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.trademarkRenewal);
-
-  await createService({
-    name: "Copyright Registration",
-    description: "Register your copyright",
-    photoUrl: '/assets/service-images/copyright.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "6000",
-    offerPrice: "4499",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "5308",
-    subCategoryId: trademarkSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.copyrightRegistration);
-
-  // Patent Services
-  await createService({
-    name: "Provisional Patent Application",
-    description: "File provisional patent",
-    photoUrl: '/assets/service-images/patent-provisional.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "10000",
-    offerPrice: "7999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "9438",
-    subCategoryId: patentSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.provisionalPatent);
-
-  await createService({
-    name: "Complete Patent Application",
-    description: "File complete patent",
-    photoUrl: '/assets/service-images/patent-complete.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "25000",
-    offerPrice: "19999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "23598",
-    subCategoryId: patentSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.completePatent);
-
-  await createService({
-    name: "Patent Search",
-    description: "Search for existing patents",
-    photoUrl: '/assets/service-images/patent-search.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "3000",
+    individualPrice: "2999",
     offerPrice: "1999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "2358",
-    subCategoryId: patentSub.subCategoryId,
+    finalIndividualPrice: "2358", // 1999 + 18% GST
+    subCategoryId: taxFilingSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.patentSearch);
+  }, masterFields, servicePoints.revisedITR);
 
-  // Contract Drafting
+  // Taxation Subcategory
   await createService({
-    name: "Contract Drafting",
-    description: "Draft legal contracts",
-    photoUrl: '/assets/service-images/contract-drafting.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "5000",
-    offerPrice: "3999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "4718",
-    subCategoryId: contractSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.contractDrafting);
-
-  await createService({
-    name: "Rental Agreement",
-    description: "Draft rental agreement",
-    photoUrl: '/assets/service-images/rental-agreement.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "2000",
-    offerPrice: "1499",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "1768",
-    subCategoryId: contractSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.rentalAgreement);
-
-  await createService({
-    name: "Partnership Deed",
-    description: "Draft partnership deed",
-    photoUrl: '/assets/service-images/partnership-deed.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "3000",
-    offerPrice: "1999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "2358",
-    subCategoryId: contractSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.partnershipDeed);
-
-  // Legal Notices
-  await createService({
-    name: "Legal Notice Drafting",
-    description: "Draft legal notice",
-    photoUrl: '/assets/service-images/legal-notice.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "2500",
-    offerPrice: "1799",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "2122",
-    subCategoryId: legalNoticesSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.legalNoticeDrafting);
-
-  await createService({
-    name: "Legal Notice Reply",
-    description: "Reply to legal notice",
-    photoUrl: '/assets/service-images/legal-notice-reply.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "3000",
-    offerPrice: "2199",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "2594",
-    subCategoryId: legalNoticesSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.legalNoticeReply);
-
-  // Accounting Services
-  await createService({
-    name: "Monthly Accounting",
-    description: "Complete monthly accounting",
-    photoUrl: '/assets/service-images/monthly-accounting.jpg',
+    name: "Business Tax Filing",
+    description: "File your business Income Tax Return online with expert assistance. We manage document verification, financial review, tax computation, filing, and compliance to keep your business tax-ready.",
+    photoUrl: s3ImageUrl,
     serviceType: "RECURRING",
-    frequency: "MONTHLY",
-    duration: "12",
-    durationUnit: "MONTH",
-    individualPrice: "3000",
-    offerPrice: "1999",
+    frequency: "YEARLY",
+    duration: "1",
+    durationUnit: "YEAR",
+    individualPrice: "3999",
+    offerPrice: "2999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "2358",
-    subCategoryId: accountingSub.subCategoryId,
+    finalIndividualPrice: "3538", // 2999 + 18% GST
+    subCategoryId: taxationSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.monthlyAccounting);
+  }, masterFields, servicePoints.businessTaxFiling);
 
   await createService({
-    name: "Bookkeeping Services",
-    description: "Daily bookkeeping",
-    photoUrl: '/assets/service-images/bookkeeping.jpg',
-    serviceType: "RECURRING",
-    frequency: "MONTHLY",
-    duration: "12",
-    durationUnit: "MONTH",
-    individualPrice: "2000",
-    offerPrice: "1499",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "1768",
-    subCategoryId: accountingSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.bookkeeping);
-
-  await createService({
-    name: "Financial Statement Preparation",
-    description: "Prepare financial statements",
-    photoUrl: '/assets/service-images/financial-statements.jpg',
+    name: "TAN Registration",
+    description: "TAN (Tax Deduction and Collection Account Number) is a 10-digit alphanumeric number issued by the Income Tax Department. It must be obtained by all persons responsible for deducting or collecting tax at source.",
+    photoUrl: s3ImageUrl,
     serviceType: "ONE_TIME",
-    individualPrice: "5000",
-    offerPrice: "3999",
+    individualPrice: "1499",
+    offerPrice: "999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "4718",
-    subCategoryId: accountingSub.subCategoryId,
+    finalIndividualPrice: "1179", // 999 + 18% GST
+    subCategoryId: taxationSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.financialStatements);
-
-  // Audit Services
-  await createService({
-    name: "Statutory Audit",
-    description: "Statutory audit of company",
-    photoUrl: '/assets/service-images/statutory-audit.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "15000",
-    offerPrice: "11999",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "14158",
-    subCategoryId: auditSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.statutoryAudit);
+  }, masterFields, servicePoints.tanRegistration);
 
   await createService({
-    name: "Internal Audit",
-    description: "Internal audit services",
-    photoUrl: '/assets/service-images/internal-audit.jpg',
+    name: "TDS Return Filing",
+    description: "TDS Return Filing is mandatory for deductors to report tax deducted at source to the Income Tax Department. We assist with accurate computation, challan matching, correction returns, and timely quarterly filing to avoid penalties.",
+    photoUrl: s3ImageUrl,
     serviceType: "RECURRING",
     frequency: "QUARTERLY",
     duration: "12",
     durationUnit: "MONTH",
-    individualPrice: "5000",
-    offerPrice: "3999",
+    individualPrice: "5999",
+    offerPrice: "4999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "4718",
-    subCategoryId: auditSub.subCategoryId,
+    finalIndividualPrice: "5898", // 4999 + 18% GST (per year)
+    subCategoryId: taxationSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.internalAudit);
-
-  // Payroll Services
-  await createService({
-    name: "Payroll Processing",
-    description: "Monthly payroll processing",
-    photoUrl: '/assets/service-images/payroll.jpg',
-    serviceType: "RECURRING",
-    frequency: "MONTHLY",
-    duration: "12",
-    durationUnit: "MONTH",
-    individualPrice: "2000",
-    offerPrice: "1499",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "1768",
-    subCategoryId: payrollSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.payrollProcessing);
+  }, masterFields, servicePoints.tdsReturnFiling);
 
   await createService({
-    name: "PF & ESI Registration",
-    description: "Register for PF and ESI",
-    photoUrl: '/assets/service-images/pf-esi-registration.jpg',
+    name: "Income Tax Notice",
+    description: "Income Tax Notices may be issued due to mismatches, non-filing, defective returns, or verification issues. Our professionals help you understand the notice, prepare replies, submit documents, and ensure proper compliance.",
+    photoUrl: s3ImageUrl,
     serviceType: "ONE_TIME",
-    individualPrice: "2000",
-    offerPrice: "1499",
+    individualPrice: "3999",
+    offerPrice: "2999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "1768",
-    subCategoryId: payrollSub.subCategoryId,
+    finalIndividualPrice: "3538", // 2999 + 18% GST
+    subCategoryId: taxationSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.pfEsiRegistration);
+  }, masterFields, servicePoints.incomeTaxNotice);
 
+  // ==================== COMPLIANCE CATEGORY ====================
+  
+  // Secretarial Compliance Subcategory
   await createService({
-    name: "PF & ESI Filing",
-    description: "Monthly PF & ESI returns",
-    photoUrl: '/assets/service-images/pf-esi-filing.jpg',
+    name: "Partnership Compliance",
+    description: "Partnership Firm compliance includes Income Tax Return filing (ITR-5), GST returns, TDS filings, accounting maintenance, and other statutory obligations. Our experts ensure accurate filing and timely compliance to avoid penalties and notices.",
+    photoUrl: s3ImageUrl,
     serviceType: "RECURRING",
-    frequency: "MONTHLY",
-    duration: "12",
-    durationUnit: "MONTH",
-    individualPrice: "1000",
-    offerPrice: "699",
-    isGstApplicable: "true",
-    gstPercentage: "18",
-    finalIndividualPrice: "825",
-    subCategoryId: payrollSub.subCategoryId,
-    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
-    documentsRequired: "false"
-  }, masterFields, servicePoints.pfEsiFiling);
-
-  // Recruitment Services
-  await createService({
-    name: "Recruitment Services",
-    description: "Find the right candidates",
-    photoUrl: '/assets/service-images/recruitment.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "10000",
+    frequency: "YEARLY",
+    duration: "1",
+    durationUnit: "YEAR",
+    individualPrice: "9999",
     offerPrice: "7999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "9438",
-    subCategoryId: recruitmentSub.subCategoryId,
+    finalIndividualPrice: "9438", // 7999 + 18% GST
+    subCategoryId: secretarialCompliance.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.recruitmentServices);
+  }, masterFields, servicePoints.partnershipCompliance);
 
-  // Property Registration
   await createService({
-    name: "Property Registration",
-    description: "Register your property",
-    photoUrl: '/assets/service-images/property-registration.jpg',
-    serviceType: "ONE_TIME",
-    individualPrice: "10000",
-    offerPrice: "7999",
+    name: "Proprietorship Compliance",
+    description: "Proprietorship compliance includes Income Tax Return filing under ITR-3 or ITR-4, GST return filing, TDS compliance, and maintenance of books of accounts. We ensure accurate reporting and timely filing to help you avoid penalties and notices.",
+    photoUrl: s3ImageUrl,
+    serviceType: "RECURRING",
+    frequency: "YEARLY",
+    duration: "1",
+    durationUnit: "YEAR",
+    individualPrice: "7999",
+    offerPrice: "5999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "9438",
-    subCategoryId: propertySub.subCategoryId,
+    finalIndividualPrice: "7079", // 5999 + 18% GST
+    subCategoryId: secretarialCompliance.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.propertyRegistration);
+  }, masterFields, servicePoints.proprietorshipCompliance);
 
+  // ==================== MCA CATEGORY ====================
+  
+  // Event Based Compliance Subcategory
   await createService({
-    name: "Property Valuation",
-    description: "Get property valuation",
-    photoUrl: '/assets/service-images/property-valuation.jpg',
+    name: "Remove Director",
+    description: "Director removal is required when a company decides to remove an existing director from its Board. This may occur due to resignation, disqualification, or internal company decisions. The process must comply with the Companies Act, 2013 and requires proper MCA filings.",
+    photoUrl: s3ImageUrl,
     serviceType: "ONE_TIME",
-    individualPrice: "5000",
+    individualPrice: "4999",
     offerPrice: "3999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "4718",
-    subCategoryId: propertySub.subCategoryId,
+    finalIndividualPrice: "4718", // 3999 + 18% GST
+    subCategoryId: eventBasedCompliance.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.propertyValuation);
+  }, masterFields, servicePoints.removeDirector);
 
-  // Pollution Control
   await createService({
-    name: "Pollution Control License",
-    description: "Get pollution control license",
-    photoUrl: '/assets/service-images/pollution-control.jpg',
+    name: "Company Name Change",
+    description: "Easily change your company name with expert assistance. We handle MCA filing, Board Resolution, and MOA/AOA updates to help you obtain a fresh Certificate of Incorporation legally.",
+    photoUrl: s3ImageUrl,
     serviceType: "ONE_TIME",
-    individualPrice: "8000",
-    offerPrice: "6499",
+    individualPrice: "5999",
+    offerPrice: "4999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "7668",
-    subCategoryId: pollutionSub.subCategoryId,
+    finalIndividualPrice: "5898", // 4999 + 18% GST
+    subCategoryId: eventBasedCompliance.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.pollutionControlLicense);
+  }, masterFields, servicePoints.companyNameChange);
 
-  // Fire License
   await createService({
-    name: "Fire License",
-    description: "Get fire license",
-    photoUrl: '/assets/service-images/fire-license.jpg',
+    name: "MOA Amendment",
+    description: "MOA Amendment is required when a company changes its name, business objects, registered office state, or authorised share capital. The alteration must be approved by shareholders and filed with the Ministry of Corporate Affairs (MCA).",
+    photoUrl: s3ImageUrl,
     serviceType: "ONE_TIME",
-    individualPrice: "6000",
-    offerPrice: "4499",
+    individualPrice: "6999",
+    offerPrice: "5999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "5308",
-    subCategoryId: fireSub.subCategoryId,
+    finalIndividualPrice: "7079", // 5999 + 18% GST
+    subCategoryId: eventBasedCompliance.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
-  }, masterFields, servicePoints.fireLicense);
+  }, masterFields, servicePoints.moaAmendment);
+
+  await createService({
+    name: "AOA Amendment",
+    description: "AOA Amendment is required to modify a company's Articles of Association, including changes in shareholding, director rights, or governance structure. The amendment must be approved by shareholders and filed with MCA.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "6999",
+    offerPrice: "5999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "7079", // 5999 + 18% GST
+    subCategoryId: eventBasedCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.aoaAmendment);
+
+  // MCA Secretarial Compliance Subcategory
+  await createService({
+    name: "Share Transfer",
+    description: "Share transfer is the legal process of transferring company ownership. It must comply with the Companies Act, 2013 and be recorded in the register of members to ensure proper corporate compliance.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "3999",
+    offerPrice: "2999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "3538", // 2999 + 18% GST
+    subCategoryId: mcaSecretarialCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.shareTransfer);
+
+  await createService({
+    name: "DIN Reactivation",
+    description: "Reactivate your deactivated DIN quickly by filing DIR-3 KYC with MCA. This ensures directors avoid disqualification and maintain compliance under the Companies Act.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "1999",
+    offerPrice: "1499",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "1769", // 1499 + 18% GST
+    subCategoryId: mcaSecretarialCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.dinReactivation);
 
   console.log("================================");
   
@@ -1752,7 +1096,7 @@ async function main() {
   console.log(`  - Services: ${servicesCount}`);
   console.log(`  - Master Input Fields: ${masterFields.length}`);
   console.log(`  - Service Input Fields: ${servicesCount * defaultFields.length}`);
-  console.log(`  - Service Track Steps: ${trackStepsCount} (${defaultSteps.length} steps per service)`);
+  console.log(`  - Service Track Steps: ${trackStepsCount}`);
   console.log("================================");
 }
 

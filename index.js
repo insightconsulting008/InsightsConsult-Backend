@@ -18,7 +18,7 @@ const services = require("./src/landingPage/services/Services")
 const accountSetting = require("./src/utils/AccountSetting")
 const googleAuth = require("./src/utils/googleSignup")
 const emailRoutes = require("././src/email/routes/emailRoutes");
-
+const notificationRoutes = require("./src/notifications/notificationRoutes");
 
 
 
@@ -43,6 +43,11 @@ app.get("/test", async(req, res) => {
     message: "Insight Consulting Project Server is running 🚀"
   });
 });
+
+
+
+
+app.use("/notifications", notificationRoutes);
 
 app.use("/email", emailRoutes);
 app.use("/",accountSetting)

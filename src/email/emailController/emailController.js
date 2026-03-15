@@ -30,7 +30,7 @@ const saveEmailConfig = async (req, res) => {
       });
   
       if (!employee) {
-        return res.status(404).json({
+        return res.status(400).json({
           success: false,
           message: "Employee not found"
         });
@@ -38,7 +38,7 @@ const saveEmailConfig = async (req, res) => {
   
       // compare password
       if (employee.profilePassword !== profilePassword) {
-        return res.status(401).json({
+        return res.status(400).json({
           success: false,
           message: "Invalid profile password"
         });
@@ -109,6 +109,22 @@ const saveEmailConfig = async (req, res) => {
       });
   
     }
+  };
+
+const toggleEvent = async (req, res) => {
+  
+    const { name, enabled } = req.body;
+  
+    const event = await prisma.emailEvent.update({
+      where: { name },
+      data: { enabled }
+    });
+  
+    res.json({
+      success: true,
+      data: event
+    });
+  
   };
 
 const sendTestEmail = async (req, res) => {
