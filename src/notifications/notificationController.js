@@ -55,6 +55,7 @@ const getEmployeeNotifications = async (req, res) => {
     where: { employeeId },
     orderBy: { createdAt: "desc" }
   });
+  
 
   res.json({
     success: true,
