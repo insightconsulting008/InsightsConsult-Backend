@@ -4,14 +4,15 @@ const prisma = require("../prisma/prisma");
 const createTestNotification = async (req, res) => {
     try {
   
-      const { title, description, userId, employeeId } = req.body;
+      const { title, description, userId, employeeId , redirectUrl } = req.body;
   
       const notification = await prisma.notification.create({
         data: {
           title,
           description,
           userId: userId || null,
-          employeeId: employeeId || null
+          employeeId: employeeId || null,
+          redirectUrl
         }
       });
   
