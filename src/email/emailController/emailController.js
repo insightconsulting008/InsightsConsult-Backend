@@ -1,74 +1,115 @@
 const prisma = require("../../prisma/prisma");
 const { sendEmail } = require("../../email/emailService");
+const defaultEvents = require("./defaultEvents")
 
 const saveEmailConfig = async (req, res) => {
-  try {
+    try {
+  
+      const {
+        employeeId,
+        profilePassword,
+        provider,
+        apiKey,
+        accessKey,
+        secretKey,
+        region,
+        fromEmail
+      } = req.body;
+  
+      // check password input
+      if (!profilePassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Profile password required"
+        });
+      }
+  
+      // find employee
+      const employee = await prisma.employee.findUnique({
+        where: { employeeId }
+      });
+  
+      if (!employee) {
+        return res.status(404).json({
+          success: false,
+          message: "Employee not found"
+        });
+      }
+  
+      // compare password
+      if (employee.profilePassword !== profilePassword) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid profile password"
+        });
+      }
+  
+      // provider validation
+      if (!["resend", "ses"].includes(provider)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid provider"
+        });
+      }
+  
+      const existingConfig = await prisma.emailConfig.findFirst();
+  
+      let config;
+  
+      if (existingConfig) {
+  
+        config = await prisma.emailConfig.update({
+          where: { EmailConfig: existingConfig.EmailConfig },
+          data: {
+            provider,
+            apiKey,
+            accessKey,
+            secretKey,
+            region,
+            fromEmail
+          }
+        });
+  
+      } else {
+  
+        config = await prisma.emailConfig.create({
+          data: {
+            provider,
+            apiKey,
+            accessKey,
+            secretKey,
+            region,
+            fromEmail
+          }
+        });
+  
+      }
 
-    const { provider, apiKey, accessKey, secretKey, region, fromEmail } = req.body;
-
-    // Basic validation
-    if (!provider || !fromEmail) {
-      return res.status(400).json({
+      await prisma.emailEvent.createMany({
+        data: defaultEvents.map((eventName) => ({
+          name: eventName,
+          enabled: true
+        })),
+        skipDuplicates: true
+      });
+  
+      return res.status(200).json({
+        success: true,
+        message: "Email configuration saved successfully",
+        data: config
+      });
+  
+    } catch (error) {
+  
+      console.error("Email Config Error:", error);
+  
+      return res.status(500).json({
         success: false,
-        message: "Provider and fromEmail are required"
+        message: "Internal server error"
       });
+  
     }
-
-    // Validate provider
-    if (!["resend", "ses"].includes(provider)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid provider"
-      });
-    }
-
-    const existingConfig = await prisma.emailConfig.findFirst();
-
-    let config;
-
-    if (existingConfig) {
-      config = await prisma.emailConfig.update({
-        where: { EmailConfig: existingConfig.EmailConfig },
-        data: {
-          provider,
-          apiKey,
-          accessKey,
-          secretKey,
-          region,
-          fromEmail
-        }
-      });
-    } else {
-      config = await prisma.emailConfig.create({
-        data: {
-          provider,
-          apiKey,
-          accessKey,
-          secretKey,
-          region,
-          fromEmail
-        }
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Email configuration saved successfully",
-      data: config
-    });
-
-  } catch (error) {
-
-    console.error("Email Config Error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error"
-    });
-
-  }
-};
-
+  };
 
 const sendTestEmail = async (req, res) => {
   try {
@@ -83,6 +124,7 @@ const sendTestEmail = async (req, res) => {
     }
 
     await sendEmail({
+      eventName: "TEST_EMAIL",
       to: email,
       subject: "Test Email",
       html: "<h2>Email configuration successful</h2>"

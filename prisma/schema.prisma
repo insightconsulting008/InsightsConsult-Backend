@@ -60,6 +60,13 @@ model EmailConfig {
   createdAt  DateTime @default(now())
 }
 
+model EmailEvent {
+  eventId   String   @id @default(cuid())
+  name      String   @unique
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
 model PaymentSetting {
   paymentSettingId   String   @id @default(cuid())
   isRazorpayEnabled  Boolean  @default(true)

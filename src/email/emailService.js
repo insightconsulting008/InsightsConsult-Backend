@@ -2,39 +2,31 @@ const prisma = require("../prisma/prisma.js");
 const { sendResendEmail } = require("./providers/resendProvider.js");
 const { sendSesEmail } = require("./providers/sesProvider.js");
 
-const sendEmail = async ({ to, subject, html }) => {
+const sendEmail = async ({ eventName, to, subject, html }) => {
 
-  const config = await prisma.emailConfig.findFirst();
-
-  if (!config) {
-    throw new Error("Email provider not configured");
-  }
-
-  let response;
-
-  if (config.provider === "resend") {
-    response = await sendResendEmail(config, to, subject, html);
-  }
-
-  if (config.provider === "ses") {
-    response = await sendSesEmail(config, to, subject, html);
-  }
-
-  // Optional email logging
-  /*
-  await prisma.emailLog.create({
-    data: {
-      to,
-      subject,
-      provider: config.provider,
-      status: "sent"
+    const event = await prisma.emailEvent.findUnique({
+      where: { name: eventName }
+    });
+  
+    if (!event || !event.enabled) {
+        console.log(`Email event ${eventName} disabled`);
+        return null;
     }
-  });
-  */
-
-  return response;
-};
-
-module.exports = {
-  sendEmail
-};
+  
+    const config = await prisma.emailConfig.findFirst();
+  
+    if (!config) {
+      throw new Error("Email provider not configured");
+    }
+  
+    if (config.provider === "resend") {
+      return await sendResendEmail(config, to, subject, html);
+    }
+  
+    if (config.provider === "ses") {
+      return await sendSesEmail(config, to, subject, html);
+    }
+  
+  };
+  
+module.exports = { sendEmail };
