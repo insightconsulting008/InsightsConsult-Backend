@@ -46,6 +46,39 @@ router.get("/api/categories/:categoryId/subcategories", async (req, res) => {
   }
 });
 
+
+router.get("/api/service/contact", async (req, res) => {
+  try {
+
+    const { search } = req.query;
+
+    const services = await prisma.service.findMany({
+      where: {
+        name: {
+          contains: search || "",
+          mode: "insensitive"
+        }
+      },
+      select: {
+        name: true
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: services
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch services",
+      error: error.message
+    });
+  }
+});
+
+
 /*
 =====================================
 3️⃣ GET SERVICES BY SUBCATEGORY
