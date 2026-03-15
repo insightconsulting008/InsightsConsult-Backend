@@ -55,7 +55,7 @@ const getEmployeeNotifications = async (req, res) => {
     where: { employeeId },
     orderBy: { createdAt: "desc" }
   });
-  
+
 
   res.json({
     success: true,
@@ -80,9 +80,81 @@ const markAsRead = async (req, res) => {
 
 };
 
+const deleteNotification = async (req, res) => {
+    try {
+  
+      const { notificationId } = req.params;
+  
+      await prisma.notification.delete({
+        where: { notificationId }
+      });
+  
+      res.json({
+        success: true,
+        message: "Notification deleted"
+      });
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Server Error"
+      });
+    }
+  };
+
+const clearUserNotifications = async (req, res) => {
+    try {
+  
+      const { userId } = req.params;
+  
+      await prisma.notification.deleteMany({
+        where: { userId }
+      });
+  
+      res.json({
+        success: true,
+        message: "All notifications cleared"
+      });
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Server Error"
+      });
+    }
+  };
+
+const clearEmployeeNotifications = async (req, res) => {
+    try {
+  
+      const { employeeId } = req.params;
+  
+      await prisma.notification.deleteMany({
+        where: { employeeId }
+      });
+  
+      res.json({
+        success: true,
+        message: "All notifications cleared"
+      });
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Server Error"
+      });
+    }
+  };
+
 module.exports = {
   getUserNotifications,
   getEmployeeNotifications,
   markAsRead,
-  createTestNotification
+  createTestNotification,
+  deleteNotification,
+  clearUserNotifications,
+  clearEmployeeNotifications
 };
