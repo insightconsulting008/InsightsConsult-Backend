@@ -20,7 +20,11 @@ const googleAuth = require("./src/utils/googleSignup")
 const emailRoutes = require("././src/email/routes/emailRoutes");
 const notificationRoutes = require("./src/notifications/notificationRoutes");
 
-
+const {
+  saveEmailConfig,
+  sendTestEmail,
+  sendCustomEmail
+} = require("./src/email/emailController/emailController");
 
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(express.json());
@@ -573,7 +577,7 @@ app.get("/service", async (req, res) => {
       if (req.headers.authorization !== "mySuperSecret123") {
         return res.status(401).json({ success: false });
       }
-    
+      sendTestEmail()
       console.log("🚀 EventBridge triggered successfully!");
       console.log("🕒 Time:", new Date().toISOString());
   

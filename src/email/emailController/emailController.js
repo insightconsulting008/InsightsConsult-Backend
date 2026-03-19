@@ -141,7 +141,7 @@ const sendTestEmail = async (req, res) => {
 
     await sendEmail({
       eventName: "TEST_EMAIL",
-      to: email,
+      to: "jaromjery112@gmail.com",
       subject: "Test Email",
       html: "<h2>Email configuration successful</h2>"
     });
