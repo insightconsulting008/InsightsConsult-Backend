@@ -522,7 +522,6 @@ model ServicePeriod {
 
 model PeriodStep {
   periodStepId String @id @default(cuid())
-
   servicePeriodId String
   servicePeriod   ServicePeriod @relation(fields: [servicePeriodId], references: [servicePeriodId])
 

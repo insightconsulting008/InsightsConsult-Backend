@@ -1606,7 +1606,7 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
         include: {
           service: true,
           
-          bundle: true,
+
   // 🔥 IMPORTANT: STEP TRACKING
   applicationTrackStep: {
     orderBy: {
@@ -1616,6 +1616,9 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
           
   
           servicePeriod: {
+            where: {
+              isLocked: false, // ✅ ADD THIS
+            },
             orderBy: {
               createdAt: "asc",
             },  
@@ -1823,8 +1826,6 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
       });
     }
   });
-  
-   
 
 
 
