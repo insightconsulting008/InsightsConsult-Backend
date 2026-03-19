@@ -1616,9 +1616,6 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
           
   
           servicePeriod: {
-            where: {
-              isLocked: false, // ✅ ADD THIS
-            },
             orderBy: {
               createdAt: "asc",
             },  
