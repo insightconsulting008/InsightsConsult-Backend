@@ -20,11 +20,7 @@ const googleAuth = require("./src/utils/googleSignup")
 const emailRoutes = require("././src/email/routes/emailRoutes");
 const notificationRoutes = require("./src/notifications/notificationRoutes");
 
-const {
-  saveEmailConfig,
-  sendTestEmail,
-  sendCustomEmail
-} = require("./src/email/emailController/emailController");
+
 
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(express.json());
@@ -571,32 +567,10 @@ app.get("/service", async (req, res) => {
     }
   });
   
-  app.post("/cron/test", (req, res) => {
-    try {
-      // simple security check
-      if (req.headers.authorization !== "mySuperSecret123") {
-        return res.status(401).json({ success: false });
-      }
-      sendTestEmail()
-      console.log("🚀 EventBridge triggered successfully!");
-      console.log("🕒 Time:", new Date().toISOString());
-  
-      res.json({
-        success: true,
-        message: "Cron test executed",
-        time: new Date(),
-      });
-    } catch (err) {
-      console.error("❌ Error:", err);
-      res.status(500).json({ success: false });
-    }
-  });
-
 
 // =============================
 // CREATE SERVICE
 // =============================
-
 
 app.post("/service",serviceImgUpload.single('photoUrl') ,async (req, res) => {
     try {
