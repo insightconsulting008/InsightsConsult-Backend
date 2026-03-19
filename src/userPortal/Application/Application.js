@@ -886,7 +886,8 @@ router.get("/my-service/:myServiceId/details", async (req, res) => {
 //     res.json({ success: true, services });
 //   });
 
-  router.get("/applications", async (req, res) => {
+
+router.get("/applications", async (req, res) => {
     try {
       const applications = await prisma.application.findMany({
         orderBy: {
@@ -938,7 +939,7 @@ router.get("/my-service/:myServiceId/details", async (req, res) => {
         applicationId: app.applicationId,
         userName: app.user?.name || null,
         phoneNumber: app.user?.phoneNumber || null,
-        serviceName: app.service?.name || app.bundle?.name,
+        serviceName: app.service?.name,
         servicePhoto: app.service?.photoUrl || null,
         serviceType: app.service?.serviceType,
         status: app.status,
@@ -1022,6 +1023,8 @@ router.get("/my-service/:myServiceId/details", async (req, res) => {
       try {
         const { myServiceId } = req.params;
         const { serviceId, ...restBody } = req.body;
+
+        
   
         /* ---------------------------------------------------
          1️⃣ Validate serviceId
@@ -1469,72 +1472,129 @@ router.get("/my-service/:myServiceId/details", async (req, res) => {
 
 //Staff
   
-  router.get("/staff/:employeeId/applications", async (req, res) => {
-    try {
-      const { employeeId } = req.params;
-  
-      const applications = await prisma.application.findMany({
-        where: {
-          employeeId: employeeId,   // ✅ THIS IS THE KEY FIX
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        select: {
-          applicationId: true,
-          status: true,
-          createdAt: true,
-  
-          service: {
-            select: {
-              name: true,
-              serviceType: true,
+router.get("/staff/:employeeId/applications", async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+
+    // ✅ Query params
+    const {
+      page = 1,
+      limit = 10,
+      search = "",
+      status,
+    } = req.query;
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    // ✅ WHERE condition (dynamic)
+    const whereCondition = {
+      employeeId: employeeId,
+
+      ...(status && { status }),
+
+      ...(search && {
+        OR: [
+          {
+            service: {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
             },
           },
-  
-          bundle: {
-            select: {
-              name: true,
+          {
+            user: {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
             },
           },
-  
-
-  
-          servicePeriod: {
-            select: {
-                servicePeriodId: true,
+          {
+            user: {
+              email: {
+                contains: search,
+                mode: "insensitive",
+              },
             },
+          },
+        ],
+      }),
+    };
+
+    // ✅ Get total count (for pagination)
+    const totalCount = await prisma.application.count({
+      where: whereCondition,
+    });
+
+    // ✅ Fetch paginated data
+    const applications = await prisma.application.findMany({
+      where: whereCondition,
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip,
+      take: Number(limit),
+
+      select: {
+        applicationId: true,
+        status: true,
+        createdAt: true,
+
+        service: {
+          select: {
+            name: true,
+            serviceType: true,
+            photoUrl: true,
           },
         },
-      });
-  
-      const formatted = applications.map((app) => ({
-        applicationId: app.applicationId,
-        serviceName: app.service?.name || app.bundle?.name || "N/A",
-        serviceType: app.service?.serviceType || "BUNDLE",
-        status: app.status,
-        createdAt: app.createdAt,
-  
-      
-  
-        totalPeriods: app.servicePeriod.length || null,
-      }));
-  
-      res.json({
-        success: true,
-        applications: formatted,
-      });
-    } catch (error) {
-      console.error("Get staff applications error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Server error",
-      });
-    }
-  });
+
+        user: {
+          select: {
+            userId: true,
+            name: true,
+            email: true,
+            phoneNumber: true,
+          },
+        },
+      },
+    });
+
+    // ✅ Format response
+    const formatted = applications.map((app) => ({
+      applicationId: app.applicationId,
+      serviceName: app.service?.name,
+      serviceType: app.service?.serviceType,
+      servicePhotoUrl: app.service?.photoUrl,
+      status: app.status,
+      createdAt: app.createdAt,
+      userId: app.user?.userId,
+      name: app.user?.name,
+      email: app.user?.email,
+      phoneNumber: app.user?.phoneNumber,
+    }));
+
+    res.json({
+      success: true,
+      pagination: {
+        total: totalCount,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(totalCount / limit),
+      },
+      applications: formatted,
+    });
+  } catch (error) {
+    console.error("Get staff applications error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
 
 
-  router.get("/staff/:employeeId/application/:applicationId", async (req, res) => {
+router.get("/staff/:employeeId/application/:applicationId", async (req, res) => {
     try {
       const { employeeId, applicationId } = req.params;
   
