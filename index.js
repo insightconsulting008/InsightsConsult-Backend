@@ -567,10 +567,33 @@ app.get("/service", async (req, res) => {
     }
   });
   
+  app.post("/cron/test", (req, res) => {
+    try {
+      // simple security check
+      if (req.headers.authorization !== "mySuperSecret123") {
+        return res.status(401).json({ success: false });
+      }
+    
+      console.log("🚀 EventBridge triggered successfully!");
+      console.log("🕒 Time:", new Date().toISOString());
+  
+      res.json({
+        success: true,
+        message: "Cron test executed",
+        time: new Date(),
+      });
+    } catch (err) {
+      console.error("❌ Error:", err);
+      res.status(500).json({ success: false });
+    }
+  });
+
 
 // =============================
 // CREATE SERVICE
 // =============================
+
+
 app.post("/service",serviceImgUpload.single('photoUrl') ,async (req, res) => {
     try {
       const {  name, description, serviceType, frequency, duration, durationUnit,
