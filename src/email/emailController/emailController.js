@@ -130,14 +130,14 @@ const toggleEvent = async (req, res) => {
 const sendTestEmail = async (req, res) => {
   try {
 
-    const { email } = req.body;
+    // const { email } = req.body;
 
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: "Email is required"
-      });
-    }
+    // if (!email) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Email is required"
+    //   });
+    // }
 
     await sendEmail({
       eventName: "TEST_EMAIL",
