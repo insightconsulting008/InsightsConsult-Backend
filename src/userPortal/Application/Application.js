@@ -2240,6 +2240,7 @@ router.get("/application/:applicationId/documents", async (req, res) => {
             periodStep: {
               servicePeriod: {
                 applicationId: applicationId,
+                isLocked: false, // 🔥 FILTER HERE
               },
             },
           },
