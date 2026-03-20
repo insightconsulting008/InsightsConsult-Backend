@@ -168,6 +168,81 @@ router.post("/user/login", async (req, res) => {
   }
 });
 
+router.post("/user/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    // Always return same response (security)
+    if (!user) {
+      return res.json({ message: "User Not Found" });
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiry = new Date(Date.now() + 15 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { email },
+      data: {
+        resetToken: token,
+        resetTokenExpiry: expiry,
+      },
+    });
+
+    const resetLink = `http://localhost:5173/user/reset-password?token=${token}`;
+
+    await sendEmail({
+      eventName: "FORGOT_PASSWORD",
+      to: email,   // ✅ THIS IS WHERE EMAIL GOES
+      subject: "Reset Password",
+      html: `<a href="${resetLink}">Click to reset password</a>`
+    });
+
+    console.log("USER RESET LINK:", resetLink);
+
+    res.json({ message: "If email exists, reset link sent" });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+router.post("/user/reset-password", async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    const user = await prisma.user.findFirst({
+      where: {
+        resetToken: token,
+        resetTokenExpiry: { gte: new Date() },
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { email: user.email },
+      data: {
+        password: hashed, // ⚠️ hash in production
+        resetToken: null,
+        resetTokenExpiry: null,
+      },
+    });
+
+    res.json({ message: "Password reset successful" });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 /* =====================================================
    STAFF LOGIN
 ===================================================== */
@@ -251,7 +326,7 @@ router.post("/staff/forgot-password", async (req, res) => {
     console.log(employee)
 
     if (!employee) {
-      return res.json({ message: "If email exists, reset link sent............" });
+      return res.json({ message: "Staff Not Found"});
     }
 
     const token = crypto.randomBytes(32).toString("hex");
@@ -276,7 +351,7 @@ router.post("/staff/forgot-password", async (req, res) => {
 
     console.log("EMPLOYEE RESET LINK:", resetLink);
 
-    res.json({ message: "If email exists, reset link sent da" });
+    res.json({ message: "If email exists, reset link sent" });
 
   } catch (err) {
     console.log(err);
