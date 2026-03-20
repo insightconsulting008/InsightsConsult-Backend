@@ -80,12 +80,13 @@ router.get("/payments/:employeeId", async (req, res) => {
       prisma.payment.findMany({
         where: whereCondition,
         include: {
-          createdBy: { select: { name: true } },
+          createdBy: { select: { name: true ,photoUrl: true } },
           user: {
             select: {
               name: true,
               email: true,
               phoneNumber: true,
+              photoUrl:true,
             },
           },
         },
