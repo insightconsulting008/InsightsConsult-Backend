@@ -150,12 +150,15 @@ model User {
 
   photoUrl    String?
 
+
+  // 🔐 Password Reset
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+
   provider    Provider @default(EMAIL)
   providerId  String?  // Google sub id
 
   role        Role      @default(USER)
-  otp         String? // for forgot password / login otp
-  otpExpiry   DateTime? // expiry time
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -229,7 +232,9 @@ model Employee {
   password     String
   mobileNumber String
   role         Role
-  profilePassword String?
+  profilePassword String?                       
+  resetToken        String?    // 🔐 Password Reset
+  resetTokenExpiry  DateTime?
   designation  String
   status       EmployeeStatus @default(ACTIVE)
   photoUrl     String?

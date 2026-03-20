@@ -111,21 +111,21 @@ const saveEmailConfig = async (req, res) => {
     }
   };
 
-const toggleEvent = async (req, res) => {
+// const toggleEvent = async (req, res) => {
   
-    const { name, enabled } = req.body;
+//     const { name, enabled } = req.body;
   
-    const event = await prisma.emailEvent.update({
-      where: { name },
-      data: { enabled }
-    });
+//     const event = await prisma.emailEvent.update({
+//       where: { name },
+//       data: { enabled }
+//     });
   
-    res.json({
-      success: true,
-      data: event
-    });
+//     res.json({
+//       success: true,
+//       data: event
+//     });
   
-  };
+//   };
 
 const sendTestEmail = async (req, res) => {
   try {
@@ -164,31 +164,31 @@ const sendTestEmail = async (req, res) => {
 };
 
 
-const sendCustomEmail = async (req, res) => {
-  try {
+// const sendCustomEmail = async (req, res) => {
+//   try {
 
-    const { to, subject, html } = req.body;
+//     const { to, subject, html } = req.body;
 
-    await sendEmail({ to, subject, html });
+//     await sendEmail({ to, subject, html });
 
-    res.json({
-      success: true,
-      message: "Email sent"
-    });
+//     res.json({
+//       success: true,
+//       message: "Email sent"
+//     });
 
-  } catch (error) {
+//   } catch (error) {
 
-    res.status(500).json({
-      success: false,
-      message: "Email sending failed"
-    });
+//     res.status(500).json({
+//       success: false,
+//       message: "Email sending failed"
+//     });
 
-  }
-};
+//   }
+// };
 
 
 module.exports = {
   saveEmailConfig,
   sendTestEmail,
-  sendCustomEmail
+//   sendCustomEmail
 };

@@ -11,9 +11,9 @@ const config = {
   REFRESH_SECRET: process.env.REFRESH_SECRET,
   NODE_ENV:process.env.NODE_ENV,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-  CLIENT_SECRET: process.env.CLIENT_SECRET
-  
-
+  CLIENT_SECRET: process.env.CLIENT_SECRET,
+  AWS_ACCOUNT_ID: process.env.AWS_ACCOUNT_ID,
+  CRON_SECRET: process.env.CRON_SECRET
 };
 
 

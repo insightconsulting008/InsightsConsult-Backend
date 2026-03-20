@@ -79,7 +79,22 @@ const generateEmployeeCode = async () => {
 };
 
 /* -------------------- ROUTES -------------------- */
+app.get("/cron-runner", (req, res) => {
+  const authHeader = req.headers["authorization"];
 
+  console.log("🔥 HIT:", new Date().toISOString());
+  console.log("Auth Header:", authHeader);
+
+  // ✅ Direct check (no env)
+  if (authHeader !== "Bearer mysecret123") {
+    console.log("❌ Unauthorized request");
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  console.log("✅ Authorized EventBridge call");
+
+  res.status(200).json({ success: true });
+});
 
 /* =====================================================
    DEPARTMENT APIs
@@ -1054,8 +1069,7 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
     }
   });
   
-  
-    
+ 
   
   // ================================
   // UPDATE APPLICATION TRACK STEP
@@ -1182,6 +1196,17 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
 
 
 /* -------------------- SERVER -------------------- */
-app.listen(6001, () => {
+app.listen(6001, async  () => {
   console.log(`✅ Insight Consulting Project Server running on port 6001`);
+  // try {
+  //   const result = await createScheduler({
+  //     url: "https://insightsconsult-backend.onrender.com/cron-runner",
+  //     method: "GET",
+  //     interval: 1,
+  //   });
+
+  //   console.log("✅ Scheduler Result:", result);
+  // } catch (err) {
+  //   console.error("❌ Scheduler Error:", err);
+  // }
 });

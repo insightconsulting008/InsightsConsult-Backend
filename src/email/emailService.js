@@ -14,7 +14,7 @@ const sendEmail = async ({ eventName, to, subject, html }) => {
     }
   
     const config = await prisma.emailConfig.findFirst();
-  
+  console.log(config)
     if (!config) {
       throw new Error("Email provider not configured");
     }

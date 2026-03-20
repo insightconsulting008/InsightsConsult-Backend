@@ -2,9 +2,11 @@ const express = require("express");
 const router = express.Router();
 const prisma = require("../../prisma/prisma");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const config = require("../../utils/config")
 const{ authenticate,authorizeRoles } = require("../../authMiddleware/authMiddleware")
+const {sendEmail} = require("../../email/emailService")
 
 
 /* =====================================================
@@ -240,6 +242,80 @@ router.post("/staff/login", async (req, res) => {
   }
 });
 
+router.post("/staff/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    console.log(email)
+
+    const employee = await prisma.employee.findUnique({ where: { email } });
+    console.log(employee)
+
+    if (!employee) {
+      return res.json({ message: "If email exists, reset link sent............" });
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiry = new Date(Date.now() + 15 * 60 * 1000);
+
+    await prisma.employee.update({
+      where: { email },
+      data: {
+        resetToken: token,
+        resetTokenExpiry: expiry,
+      },
+    });
+
+    const resetLink = `http://localhost:5173/staff/reset-password?token=${token}`;
+
+    await sendEmail({
+      eventName: "FORGOT_PASSWORD",
+      to: email,   // ✅ THIS IS WHERE EMAIL GOES
+      subject: "Reset Password",
+      html: `<a href="${resetLink}">Click to reset password</a>`
+    });
+
+    console.log("EMPLOYEE RESET LINK:", resetLink);
+
+    res.json({ message: "If email exists, reset link sent da" });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/staff/reset-password", async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    const employee = await prisma.employee.findFirst({
+      where: {
+        resetToken: token,
+        resetTokenExpiry: { gte: new Date() },
+      },
+    });
+
+    if (!employee) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    await prisma.employee.update({
+      where: { email: employee.email },
+      data: {
+        password: newPassword, // ⚠️ hash in production
+        resetToken: null,
+        resetTokenExpiry: null,
+      },
+    });
+
+    res.json({ message: "Password reset successful" });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 /* =====================================================
    COMMON REFRESH API
 ===================================================== */
@@ -368,59 +444,6 @@ router.post("/auth/logout-all", async (req, res) => {
 
 
 
-// router.get(
-//   "/user/dashboard",
-//   authenticate,
-//   authorizeRoles(["USER"]),
-//   async (req, res) => {
-//     try {
-//       const user = await prisma.user.findUnique({
-//         where: { userId: req.user.id },
-//         select: {
-//           userId: true,
-//           name: true,
-//           email: true,
-//           phoneNumber: true,
-//           role: true,
-//         },
-//       });
-
-//       res.json({
-//         success: true,
-//         data: user,
-//       });
-//     } catch (err) {
-//       res.status(500).json({ message: "Error fetching user dashboard" });
-//     }
-//   }
-// );
-
-// router.get(
-//   "/employee/dashboard",
-//   authenticate,
-//   authorizeRoles(["STAFF","ADMIN"]),
-//   async (req, res) => {
-//     try {
-//       const staff = await prisma.employee.findUnique({
-//         where: { employeeId: req.user.id },
-//         select: {
-//           employeeId: true,
-//           name: true,
-//           email: true,
-//           role: true,
-//           mobileNumber:true
-//         },
-//       });
-
-//       res.json({
-//         success: true,
-//         data: staff,
-//       });
-//     } catch (err) {
-//       res.status(500).json({ message: "Error fetching staff dashboard" });
-//     }
-//   }
-// );
 
 
 
