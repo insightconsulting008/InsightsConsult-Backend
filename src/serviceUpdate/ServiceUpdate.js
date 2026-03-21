@@ -191,7 +191,7 @@ router.put("/service/:serviceId/track-steps", async (req, res) => {
   }
 });
 
-app.delete("/service/:serviceId", async (req, res) => {
+router.delete("/service/:serviceId", async (req, res) => {
   try {
     const { serviceId } = req.params;
     const { confirmName } = req.body;
