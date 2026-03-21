@@ -235,6 +235,8 @@ model Employee {
   profilePassword String?                       
   resetToken        String?    // 🔐 Password Reset
   resetTokenExpiry  DateTime?
+  isFirstLogin Boolean @default(true)
+  inviteStatus      String   @default("PENDING") // PENDING / COMPLETED
   designation  String
   status       EmployeeStatus @default(ACTIVE)
   photoUrl     String?
@@ -342,7 +344,6 @@ model MyService {
   application Application?
   service Service? @relation(fields: [serviceId], references: [serviceId])
   serviceBundle ServiceBundle? @relation(fields: [bundleId], references: [bundleId])
-
 }
 
 

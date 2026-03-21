@@ -283,6 +283,7 @@ router.post("/staff/login", async (req, res) => {
       });
     }
 
+
     const accessToken = generateAccessToken({
       id: emp.employeeId,
       role: emp.role,
@@ -363,6 +364,14 @@ router.post("/staff/reset-password", async (req, res) => {
   try {
     const { token, newPassword } = req.body;
 
+     // ✅ validation
+     if (!token || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Token and new password are required",
+      });
+    }
+
     const employee = await prisma.employee.findFirst({
       where: {
         resetToken: token,
@@ -371,7 +380,7 @@ router.post("/staff/reset-password", async (req, res) => {
     });
 
     if (!employee) {
-      return res.status(400).json({ message: "Invalid or expired token" });
+      return res.status(400).json({ message: "Invalid or Expired Link" });
     }
 
     await prisma.employee.update({
@@ -380,6 +389,8 @@ router.post("/staff/reset-password", async (req, res) => {
         password: newPassword, // ⚠️ hash in production
         resetToken: null,
         resetTokenExpiry: null,
+        isFirstLogin: false,  
+        inviteStatus: "COMPLETED"
       },
     });
 

@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const cookieParser = require("cookie-parser");
+const crypto = require("crypto");
 const prisma = require('./src/prisma/prisma')
 const categoryRouter = require("./src/category/Category");
 const subcategoryRouter = require("./src/subCategory/SubCategory");
@@ -309,6 +310,17 @@ app.delete("/department/:departmentId", async (req, res) => {
           message: "Email already exists"
         });
       }
+
+      let finalPassword = password;
+
+      // 🔥 ALWAYS GENERATE TOKEN (LINK BASED SYSTEM)
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenExpiry = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hrs
+
+      if (!password) {
+        // generate random password
+        finalPassword = crypto.randomBytes(4).toString("hex"); // ex: a1b2c3d4
+      }
   
       const employee = await prisma.employee.create({
         data: {
@@ -316,18 +328,42 @@ app.delete("/department/:departmentId", async (req, res) => {
           email,
           mobileNumber,
           employeeCode,
-          password,
+          password:finalPassword,
           role,
           designation,
           status: "ACTIVE",
           photoUrl,
-          departmentId
+          departmentId,
+          resetToken,
+          resetTokenExpiry,
+          isFirstLogin: true,
+          inviteStatus: "PENDING",
         }
       });
+
+    const resetLink = `http://localhost:5173/staff/reset-password?token=${resetToken}`;
+       // ✅ SEND EMAIL (FOR BOTH CASES)
+    await sendEmail({
+      eventName: "EMPLOYEE_LOGIN_DETAILS",
+      to: email,
+      subject: "Your Login Credentials",
+      html: `
+        <h3>Welcome ${name}</h3>
+        <p>Your account has been created successfully.</p>
+
+        <p><b>Login Email:</b> ${email}</p>
+        <p><b>Password:</b> <a href="${resetLink}">Set Password</a></p>
+
+        <p style="color:red;">
+          ⚠️ For security reasons, you must change your password. This link expires in 24 hours.
+        </p>
+      `,
+    });
+
   
       res.status(201).json({
         success: true,
-        message: "Employee created successfully",
+        message: "Employee Created & Invite Link Sent",
         data: employee
       });
   
