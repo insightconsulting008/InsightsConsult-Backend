@@ -326,7 +326,6 @@ model Service {
 
   subCategoryId   String
   subCategory     SubCategory @relation(fields: [subCategoryId], references: [subCategoryId])
-
 }
 
 model MyService {
