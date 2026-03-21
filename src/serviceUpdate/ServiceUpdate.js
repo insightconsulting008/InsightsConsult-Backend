@@ -191,7 +191,65 @@ router.put("/service/:serviceId/track-steps", async (req, res) => {
   }
 });
 
+app.delete("/service/:serviceId", async (req, res) => {
+  try {
+    const { serviceId } = req.params;
+    const { confirmName } = req.body;
 
+    // ✅ check if service exists
+    const existingService = await prisma.service.findUnique({
+      where: { serviceId },
+    });
+
+    if (!existingService) {
+      return res.status(404).json({
+        success: false,
+        message: "Service not found",
+      });
+    }
+
+      // 🔴 MAIN SECURITY CHECK
+      if (existingService.name !== confirmName) {
+        return res.status(400).json({
+          success: false,
+          message: "Service name does not match. Delete cancelled.",
+        });
+      }
+
+    // ✅ OPTIONAL: delete S3 image
+    if (existingService.photoUrl) {
+      await deleteS3Object(existingService.photoUrl);
+    }
+
+    // ✅ TRANSACTION (VERY IMPORTANT)
+    await prisma.$transaction([
+      // 1️⃣ delete input fields
+      prisma.serviceInputField.deleteMany({
+        where: { serviceId },
+      }),
+
+      // 2️⃣ delete track steps
+      prisma.serviceTrackStep.deleteMany({
+        where: { serviceId },
+      }),
+
+      // 3️⃣ delete service itself
+      prisma.service.delete({
+        where: { serviceId },
+      }),
+    ]);
+
+    res.json({
+      success: true,
+      message: "Service deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
 
 
 // router.patch("/service/:serviceId",serviceImgUpload.single("photoUrl"),async (req, res) => {
