@@ -376,7 +376,7 @@ model ServiceInputField {
 
   // relation
   serviceId String
-  service   Service @relation(fields: [serviceId], references: [serviceId])
+  service   Service @relation(fields: [serviceId], references: [serviceId], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 }
@@ -393,7 +393,7 @@ model ServiceTrackStep {
 
   // relation
   serviceId String
-  service   Service @relation(fields: [serviceId], references: [serviceId])
+  service   Service @relation(fields: [serviceId], references: [serviceId],onDelete: Cascade)
 
   createdAt DateTime @default(now())
 }
