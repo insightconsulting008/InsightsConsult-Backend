@@ -20,6 +20,7 @@ const accountSetting = require("./src/utils/AccountSetting")
 const googleAuth = require("./src/utils/googleSignup")
 const emailRoutes = require("././src/email/routes/emailRoutes");
 const notificationRoutes = require("./src/notifications/notificationRoutes");
+const {sendEmail} = require('./src/email/emailService')
 
 
 
