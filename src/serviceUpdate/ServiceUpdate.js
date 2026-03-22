@@ -289,12 +289,7 @@ router.put("/bundle/:bundleId",bundleServiceImgUpload.single("photoUrl"),
         await deleteS3Object(existingBundle.photoUrl);
       }
 
-      // 🔹 Convert serviceIds (string → array if needed)
-      // let parsedServiceIds = serviceIds;
-      // if (typeof serviceIds === "string") {
-      //   parsedServiceIds = JSON.parse(serviceIds);
-      // }
-
+      
       // 🔹 Update Bundle
       const updatedBundle = await prisma.serviceBundle.update({
         where: { bundleId },
