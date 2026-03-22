@@ -898,6 +898,9 @@ router.get("/applications", async (req, res) => {
           applicationId: true,
           status: true,
           createdAt: true,
+          serviceName: true,
+          servicePhoto: true,
+          serviceType: true,
 
           user: {
             select: {
@@ -906,14 +909,6 @@ router.get("/applications", async (req, res) => {
             },
           },
                           
-          // service: {
-          //   select: {
-          //     name: true,
-          //     serviceType: true,
-          //     photoUrl:true
-          //   },
-          // },
-  
           employee: {
             select: {
               name: true,
@@ -921,11 +916,11 @@ router.get("/applications", async (req, res) => {
             },
           },
   
-          servicePeriod: {
-            select: {
-                periodStep: true, // only count purpose
-            },
-          },
+          // servicePeriod: {
+          //   select: {
+          //       periodStep: true, // only count purpose
+          //   },
+          // },
         },
       });
      
@@ -941,7 +936,7 @@ router.get("/applications", async (req, res) => {
         createdAt: app.createdAt,
         employeePhoto :app.employee?.photoUrl || null,
         employeeName: app.employee?.name || null,
-        totalPeriods: app.servicePeriod.length,
+   
       }));
   
       res.json({
@@ -1104,6 +1099,7 @@ router.get("/applications", async (req, res) => {
           });
         }
 
+        console.log("jaromjery-service",service)
         /* ---------------------------------------------------
          8️⃣ Create Application (linked to MyService)
         --------------------------------------------------- */
@@ -1131,6 +1127,8 @@ router.get("/applications", async (req, res) => {
           finalPrice: service.finalIndividualPrice,
           },
         });
+
+        console.log("jaromjery",application)
 
         await logHistory({
           applicationId: application.applicationId,
@@ -1505,11 +1503,9 @@ router.get("/staff/:employeeId/applications", async (req, res) => {
       ...(search && {
         OR: [
           {
-            service: {
-              name: {
-                contains: search,
-                mode: "insensitive",
-              },
+            serviceName: {
+              contains: search,
+              mode: "insensitive",
             },
           },
           {
@@ -1550,6 +1546,10 @@ router.get("/staff/:employeeId/applications", async (req, res) => {
         applicationId: true,
         status: true,
         createdAt: true,
+
+        serviceName: true,
+        serviceType: true,
+        servicePhoto: true,
 
         // service: {
         //   select: {
