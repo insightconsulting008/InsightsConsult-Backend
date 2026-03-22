@@ -582,16 +582,23 @@ async function main() {
   /* CATEGORIES */
 
   console.log("Creating categories...");
-  
-  const registration = await prisma.category.create({
-    data: { categoryName: "Registration" }
+
+  const startup = await prisma.category.create({
+    data: { categoryName: "Startup" }
   });
-  console.log(`  ✅ Created category: Registration`);
+  console.log(`  ✅ Created category: Startup`);
+  
+ 
 
   const gstServices = await prisma.category.create({
     data: { categoryName: "GST Services" }
   });
   console.log(`  ✅ Created category: GST Services`);
+
+  const registration = await prisma.category.create({
+    data: { categoryName: "Registration" }
+  });
+  console.log(`  ✅ Created category: Registration`);
 
   const incomeTax = await prisma.category.create({
     data: { categoryName: "Income Tax" }
@@ -608,10 +615,7 @@ async function main() {
   });
   console.log(`  ✅ Created category: MCA`);
   
-  const startup = await prisma.category.create({
-    data: { categoryName: "Startup" }
-  });
-  console.log(`  ✅ Created category: Startup`);
+
   
   console.log("================================");
 

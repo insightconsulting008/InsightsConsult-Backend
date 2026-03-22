@@ -290,10 +290,10 @@ router.put("/bundle/:bundleId",bundleServiceImgUpload.single("photoUrl"),
       }
 
       // 🔹 Convert serviceIds (string → array if needed)
-      let parsedServiceIds = serviceIds;
-      if (typeof serviceIds === "string") {
-        parsedServiceIds = JSON.parse(serviceIds);
-      }
+      // let parsedServiceIds = serviceIds;
+      // if (typeof serviceIds === "string") {
+      //   parsedServiceIds = JSON.parse(serviceIds);
+      // }
 
       // 🔹 Update Bundle
       const updatedBundle = await prisma.serviceBundle.update({
@@ -310,12 +310,7 @@ router.put("/bundle/:bundleId",bundleServiceImgUpload.single("photoUrl"),
 
           // 🔹 Reset and reconnect services
           services: {
-            deleteMany: {}, // remove old
-            create: parsedServiceIds.map((id) => ({
-              service: {
-                connect: { serviceId: id },
-              },
-            })),
+            connect: serviceIds.map((id) => ({ serviceId: id })),
           },
         },
         include: { services: true },
