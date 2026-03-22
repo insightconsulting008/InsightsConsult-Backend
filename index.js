@@ -387,7 +387,19 @@ app.delete("/department/:departmentId", async (req, res) => {
       const employees = await prisma.employee.findMany({
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" } // optional
+        orderBy: { createdAt: "desc" }, // optional
+        select: {
+          employeeId: true,
+          name: true,
+          email: true,
+          mobileNumber: true,
+          role: true,
+          designation: true,
+          status: true,
+          photoUrl: true,
+          departmentId: true,
+          createdAt: true,
+        }
       });
   
       // Counts
@@ -409,27 +421,27 @@ app.delete("/department/:departmentId", async (req, res) => {
   
 
   /** ✅ Get Employee By EmployeeId  **/
-  app.get("/employee/:employeeId", async (req, res) => {
-    try {
-      const { employeeId } = req.params;
+  // app.get("/employee/:employeeId", async (req, res) => {
+  //   try {
+  //     const { employeeId } = req.params;
   
-      const employee = await prisma.employee.findUnique({
-        where: { employeeId }
-      });
+  //     const employee = await prisma.employee.findUnique({
+  //       where: { employeeId }
+  //     });
   
-      if (!employee) {
-        return res.status(404).json({
-          success: false,
-          message: "Employee not found"
-        });
-      }
+  //     if (!employee) {
+  //       return res.status(404).json({
+  //         success: false,
+  //         message: "Employee not found"
+  //       });
+  //     }
   
-      res.json({ success: true, data: employee });
+  //     res.json({ success: true, data: employee });
   
-    } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
+  //   } catch (error) {
+  //     res.status(500).json({ success: false, error: error.message });
+  //   }
+  // });
 
   /** ✅ Update Employee By EmployeeId  **/
   app.put("/employee/:employeeId",profileUpload.single('photoUrl'), async (req, res) => {
