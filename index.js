@@ -393,6 +393,7 @@ app.delete("/department/:departmentId", async (req, res) => {
           name: true,
           email: true,
           mobileNumber: true,
+          inviteStatus: true,
           role: true,
           designation: true,
           status: true,
