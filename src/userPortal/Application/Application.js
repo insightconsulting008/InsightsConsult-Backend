@@ -906,19 +906,13 @@ router.get("/applications", async (req, res) => {
             },
           },
                           
-          service: {
-            select: {
-              name: true,
-              serviceType: true,
-              photoUrl:true
-            },
-          },
-  
-          bundle: {
-            select: {
-              name: true,
-            },
-          },
+          // service: {
+          //   select: {
+          //     name: true,
+          //     serviceType: true,
+          //     photoUrl:true
+          //   },
+          // },
   
           employee: {
             select: {
@@ -940,9 +934,9 @@ router.get("/applications", async (req, res) => {
         applicationId: app.applicationId,
         userName: app.user?.name || null,
         phoneNumber: app.user?.phoneNumber || null,
-        serviceName: app.service?.name,
-        servicePhoto: app.service?.photoUrl || null,
-        serviceType: app.service?.serviceType,
+        serviceName: app.serviceName,
+        servicePhoto: app.servicePhoto || null,
+        serviceType: app.serviceType,
         status: app.status,
         createdAt: app.createdAt,
         employeePhoto :app.employee?.photoUrl || null,
@@ -971,9 +965,9 @@ router.get("/applications", async (req, res) => {
       const application = await prisma.application.findUnique({
         where: { applicationId },
         include: {
-          service: {
+          // service: {
         
-          },
+          // },
           employee: {
             select: {
               employeeId: true,
@@ -1120,6 +1114,21 @@ router.get("/applications", async (req, res) => {
             userId,
             formData: parsedFormData,
             status: "PENDING",
+
+                  // 🔥 SNAPSHOT (CRITICAL)
+          serviceName: service.name,
+          serviceDescription: service.description,
+          servicePhoto: service.photoUrl,
+
+          serviceType: service.serviceType,
+          frequency: service.frequency,
+          duration: service.duration,
+          durationUnit: service.durationUnit,
+
+          offerPrice: service.offerPrice,
+          isGstApplicable: service.isGstApplicable,
+          gstPercentage: service.gstPercentage,
+          finalPrice: service.finalIndividualPrice,
           },
         });
 
@@ -1210,7 +1219,7 @@ router.get("/applications", async (req, res) => {
               periodDate.getFullYear(),
               periodDate.getMonth() + monthGap,0),
               status: "PENDING",
-              isLocked: i === 0 ? false : true,isLocked: i === 0 ? false : true,
+              isLocked: i === 0 ? false : true,
             });
           }
   
@@ -1542,13 +1551,13 @@ router.get("/staff/:employeeId/applications", async (req, res) => {
         status: true,
         createdAt: true,
 
-        service: {
-          select: {
-            name: true,
-            serviceType: true,
-            photoUrl: true,
-          },
-        },
+        // service: {
+        //   select: {
+        //     name: true,
+        //     serviceType: true,
+        //     photoUrl: true,
+        //   },
+        // },
 
         user: {
           select: {
@@ -1564,9 +1573,9 @@ router.get("/staff/:employeeId/applications", async (req, res) => {
     // ✅ Format response
     const formatted = applications.map((app) => ({
       applicationId: app.applicationId,
-      serviceName: app.service?.name,
-      serviceType: app.service?.serviceType,
-      servicePhotoUrl: app.service?.photoUrl,
+      serviceName: app.serviceName,
+      serviceType: app.serviceType,
+      servicePhotoUrl: app.servicePhoto,
       status: app.status,
       createdAt: app.createdAt,
       userId: app.user?.userId,
@@ -1605,7 +1614,7 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
           employeeId, // ✅ IMPORTANT CHECK
         },
         include: {
-          service: true,
+          // service: true,
           
 
   // 🔥 IMPORTANT: STEP TRACKING

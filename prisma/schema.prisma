@@ -466,6 +466,20 @@ model Application {
   employeeId    String?
   employee      Employee?         @relation(fields: [employeeId], references: [employeeId])
 
+  serviceName        String?
+  serviceDescription String?
+  servicePhoto       String?
+
+  serviceType        String?
+  frequency          Frequency?
+  duration           String?
+  durationUnit       DurationUnit?
+
+  offerPrice         String?
+  isGstApplicable    String?
+  gstPercentage      String?
+  finalPrice         String?
+
   // Dynamic form data (label, type, required)
   formData      Json?
   adminNote String?
