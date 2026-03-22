@@ -318,6 +318,182 @@ const servicePoints = {
     "Drafting & Filing Reply to IT Department",
     "Deadline Tracking & Timely Response",
     "Representation & Compliance Support"
+  ],
+
+  // Startup Category - Business Registration Services
+  proprietorship: [
+    "Expert Registration Consultation",
+    "End-to-End Documentation Support",
+    "Dedicated Compliance Expert",
+    "GST Registration & Monthly Filing Support",
+    "Income Tax Return Filing Assistance"
+  ],
+  
+  partnership: [
+    "Partnership Deed Drafting",
+    "PAN Card & GST Registration",
+    "Income Tax & GST Return Filing",
+    "Dedicated Compliance Expert"
+  ],
+  
+  onePersonCompany: [
+    "MCA Name Approval",
+    "OPC Incorporation",
+    "MOA & AOA Drafting",
+    "PAN & TAN Registration"
+  ],
+  
+  limitedLiabilityPartnership: [
+    "MCA Name Approval",
+    "LLP Incorporation",
+    "LLP Agreement Drafting",
+    "PAN & TAN Registration"
+  ],
+  
+  privateLimitedCompany: [
+    "MCA Name Approval",
+    "Company Incorporation",
+    "MOA & AOA Drafting",
+    "PAN & TAN Registration"
+  ],
+  
+  section8Company: [
+    "MCA Name Approval",
+    "Company Incorporation",
+    "MOA & AOA Drafting",
+    "PAN & TAN Registration"
+  ],
+  
+  trustRegistration: [
+    "Trust Deed Drafting",
+    "PAN Card Registration",
+    "Income Tax Filing",
+    "Dedicated Compliance Expert"
+  ],
+  
+  indianSubsidiary: [
+    "MCA Name Approval",
+    "Company Incorporation",
+    "MOA & AOA Drafting",
+    "PAN & TAN Registration"
+  ],
+  
+  // MCA Additional Services
+  companyCompliance: [
+    "AOC-4",
+    "MGT-7",
+    "DIN-3 KYC",
+    "ITR-6 Filing",
+    "Dedicated Compliance Manager",
+    "Automated Bookkeeping & Filing",
+    "LEDGERS Accounting Software"
+  ],
+  
+  llpCompliance: [
+    "Form 8 Filings",
+    "Form 11 Filings",
+    "ITR-5 Filings",
+    "Dedicated Compliance Manager",
+    "Automated Bookkeeping & Filing",
+    "LEDGERS Accounting Software"
+  ],
+  
+  opcCompliance: [
+    "AOC-4",
+    "MGT-7A",
+    "DIN-3 KYC",
+    "ITR-6 Filing",
+    "Dedicated Compliance Manager",
+    "Automated Bookkeeping & Filing",
+    "LEDGERS Accounting Software"
+  ],
+  
+  registeredOfficeChange: [
+    "INC-22 & MGT-14 Filing",
+    "Drafting Resolutions & NOC",
+    "Auto-Update Reminders",
+    "LEDGERS Accounting Software"
+  ],
+  
+  dinEkycFiling: [
+    "DIR-3 KYC Filing",
+    "Triennial KYC Cycle Management",
+    "Professional Certification",
+    "LEDGERS Accounting Software"
+  ],
+  
+  directorChange: [
+    "Online DIR-12 Filings",
+    "Board Resolution preparation",
+    "DIN & Director KYC support",
+    "Dedicated Compliance Manager",
+    "LEDGERS Accounting Software"
+  ],
+  
+  adt1Filing: [
+    "ADT-1 Filings",
+    "Board Resolution Preparation",
+    "Consent Drafting",
+    "LEDGERS Accounting Software"
+  ],
+  
+  dpt3Filing: [
+    "DPT-3 Filings",
+    "Expert Loan Classification",
+    "Dedicated Compliance Manager",
+    "LEDGERS Accounting Software"
+  ],
+  
+  llpForm11Filing: [
+    "Form 11 filings",
+    "Compliance report",
+    "Dedicated Compliance Manager",
+    "LEDGERS Accounting Software"
+  ],
+  
+  dormantStatusFiling: [
+    "MSC 1 Filings",
+    "Board resolution Preparation",
+    "Dedicated Compliance Manager",
+    "LEDGERS Accounting Software"
+  ],
+  
+  authorizedCapitalIncrease: [
+    "EGM report preparation",
+    "SH-7 Filings",
+    "Dedicated Compliance Manager",
+    "LEDGERS Accounting Software"
+  ],
+  
+  windingUpLLP: [
+    "LLP Closure Documentation",
+    "LLP Closure",
+    "Liquidation Filing",
+    "LLP Agreement Update",
+    "Compliance Ready"
+  ],
+  
+  windingUpCompany: [
+    "Accounts Finalisation",
+    "Winding Up Drafting",
+    "Winding up Filing",
+    "Include MGT-14 Fees"
+  ],
+  
+  commencement: [
+    "Regulatory Compliance",
+    "Obtaining Necessary Licenses",
+    "Fulfilling Share Capital Requirements",
+    "Official Start of Business Activities"
+  ],
+  
+  ccfsScheme: [
+    "AOC-4",
+    "MGT-7",
+    "ITR-6 Filing",
+    "Dedicated Compliance Manager",
+    "Automated Bookkeeping & Filing",
+    "LEDGERS Accounting Software"
   ]
 };
 
@@ -432,6 +608,11 @@ async function main() {
   });
   console.log(`  ✅ Created category: MCA`);
   
+  const startup = await prisma.category.create({
+    data: { categoryName: "Startup" }
+  });
+  console.log(`  ✅ Created category: Startup`);
+  
   console.log("================================");
 
 
@@ -508,7 +689,7 @@ async function main() {
   console.log(`  ✅ Created sub-category: Secretarial Compliance under Compliance`);
 
   // MCA Category Subcategories
-  const eventBasedCompliance = await prisma.subCategory.create({
+  const mcaEventBasedCompliance = await prisma.subCategory.create({
     data: {
       subCategoryName: "Event Based Compliance",
       categoryId: mca.categoryId
@@ -523,6 +704,15 @@ async function main() {
     }
   });
   console.log(`  ✅ Created sub-category: Secretarial Compliance under MCA`);
+
+  // Startup Category Subcategories
+  const startupBusinessRegistration = await prisma.subCategory.create({
+    data: {
+      subCategoryName: "Business Registration",
+      categoryId: startup.categoryId
+    }
+  });
+  console.log(`  ✅ Created sub-category: Business Registration under Startup`);
   
   console.log("================================");
 
@@ -548,7 +738,7 @@ async function main() {
     offerPrice: "5999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "7079", // 5999 + 18% GST
+    finalIndividualPrice: "7079",
     subCategoryId: licenseCertification.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -563,7 +753,7 @@ async function main() {
     offerPrice: "3999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "4718", // 3999 + 18% GST
+    finalIndividualPrice: "4718",
     subCategoryId: licenseCertification.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -578,7 +768,7 @@ async function main() {
     offerPrice: "1999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "2358", // 1999 + 18% GST
+    finalIndividualPrice: "2358",
     subCategoryId: licenseCertification.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -594,7 +784,7 @@ async function main() {
     offerPrice: "1499",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "1769", // 1499 + 18% GST
+    finalIndividualPrice: "1769",
     subCategoryId: statutoryRegistration.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -610,7 +800,7 @@ async function main() {
     offerPrice: "6999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "8258", // 6999 + 18% GST
+    finalIndividualPrice: "8258",
     subCategoryId: businessRegistration.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -628,7 +818,7 @@ async function main() {
     offerPrice: "2999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "3538", // 2999 + 18% GST
+    finalIndividualPrice: "3538",
     subCategoryId: gstRegistrationSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -643,7 +833,7 @@ async function main() {
     offerPrice: "8999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "10619", // 8999 + 18% GST
+    finalIndividualPrice: "10619",
     subCategoryId: gstRegistrationSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -658,7 +848,7 @@ async function main() {
     offerPrice: "2499",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "2949", // 2499 + 18% GST
+    finalIndividualPrice: "2949",
     subCategoryId: gstRegistrationSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -673,7 +863,7 @@ async function main() {
     offerPrice: "3999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "4718", // 3999 + 18% GST
+    finalIndividualPrice: "4718",
     subCategoryId: gstRegistrationSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -691,7 +881,7 @@ async function main() {
     offerPrice: "5999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "7079", // 5999 + 18% GST
+    finalIndividualPrice: "7079",
     subCategoryId: gstRegistrationSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -710,7 +900,7 @@ async function main() {
     offerPrice: "7999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "9438", // 7999 + 18% GST (per year)
+    finalIndividualPrice: "9438",
     subCategoryId: gstFilingsSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -725,7 +915,7 @@ async function main() {
     offerPrice: "1499",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "1769", // 1499 + 18% GST
+    finalIndividualPrice: "1769",
     subCategoryId: gstFilingsSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -740,7 +930,7 @@ async function main() {
     offerPrice: "2999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "3538", // 2999 + 18% GST
+    finalIndividualPrice: "3538",
     subCategoryId: gstRegistrationSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -755,7 +945,7 @@ async function main() {
     offerPrice: "2999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "3538", // 2999 + 18% GST
+    finalIndividualPrice: "3538",
     subCategoryId: gstFilingsSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -770,7 +960,7 @@ async function main() {
     offerPrice: "1999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "2358", // 1999 + 18% GST
+    finalIndividualPrice: "2358",
     subCategoryId: gstFilingsSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -791,7 +981,7 @@ async function main() {
     offerPrice: "1999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "2358", // 1999 + 18% GST
+    finalIndividualPrice: "2358",
     subCategoryId: taxFilingSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -806,7 +996,7 @@ async function main() {
     offerPrice: "2999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "3538", // 2999 + 18% GST
+    finalIndividualPrice: "3538",
     subCategoryId: taxFilingSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -824,7 +1014,7 @@ async function main() {
     offerPrice: "3999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "4718", // 3999 + 18% GST
+    finalIndividualPrice: "4718",
     subCategoryId: taxFilingSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -842,7 +1032,7 @@ async function main() {
     offerPrice: "5999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "7079", // 5999 + 18% GST
+    finalIndividualPrice: "7079",
     subCategoryId: taxFilingSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -860,7 +1050,7 @@ async function main() {
     offerPrice: "4999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "5898", // 4999 + 18% GST
+    finalIndividualPrice: "5898",
     subCategoryId: taxFilingSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -875,7 +1065,7 @@ async function main() {
     offerPrice: "1999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "2358", // 1999 + 18% GST
+    finalIndividualPrice: "2358",
     subCategoryId: taxFilingSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -894,7 +1084,7 @@ async function main() {
     offerPrice: "2999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "3538", // 2999 + 18% GST
+    finalIndividualPrice: "3538",
     subCategoryId: taxationSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -909,7 +1099,7 @@ async function main() {
     offerPrice: "999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "1179", // 999 + 18% GST
+    finalIndividualPrice: "1179",
     subCategoryId: taxationSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -927,7 +1117,7 @@ async function main() {
     offerPrice: "4999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "5898", // 4999 + 18% GST (per year)
+    finalIndividualPrice: "5898",
     subCategoryId: taxationSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -942,7 +1132,7 @@ async function main() {
     offerPrice: "2999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "3538", // 2999 + 18% GST
+    finalIndividualPrice: "3538",
     subCategoryId: taxationSub.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -963,7 +1153,7 @@ async function main() {
     offerPrice: "7999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "9438", // 7999 + 18% GST
+    finalIndividualPrice: "9438",
     subCategoryId: secretarialCompliance.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -981,7 +1171,7 @@ async function main() {
     offerPrice: "5999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "7079", // 5999 + 18% GST
+    finalIndividualPrice: "7079",
     subCategoryId: secretarialCompliance.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -999,8 +1189,8 @@ async function main() {
     offerPrice: "3999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "4718", // 3999 + 18% GST
-    subCategoryId: eventBasedCompliance.subCategoryId,
+    finalIndividualPrice: "4718",
+    subCategoryId: mcaEventBasedCompliance.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
   }, masterFields, servicePoints.removeDirector);
@@ -1014,8 +1204,8 @@ async function main() {
     offerPrice: "4999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "5898", // 4999 + 18% GST
-    subCategoryId: eventBasedCompliance.subCategoryId,
+    finalIndividualPrice: "5898",
+    subCategoryId: mcaEventBasedCompliance.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
   }, masterFields, servicePoints.companyNameChange);
@@ -1029,8 +1219,8 @@ async function main() {
     offerPrice: "5999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "7079", // 5999 + 18% GST
-    subCategoryId: eventBasedCompliance.subCategoryId,
+    finalIndividualPrice: "7079",
+    subCategoryId: mcaEventBasedCompliance.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
   }, masterFields, servicePoints.moaAmendment);
@@ -1044,11 +1234,116 @@ async function main() {
     offerPrice: "5999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "7079", // 5999 + 18% GST
-    subCategoryId: eventBasedCompliance.subCategoryId,
+    finalIndividualPrice: "7079",
+    subCategoryId: mcaEventBasedCompliance.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
   }, masterFields, servicePoints.aoaAmendment);
+
+  await createService({
+    name: "Registered Office Change",
+    description: "Change your company's registered address in 3 easy steps. Get expert help with INC-22 filings, drafting, and NOC preparation. Ensure your new address is updated on the MCA portal quickly to avoid penalties.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "4999",
+    offerPrice: "3999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "4718",
+    subCategoryId: mcaEventBasedCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.registeredOfficeChange);
+
+  await createService({
+    name: "Director Change",
+    description: "The appointment of director is required when a company adds a new individual to its Board. This may be due to business growth, investor requirements, or the need for domain expertise. The director must have a valid DIN and give written consent to act as a director.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "5999",
+    offerPrice: "4999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "5898",
+    subCategoryId: mcaEventBasedCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.directorChange);
+
+  await createService({
+    name: "Dormant Status Filing",
+    description: "A Dormant Company is a registered company that has no significant accounting transactions and applies for dormant status under the Companies Act, 2013. Such companies must file annual compliance forms with the Ministry of Corporate Affairs (MCA) to retain dormant status and avoid penalties.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "3999",
+    offerPrice: "2999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "3538",
+    subCategoryId: mcaEventBasedCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.dormantStatusFiling);
+
+  await createService({
+    name: "Authorized Capital Increase",
+    description: "Increasing a company's authorized share capital enables it to issue more shares or raise funds. The process requires board and shareholder approval, followed by filing with the MCA to maintain compliance under the Companies Act, 2013.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "7999",
+    offerPrice: "6999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "8258",
+    subCategoryId: mcaEventBasedCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.authorizedCapitalIncrease);
+
+  await createService({
+    name: "Winding Up – LLP",
+    description: "Initiate the process of winding up your LLP, including liquidation, dissolution, and closure procedures.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "14999",
+    offerPrice: "12999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "15339",
+    subCategoryId: mcaEventBasedCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.windingUpLLP);
+
+  await createService({
+    name: "Winding Up – Company",
+    description: "Close your company or LLP legally and efficiently. Get expert assistance for striking off your company name from the MCA register with complete documentation support.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "19999",
+    offerPrice: "16999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "20059",
+    subCategoryId: mcaEventBasedCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.windingUpCompany);
+
+  await createService({
+    name: "Commencement (INC-20A)",
+    description: "Start your business legally with ease by completing the required regulatory processes. Our expert team guides you through obtaining necessary licenses and fulfilling compliance requirements, ensuring a smooth commencement of operations from day one.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "3999",
+    offerPrice: "2999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "3538",
+    subCategoryId: mcaEventBasedCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.commencement);
 
   // MCA Secretarial Compliance Subcategory
   await createService({
@@ -1060,7 +1355,7 @@ async function main() {
     offerPrice: "2999",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "3538", // 2999 + 18% GST
+    finalIndividualPrice: "3538",
     subCategoryId: mcaSecretarialCompliance.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
@@ -1075,11 +1370,266 @@ async function main() {
     offerPrice: "1499",
     isGstApplicable: "true",
     gstPercentage: "18",
-    finalIndividualPrice: "1769", // 1499 + 18% GST
+    finalIndividualPrice: "1769",
     subCategoryId: mcaSecretarialCompliance.subCategoryId,
     employeeId: "cmlepw8cr0003h71dg0yb2ybj",
     documentsRequired: "false"
   }, masterFields, servicePoints.dinReactivation);
+
+  await createService({
+    name: "Company Compliance",
+    description: "Company Annual Filing, mandated by the Companies Act, 2013, requires all registered companies, including Private Limited, to submit financial statements (AOC-4) and annual returns (MGT-7/MGT-7A) to the Registrar of Companies.",
+    photoUrl: s3ImageUrl,
+    serviceType: "RECURRING",
+    frequency: "YEARLY",
+    duration: "1",
+    durationUnit: "YEAR",
+    individualPrice: "14999",
+    offerPrice: "11999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "14158",
+    subCategoryId: mcaSecretarialCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.companyCompliance);
+
+  await createService({
+    name: "LLP Compliance",
+    description: "LLPs must comply with the Limited Liability Partnership Act, 2008 by filing Form 8 and Form 11 annually with the MCA. Timely filing keeps your LLP legally compliant and penalty-free.",
+    photoUrl: s3ImageUrl,
+    serviceType: "RECURRING",
+    frequency: "YEARLY",
+    duration: "1",
+    durationUnit: "YEAR",
+    individualPrice: "9999",
+    offerPrice: "7999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "9438",
+    subCategoryId: mcaSecretarialCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.llpCompliance);
+
+  await createService({
+    name: "OPC Compliance",
+    description: "OPC Annual Filing, mandated by the Companies Act, 2013, requires all registered One Person Companies to submit financial statements (AOC-4) and annual returns (MGT-7A) to the Registrar of Companies.",
+    photoUrl: s3ImageUrl,
+    serviceType: "RECURRING",
+    frequency: "YEARLY",
+    duration: "1",
+    durationUnit: "YEAR",
+    individualPrice: "7999",
+    offerPrice: "5999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "7079",
+    subCategoryId: mcaSecretarialCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.opcCompliance);
+
+  await createService({
+    name: "DIN eKYC Filing",
+    description: "File your DIN eKYC (DIR-3 KYC) online with MCA to keep your DIN active and compliant. Avoid DIN deactivation and the ₹5,000 penalty with timely filing under the Companies Act, 2013. Our experts ensure smooth verification and MCA submission.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "1499",
+    offerPrice: "999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "1179",
+    subCategoryId: mcaSecretarialCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.dinEkycFiling);
+
+  await createService({
+    name: "ADT-1 Filing",
+    description: "ADT-1 filing is mandatory for companies to intimate the appointment or reappointment of an auditor to the Ministry of Corporate Affairs (MCA) under the Companies Act, 2013. The form must be filed within 15 days of the auditor's appointment to ensure statutory compliance.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "1999",
+    offerPrice: "1499",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "1769",
+    subCategoryId: mcaSecretarialCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.adt1Filing);
+
+  await createService({
+    name: "DPT-3 Filing",
+    description: "DPT-3 filing is mandatory for companies to report outstanding loans, deposits, or exempted borrowings to the MCA. It must be filed annually to comply with deposit rules under the Companies Act, 2013.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "2999",
+    offerPrice: "2499",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "2949",
+    subCategoryId: mcaSecretarialCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.dpt3Filing);
+
+  await createService({
+    name: "LLP Form 11 Filing",
+    description: "Form 11 is a mandatory annual return filing for all registered LLPs with the MCA under the LLP Act, 2008. It must be filed every year to maintain compliance and avoid penalties.",
+    photoUrl: s3ImageUrl,
+    serviceType: "RECURRING",
+    frequency: "YEARLY",
+    duration: "1",
+    durationUnit: "YEAR",
+    individualPrice: "3999",
+    offerPrice: "2999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "3538",
+    subCategoryId: mcaSecretarialCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.llpForm11Filing);
+
+  await createService({
+    name: "CCFS Scheme",
+    description: "File your MCA compliance before 15th July 2026 to get a 90% penalty waiver. Resolve your overdue returns and avoid heavy penalties.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "4999",
+    offerPrice: "3999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "4718",
+    subCategoryId: mcaSecretarialCompliance.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "false"
+  }, masterFields, servicePoints.ccfsScheme);
+
+  // ==================== STARTUP CATEGORY ====================
+  
+  // Business Registration Subcategory
+  await createService({
+    name: "Proprietorship",
+    description: "Proprietorship registration in India is the easiest way to start a single-owner business, and we provide complete proprietorship registration services including GST, Udyam, and bank account setup for a fast and compliant business launch.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "4999",
+    offerPrice: "3999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "4718",
+    subCategoryId: startupBusinessRegistration.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "true"
+  }, masterFields, servicePoints.proprietorship);
+
+  await createService({
+    name: "Partnership",
+    description: "Register your Partnership Firm in India with complete legal support, including partnership deed drafting, PAN & GST registration, and ongoing compliance assistance for a smooth business setup.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "5999",
+    offerPrice: "4999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "5898",
+    subCategoryId: startupBusinessRegistration.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "true"
+  }, masterFields, servicePoints.partnership);
+
+  await createService({
+    name: "One Person Company",
+    description: "Register your One Person Company (OPC) in India with expert assistance. Get MCA name approval, MOA & AOA drafting, PAN & TAN registration, and complete compliance support to start your business legally.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "9999",
+    offerPrice: "7999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "9438",
+    subCategoryId: startupBusinessRegistration.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "true"
+  }, masterFields, servicePoints.onePersonCompany);
+
+  await createService({
+    name: "Limited Liability Partnership",
+    description: "Register your Limited Liability Partnership (LLP) in India with expert assistance. Get MCA name approval, LLP incorporation, LLP Agreement drafting, PAN & TAN registration, and complete compliance support to start your business legally.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "14999",
+    offerPrice: "12999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "15339",
+    subCategoryId: startupBusinessRegistration.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "true"
+  }, masterFields, servicePoints.limitedLiabilityPartnership);
+
+  await createService({
+    name: "Private Limited Company",
+    description: "Register your Private Limited Company in India with expert assistance. Get name approval, MOA & AOA drafting, PAN & TAN registration, GST registration, and complete compliance support to start your business legally.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "19999",
+    offerPrice: "15999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "18879",
+    subCategoryId: startupBusinessRegistration.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "true"
+  }, masterFields, servicePoints.privateLimitedCompany);
+
+  await createService({
+    name: "Section 8 Company",
+    description: "Register a Section 8 Company in India with expert assistance. Includes MCA name approval, MOA & AOA drafting, PAN & TAN registration, and statutory compliance support. Start your non-profit legally today.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "14999",
+    offerPrice: "12999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "15339",
+    subCategoryId: startupBusinessRegistration.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "true"
+  }, masterFields, servicePoints.section8Company);
+
+  await createService({
+    name: "Trust Registration",
+    description: "Register a Trust in India with expert assistance including Trust Deed drafting, PAN registration, and statutory compliance support to start your non-profit legally today.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "9999",
+    offerPrice: "7999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "9438",
+    subCategoryId: startupBusinessRegistration.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "true"
+  }, masterFields, servicePoints.trustRegistration);
+
+  await createService({
+    name: "Indian Subsidiary",
+    description: "Set up an Indian Subsidiary Company with expert advisory. Get FDI-compliant incorporation, MOA & AOA, PAN, TAN, RBI filings, and ongoing compliance support. Expand your business into India seamlessly.",
+    photoUrl: s3ImageUrl,
+    serviceType: "ONE_TIME",
+    individualPrice: "29999",
+    offerPrice: "24999",
+    isGstApplicable: "true",
+    gstPercentage: "18",
+    finalIndividualPrice: "29499",
+    subCategoryId: startupBusinessRegistration.subCategoryId,
+    employeeId: "cmlepw8cr0003h71dg0yb2ybj",
+    documentsRequired: "true"
+  }, masterFields, servicePoints.indianSubsidiary);
 
   console.log("================================");
   
@@ -1110,3 +1660,5 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
+  //update seed march-21 sat

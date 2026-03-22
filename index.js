@@ -619,7 +619,135 @@ app.get("/service", async (req, res) => {
     }
   });
   
-
+  app.get("/analatic", async (req, res) => {
+    try {
+  
+      const { filter } = req.query;
+      const now = new Date();
+  
+      let dateFilter = {};
+  
+      // 📅 FILTER LOGIC
+      if (filter === "day") {
+        const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+        dateFilter = { gte: startOfDay };
+      }
+  
+      if (filter === "month") {
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        dateFilter = { gte: startOfMonth };
+      }
+  
+      if (filter === "year") {
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+        dateFilter = { gte: startOfYear };
+      }
+  
+      // 🚀 PARALLEL FETCH
+      const [
+        payments,
+        users,
+        applications,
+        totalUsers,
+        totalStaff
+      ] = await Promise.all([
+        prisma.payment.findMany({
+          where: {
+            status: "PAID",
+            ...(filter && { createdAt: dateFilter })
+          }
+        }),
+        prisma.user.findMany({
+          include: {
+            payments: { where: { status: "PAID" } }
+          }
+        }),
+        prisma.application.findMany({
+          where: {
+            ...(filter && { createdAt: dateFilter })
+          },
+          include: { service: true }
+        }),
+        prisma.user.count(),
+        prisma.employee.count({
+          where: { role: "STAFF" }
+        })
+      ]);
+  
+      // 💰 TOTAL REVENUE
+      const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
+  
+      // 🔁 REPEAT USERS
+      const repeatUsersList = users
+        .filter(u => u.payments.length > 1)
+        .map(u => ({
+          userId: u.userId,
+          name: u.name,
+          email: u.email,
+          totalPayments: u.payments.length,
+          totalSpent: u.payments.reduce((sum, p) => sum + p.amount, 0)
+        }))
+        .sort((a, b) => b.totalSpent - a.totalSpent);
+  
+      const repeatUsers = repeatUsersList.length;
+  
+      // 🔥 TOP SERVICES (TOP 3)
+      const serviceCountMap = {};
+  
+      applications.forEach(app => {
+        if (!app.serviceId) return;
+  
+        if (!serviceCountMap[app.serviceId]) {
+          serviceCountMap[app.serviceId] = {
+            name: app.service?.name || "Unknown",
+            count: 0
+          };
+        }
+  
+        serviceCountMap[app.serviceId].count += 1;
+      });
+  
+      const topServices = Object.values(serviceCountMap)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 3);
+  
+      // 👤 USER ACTIVITY (VERY IMPORTANT)
+      const userActivity = users.map(u => ({
+        userId: u.userId,
+        name: u.name,
+        lastPaymentDate: u.payments.length
+          ? u.payments[u.payments.length - 1].createdAt
+          : null,
+        totalPayments: u.payments.length
+      }));
+  
+      // classify activity
+      const activeUsers = userActivity.filter(u => u.totalPayments > 0).length;
+      const inactiveUsers = userActivity.filter(u => u.totalPayments === 0).length;
+  
+      res.json({
+        totalRevenue,
+        totalUsers,
+        totalStaff,
+  
+        repeatUsers,
+        repeatUsersList,
+  
+        topServices,
+  
+        userActivitySummary: {
+          activeUsers,
+          inactiveUsers
+        },
+  
+        userActivity // detailed list (optional for table)
+      });
+  
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Dashboard failed" });
+    }
+  });
 // =============================
 // CREATE SERVICE
 // =============================
