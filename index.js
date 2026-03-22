@@ -280,8 +280,7 @@ app.delete("/department/:departmentId", async (req, res) => {
         mobileNumber,
         role,
         designation,
-        password,
-        departmentId
+         departmentId
       } = req.body;
 
 
@@ -312,16 +311,14 @@ app.delete("/department/:departmentId", async (req, res) => {
         });
       }
 
-      let finalPassword = password;
+   
 
       // 🔥 ALWAYS GENERATE TOKEN (LINK BASED SYSTEM)
     const resetToken = crypto.randomBytes(32).toString("hex");
     const resetTokenExpiry = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hrs
 
-      if (!password) {
-        // generate random password
-        finalPassword = crypto.randomBytes(4).toString("hex"); // ex: a1b2c3d4
-      }
+    const finalPassword = crypto.randomBytes(4).toString("hex"); // ex: a1b2c3d4
+  
   
       const employee = await prisma.employee.create({
         data: {
@@ -445,7 +442,6 @@ app.delete("/department/:departmentId", async (req, res) => {
         role,
         designation,
         status,
-        password,
         departmentId
       } = req.body;
 
@@ -488,7 +484,7 @@ app.delete("/department/:departmentId", async (req, res) => {
   
       const employee = await prisma.employee.update({
         where: { employeeId },
-        data: { name, email, password, mobileNumber, role, designation, status, photoUrl, departmentId }
+        data: { name, email, password: existingEmployee.password, mobileNumber, role, designation, status, photoUrl, departmentId }
       });
   
       res.json({
