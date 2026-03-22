@@ -499,6 +499,12 @@ app.delete("/department/:departmentId", async (req, res) => {
         where: { employeeId },
         data: { name, email, password: existingEmployee.password, mobileNumber, role, designation, status, photoUrl, departmentId }
       });
+
+      if (status === "INACTIVE") {
+        await prisma.refreshToken.deleteMany({
+          where: { employeeId }
+        });
+      }
   
       res.json({
         success: true,
