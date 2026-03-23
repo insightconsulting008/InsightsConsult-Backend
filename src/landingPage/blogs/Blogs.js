@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const prisma = require("../../prisma/prisma");
 const {blogImgUpload} = require("../../utils/multer")
-
+const {deleteS3Object} = require("../../utils/deleteS3Object")
 
 /* ==============================
    SLUG FUNCTION
@@ -164,6 +164,66 @@ function makeSlug(text) {
   /* ==============================
      UPDATE BLOG
   ============================== */
+  // router.put("/blogs/:id",blogImgUpload.fields([
+  //     { name: "thumbnail", maxCount: 1 },
+  //     { name: "contentImages", maxCount: 20 }
+  //   ]),
+  //   async (req, res) => {
+  //     try {
+  //       const { id } = req.params;
+  //       const { title, description, content, published } = req.body;
+  
+  //       const existingBlog = await prisma.blog.findUnique({
+  //         where: { blogId: id },
+  //       });
+  
+  //       if (!existingBlog) {
+  //         return res.status(404).json({ message: "Blog not found" });
+  //       }
+  
+  //       let parsedContent = JSON.parse(content || "[]");
+  
+  //       const uploadedImages = req.files?.contentImages
+  //         ? req.files.contentImages.map(file => file.location)
+  //         : [];
+  
+  //       parsedContent = parsedContent.map(block => {
+  //         if (block.type === "image" && block.fileIndex !== undefined) {
+  //           return {
+  //             type: "image",
+  //             url: uploadedImages[block.fileIndex] || null,
+  //             order: block.order
+  //           };
+  //         }
+  //         return block;
+  //       });
+  
+  //       parsedContent.sort((a, b) => a.order - b.order);
+  
+  //       const thumbnailUrl = req.files?.thumbnail
+  //         ? req.files.thumbnail[0].location
+  //         : existingBlog.thumbnail;
+  
+  //       const updatedBlog = await prisma.blog.update({
+  //         where: { blogId: id },
+  //         data: {
+  //           title,
+  //           description,
+  //           content: parsedContent,
+  //           thumbnail: thumbnailUrl,
+  //           published: published === "true",
+  //         },
+  //       });
+  
+  //       res.json(updatedBlog);
+  //     } catch (error) {
+  //       console.log(error);
+  //       res.status(500).json({ error: "Update blog failed" });
+  //     }
+  //   }
+  // );
+  
+
   router.put(
     "/blogs/:id",
     blogImgUpload.fields([
@@ -175,56 +235,117 @@ function makeSlug(text) {
         const { id } = req.params;
         const { title, description, content, published } = req.body;
   
+        // ✅ 1. Check blog exists
         const existingBlog = await prisma.blog.findUnique({
           where: { blogId: id },
         });
   
         if (!existingBlog) {
-          return res.status(404).json({ message: "Blog not found" });
+          return res.status(404).json({
+            success: false,
+            message: "Blog not found",
+          });
         }
   
-        let parsedContent = JSON.parse(content || "[]");
+        // ✅ 2. Parse content safely
+        let parsedContent = [];
+        try {
+          parsedContent = JSON.parse(content || "[]");
+        } catch (err) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid content JSON",
+          });
+        }
   
+        // ✅ 3. Get uploaded images (S3 → location)
         const uploadedImages = req.files?.contentImages
-          ? req.files.contentImages.map(file => file.path)
+          ? req.files.contentImages.map(file => file.location)
           : [];
   
-        parsedContent = parsedContent.map(block => {
-          if (block.type === "image" && block.fileIndex !== undefined) {
+        // ✅ 4. Map content blocks
+        parsedContent = parsedContent.map((block) => {
+          if (block.type === "image") {
             return {
               type: "image",
-              url: uploadedImages[block.fileIndex] || null,
-              order: block.order
+              url:
+                block.fileIndex !== undefined
+                  ? uploadedImages[block.fileIndex] || block.url || null
+                  : block.url || null,
+              order: block.order,
             };
           }
           return block;
         });
   
+        // ✅ 5. Sort content
         parsedContent.sort((a, b) => a.order - b.order);
   
+        // 🔥 6. DELETE UNUSED OLD CONTENT IMAGES
+  
+        // OLD images
+        const oldImages = (existingBlog.content || [])
+          .filter(block => block.type === "image")
+          .map(block => block.url)
+          .filter(Boolean);
+  
+        // NEW images
+        const newImages = parsedContent
+          .filter(block => block.type === "image")
+          .map(block => block.url)
+          .filter(Boolean);
+  
+        // Find removed images
+        const imagesToDelete = oldImages.filter(
+          (url) => !newImages.includes(url)
+        );
+  
+        // Delete from S3
+        await Promise.all(
+          imagesToDelete.map(url => deleteS3Object(url))
+        );
+  
+        // 🔥 7. HANDLE THUMBNAIL DELETE
+        if (req.files?.thumbnail && existingBlog.thumbnail) {
+          await deleteS3Object(existingBlog.thumbnail);
+        }
+  
+        // ✅ 8. New thumbnail
         const thumbnailUrl = req.files?.thumbnail
-          ? req.files.thumbnail[0].path
+          ? req.files.thumbnail[0].location
           : existingBlog.thumbnail;
   
+        // ✅ 9. Update blog
         const updatedBlog = await prisma.blog.update({
           where: { blogId: id },
           data: {
-            title,
-            description,
+            title: title ?? existingBlog.title,
+            description: description ?? existingBlog.description,
             content: parsedContent,
             thumbnail: thumbnailUrl,
-            published: published === "true",
+            published:
+              published !== undefined
+                ? published === "true" || published === true
+                : existingBlog.published,
           },
         });
   
-        res.json(updatedBlog);
+        // ✅ 10. Response
+        res.json({
+          success: true,
+          message: "Blog updated successfully",
+          data: updatedBlog,
+        });
+  
       } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: "Update blog failed" });
+        console.error("UPDATE BLOG ERROR:", error);
+        res.status(500).json({
+          success: false,
+          message: "Update blog failed",
+        });
       }
     }
   );
-  
   /* ==============================
      DELETE BLOG
   ============================== */
