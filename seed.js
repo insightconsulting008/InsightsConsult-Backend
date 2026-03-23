@@ -73,8 +73,8 @@ const servicePoints = {
   twelveARegistration: [
     "Eligibility Review & Documentation Preparation",
     "Dedicated Support for NGO / Trust / Society Registration",
-    "Professional Income Tax & Compliance Consultation",
-    "Complete 12A & 80G Application Filing Assistance"
+    "Income Tax & Compliance Consultation",
+    "Complete 12A & 80G Application"
   ],
   
   ngoDarpan: [
@@ -115,7 +115,6 @@ const servicePoints = {
     "Instant TRN Generation",
     "ARN Generation",
     "GST Certificate Issuance",
-    "LEDGERS GST Software Access"
   ],
   
   gstRegistrationForeigners: [

@@ -173,7 +173,7 @@ function makeSlug(text) {
     async (req, res) => {
       try {
         const { id } = req.params;
-        const { title, description, content, published, order } = req.body;
+        const { title, description, content, published } = req.body;
   
         const existingBlog = await prisma.blog.findUnique({
           where: { blogId: id },
@@ -213,7 +213,6 @@ function makeSlug(text) {
             description,
             content: parsedContent,
             thumbnail: thumbnailUrl,
-            order: order ? parseInt(order) : existingBlog.order,
             published: published === "true",
           },
         });
