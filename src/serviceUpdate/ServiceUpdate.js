@@ -217,9 +217,9 @@ router.delete("/service/:serviceId", async (req, res) => {
       }
 
     // ✅ OPTIONAL: delete S3 image
-    if (existingService.photoUrl) {
-      await deleteS3Object(existingService.photoUrl);
-    }
+    // if (existingService.photoUrl) {
+    //   await deleteS3Object(existingService.photoUrl);
+    // }
 
     // ✅ TRANSACTION (VERY IMPORTANT)
     await prisma.$transaction([
