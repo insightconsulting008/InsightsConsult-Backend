@@ -26,7 +26,7 @@ function makeSlug(text) {
     ]),
     async (req, res) => {
       try {
-        const { title, description, author, content, published, order } = req.body;
+        const { title, description, author, content, published,  } = req.body;
   
         if (!title) {
           return res.status(400).json({ message: "Title is required" });
@@ -93,7 +93,7 @@ function makeSlug(text) {
   
       // Search condition
       const whereCondition = {
-        published: true, // ✅ only show published blogs
+
         ...(search && {
           OR: [
             {
@@ -160,6 +160,8 @@ function makeSlug(text) {
       res.status(500).json({ error: "Fetch blog failed" });
     }
   });
+
+
   
   /* ==============================
      UPDATE BLOG
@@ -233,7 +235,7 @@ function makeSlug(text) {
     async (req, res) => {
       try {
         const { id } = req.params;
-        const { title, description, content, published } = req.body;
+        const { title, description, content, published ,author } = req.body;
   
         // ✅ 1. Check blog exists
         const existingBlog = await prisma.blog.findUnique({
@@ -323,6 +325,7 @@ function makeSlug(text) {
             description: description ?? existingBlog.description,
             content: parsedContent,
             thumbnail: thumbnailUrl,
+            author: author ?? existingBlog.author, // ✅ FIXED
             published:
               published !== undefined
                 ? published === "true" || published === true
