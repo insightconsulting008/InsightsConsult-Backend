@@ -85,7 +85,7 @@ function makeSlug(text) {
   ============================== */
   router.get("/blogs", async (req, res) => {
     try {
-      const { search = "", page = 1, limit = 10 } = req.query;
+      const { search = "", page = 1, limit = 10,  type = "public" } = req.query;
   
       const pageNumber = parseInt(page);
       const pageSize = parseInt(limit);
@@ -93,7 +93,7 @@ function makeSlug(text) {
   
       // Search condition
       const whereCondition = {
-
+        published: type === "public",
         ...(search && {
           OR: [
             {
@@ -138,7 +138,6 @@ function makeSlug(text) {
     }
   });
 
-  
   /* ==============================
      GET SINGLE BLOG
   ============================== */
