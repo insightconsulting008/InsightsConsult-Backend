@@ -7,7 +7,7 @@ const{ authenticate,authorizeRoles } = require("../../authMiddleware/authMiddlew
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const {logHistory} = require("../../../src/utils/historyService")
-const {createTestNotification} = require("../../notifications/notificationController")
+const {createNotification} = require("../../notifications/notificationService")
 
 
 // router.get("/users", async (req, res) => {
