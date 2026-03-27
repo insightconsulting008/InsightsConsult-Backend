@@ -2047,6 +2047,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
       let assignedEmployeeId = null;
       let assignedEmployeeName = null;
       let userId = null;
+      let myServiceId = null;
 
 
             // ---------- TRACK STEP PATH ----------
@@ -2057,6 +2058,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
                   application: {
                     select: {
                       applicationId: true,
+                      myServiceId: true, // 👈 ADD THIS
                       userId: true, // 👈 ADD THIS
                       employeeId: true,
                       employee: {
@@ -2077,6 +2079,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
               assignedEmployeeId = track.application.employeeId;
               assignedEmployeeName = track.application.employee?.name;
               userId = track.application.userId;
+              myServiceId = track.application.myServiceId;
             }
 
               // ---------- PERIOD STEP PATH ----------
@@ -2089,6 +2092,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
                 application: {
                   select: {
                     applicationId: true,
+                    myServiceId: true, // 👈 ADD THIS
                     userId: true, // 👈 ADD THIS
                     employeeId: true,
                     employee: {
@@ -2113,6 +2117,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
         assignedEmployeeId = app.employeeId;
         assignedEmployeeName = app.employee?.name;
         userId = app.userId;
+        myServiceId = app.myServiceId;
       }
 
       // ------------------------
@@ -2148,7 +2153,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
             title: "Document Requested",
             description: `Please upload: ${documentType}`,
             userId,
-            redirectUrl: `/my-service/view/${existingApplication.myServiceId}`, // 👈 dynamic
+            redirectUrl: `/my-service/view/${myServiceId}`, // 👈 dynamic
           }).catch(console.error);
         }
 
@@ -2191,7 +2196,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
             title: "Document Issued",
             description: `${documentType} has been issued successfully`,
             userId,
-            redirectUrl: `/my-service/view/${existingApplication.myServiceId}`, // 👈 same page
+            redirectUrl: `/my-service/view/${myServiceId}`, // 👈 same page
           }).catch(console.error);
         }
       
