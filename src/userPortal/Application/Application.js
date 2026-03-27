@@ -1912,28 +1912,10 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       include: {
         periodStep: {
           include: {
-            servicePeriod:{
-              include: {
-                application: {
-                  select: {
-                    applicationId: true,
-                    employeeId: true, // 👈 ADD THIS
-                  },
-                },
-              },
-            }
+            servicePeriod: true,
           },
         },
-        applicationTrackStep: {
-          include: {
-            application: {
-              select: {
-                applicationId: true,
-                employeeId: true, // 👈 ADD THIS
-              },
-            },
-          },
-        },
+        applicationTrackStep: true,
       },
     });
 
@@ -1948,12 +1930,9 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
     }
 
      // 🔥 Resolve applicationId correctly
-     const applicationData =
+     const applicationId =
      existing.periodStep?.servicePeriod?.applicationId ||
      existing.applicationTrackStep?.applicationId;
-
-     const applicationId = applicationData?.applicationId;
-     const employeeId = applicationData?.employeeId;
 
    if (!applicationId) {
      return res.status(400).json({
@@ -1976,6 +1955,7 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       where: { applicationId },
       select: {
         userId: true,
+        employeeId: true,
         user: {
           select: {
             name: true,
@@ -1984,6 +1964,7 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       },
     });
 
+    const employeeId = application?.employeeId;
    
 
     const doc = await prisma.serviceDocument.update({
@@ -2006,17 +1987,15 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       doneById: application.userId || null,
       message: `User (${application?.user?.name}) uploaded document (v${doc.version})`,
     });
-
-    // 🔔 Notify Employee
-if (employeeId) {
-  createNotification({
-    title: "Document Uploaded",
-    description: `User uploaded ${existing.documentType}`,
-    employeeId,
-    redirectUrl: `/tasks/${applicationId}`,
-  }).catch(console.error);
-}
     
+    if (employeeId) {
+      createNotification({
+        title: "Document Uploaded",
+        description: `${application?.user?.name} uploaded ${existing.documentType} (v${doc.version})`,
+        employeeId,
+        redirectUrl: `/tasks/${applicationId}`,
+      }).catch(console.error);
+    }
 
 
     res.json({ success: true, document: doc });
