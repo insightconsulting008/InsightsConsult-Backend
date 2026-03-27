@@ -265,9 +265,21 @@ router.post("/create/amendment-link", async (req, res) => {
       if (userId) {
         createNotification({
           title: "Payment Required",
-          description: `An amendment payment of ₹${amount} has been requested`,
+          description: `An amendment payment of ₹${amount} has been requested.${
+            note ? `\nNote: ${note}` : ""
+          }`,
           userId: userId,
-          redirectUrl: paymentLink.short_url, // 👈 direct payment link but need to change let see 
+        
+          // 👇 Use this for button action
+          redirectUrl: paymentLink.short_url,
+        
+          // 👇 OPTIONAL (Recommended for frontend control)
+          meta: {
+            cta: {
+              label: "Pay Now",
+              url: paymentLink.short_url,
+            },
+          },
         }).catch(console.error);
       }
 
@@ -1814,8 +1826,8 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
               title: `${application.serviceName} - Application Step Updated`,
               description:
                 status === "COMPLETED"
-                  ? `Application Step "${existing.title}"  Completed`
-                  : `Application Step "${existing.title}"  Updated to ${status}`,
+                  ? `Application "${existing.title}" Step Completed`
+                  : `Application "${existing.title}" Step Updated to ${status}`,
               userId: application.userId,
               redirectUrl: `/my-service/view/${application.myServiceId}`,
             }).catch(console.error);
@@ -1920,8 +1932,8 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
             title: `${application.serviceName} - Application Step Updated`,
             description:
               status === "COMPLETED"
-                ? `Application Step "${existing.title}"  Completed`
-                : `Application Step "${existing.title}"  Updated to ${status}`,
+                ? `Application  ("${existing.title}") Step  Completed`
+                : `Application  ("${existing.title}") Step Updated to ${status}`,
             userId: application.userId,
             redirectUrl: `/my-service/view/${application.myServiceId}`,
           }).catch(console.error);
