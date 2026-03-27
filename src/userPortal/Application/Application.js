@@ -1768,6 +1768,7 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
           select: {
             applicationId: true,
             status: true,
+            title: true, // ✅ ADD THIS
           },
         });
 
@@ -1810,11 +1811,11 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
   
           if (application?.userId) {
             createNotification({
-              title: `${serviceName} Application Updated `,
+              title: `${application.serviceName} - Application Step Updated`,
               description:
                 status === "COMPLETED"
-                  ? "Your Application has been completed"
-                  : `Application updated to ${status}`,
+                  ? `Application Step "${existing.title}"  Completed`
+                  : `Application Step "${existing.title}"  Updated to ${status}`,
               userId: application.userId,
               redirectUrl: `/my-service/view/${application.myServiceId}`,
             }).catch(console.error);
@@ -1834,6 +1835,7 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
           select: {
             status: true,
             servicePeriodId: true,
+            title: true, // ✅ ADD THIS
             servicePeriod: {
               select: { applicationId: true }
             }
@@ -1910,16 +1912,16 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
       if (oldStatus !== status) {
         const application = await prisma.application.findUnique({
           where: { applicationId },
-          select: { userId: true ,myServiceId:true},
+          select: { userId: true ,myServiceId:true,serviceName:true},
         });
 
         if (application?.userId) {
           createNotification({
-            title: "Service Progress Updated",
+            title: `${application.serviceName} - Application Step Updated`,
             description:
               status === "COMPLETED"
-                ? "A step has been completed"
-                : `Step updated to ${status}`,
+                ? `Application Step "${existing.title}"  Completed`
+                : `Application Step "${existing.title}"  Updated to ${status}`,
             userId: application.userId,
             redirectUrl: `/my-service/view/${application.myServiceId}`,
           }).catch(console.error);
