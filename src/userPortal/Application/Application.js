@@ -2046,6 +2046,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
 
       let assignedEmployeeId = null;
       let assignedEmployeeName = null;
+      let userId = null;
 
 
             // ---------- TRACK STEP PATH ----------
@@ -2056,6 +2057,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
                   application: {
                     select: {
                       applicationId: true,
+                      userId: true, // 👈 ADD THIS
                       employeeId: true,
                       employee: {
                         select: { name: true },
@@ -2074,6 +2076,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
               applicationId = track.application.applicationId;
               assignedEmployeeId = track.application.employeeId;
               assignedEmployeeName = track.application.employee?.name;
+              userId = track.application.userId;
             }
 
               // ---------- PERIOD STEP PATH ----------
@@ -2086,6 +2089,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
                 application: {
                   select: {
                     applicationId: true,
+                    userId: true, // 👈 ADD THIS
                     employeeId: true,
                     employee: {
                       select: { name: true },
@@ -2108,6 +2112,7 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
         applicationId = app.applicationId;
         assignedEmployeeId = app.employeeId;
         assignedEmployeeName = app.employee?.name;
+        userId = app.userId;
       }
 
       // ------------------------
@@ -2137,6 +2142,15 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
           doneById: assignedEmployeeId ,
           message: `Document requested: ${documentType} by ${assignedEmployeeName}`,
         });
+
+        if (userId) {
+          createNotification({
+            title: "Document Requested",
+            description: `Please upload: ${documentType}`,
+            userId,
+            redirectUrl: `/my-service/view/${existingApplication.myServiceId}`, // 👈 dynamic
+          }).catch(console.error);
+        }
 
       
         return res.json({ success: true, document: doc });
@@ -2172,6 +2186,14 @@ router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
           message: `Document issued: ${documentType} by ${ assignedEmployeeName }`
         });
 
+        if (userId) {
+          createNotification({
+            title: "Document Issued",
+            description: `${documentType} has been issued successfully`,
+            userId,
+            redirectUrl: `/my-service/view/${existingApplication.myServiceId}`, // 👈 same page
+          }).catch(console.error);
+        }
       
         return res.json({ success: true, document: doc });
       }
