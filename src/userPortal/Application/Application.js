@@ -1793,7 +1793,7 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
         if (oldStatus !== status) {
           const application = await prisma.application.findUnique({
             where: { applicationId },
-            select: { userId: true },
+            select: { userId: true ,myServiceId:true},
           });
   
           if (application?.userId) {
@@ -1804,7 +1804,7 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
                   ? "Your step has been completed"
                   : `Step updated to ${status}`,
               userId: application.userId,
-              redirectUrl: `/my-service/view/${applicationId}`,
+              redirectUrl: `/my-service/view/${application.myServiceId}`,
             }).catch(console.error);
           }
         }
@@ -1898,7 +1898,7 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
       if (oldStatus !== status) {
         const application = await prisma.application.findUnique({
           where: { applicationId },
-          select: { userId: true },
+          select: { userId: true ,myServiceId:true},
         });
 
         if (application?.userId) {
@@ -1909,7 +1909,7 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
                 ? "A step has been completed"
                 : `Step updated to ${status}`,
             userId: application.userId,
-            redirectUrl: `/my-service/view/${applicationId}`,
+            redirectUrl: `/my-service/view/${application.myServiceId}`,
           }).catch(console.error);
         }
       }
@@ -1930,7 +1930,6 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
       });
     }
   });
-
 
 
 router.put("/user/upload-document/:documentId",myDocuments.single("file"), async (req, res) => {
@@ -2044,7 +2043,6 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
-
 
 
 router.post("/staff/document",myDocuments.single("file"),async (req, res) => {
