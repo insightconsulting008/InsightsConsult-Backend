@@ -1805,16 +1805,16 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
         if (oldStatus !== status) {
           const application = await prisma.application.findUnique({
             where: { applicationId },
-            select: { userId: true ,myServiceId:true},
+            select: { userId: true ,myServiceId:true,serviceName:true},
           });
   
           if (application?.userId) {
             createNotification({
-              title: "Step Updated",
+              title: `${serviceName} Application Updated `,
               description:
                 status === "COMPLETED"
-                  ? "Your step has been completed"
-                  : `Step updated to ${status}`,
+                  ? "Your Application has been completed"
+                  : `Application updated to ${status}`,
               userId: application.userId,
               redirectUrl: `/my-service/view/${application.myServiceId}`,
             }).catch(console.error);
