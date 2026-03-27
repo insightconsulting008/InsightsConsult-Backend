@@ -261,6 +261,18 @@ router.post("/create/amendment-link", async (req, res) => {
       },
     });
 
+      // 🔔 Notify USER (MAIN)
+      if (userId) {
+        createNotification({
+          title: "Payment Required",
+          description: `An amendment payment of ₹${amount} has been requested`,
+          userId: userId,
+          redirectUrl: paymentLink.short_url, // 👈 direct payment link but need to change let see 
+        }).catch(console.error);
+      }
+
+    
+
     return res.json({
       success: true,
       paymentLink: paymentLink.short_url,
