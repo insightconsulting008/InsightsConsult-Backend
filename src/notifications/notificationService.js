@@ -5,7 +5,7 @@ const createNotification = async ({
     description,
     userId = null,
     employeeId = null,
-    redirectUrl,
+    redirectUrl = null, 
   }) => {
     return await prisma.notification.create({
       data: {

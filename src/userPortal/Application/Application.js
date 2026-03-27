@@ -1375,30 +1375,78 @@ router.get("/applications", async (req, res) => {
         });
 
         /* 4️⃣ Log history (Assign or Reassign only) */
-        await logHistory({
-          applicationId,
-          action: oldEmployeeId
-            ? "APPLICATION_REASSIGNED"
-            : "APPLICATION_ASSIGNED",
-          oldValue: oldEmployeeId
-            ? `${oldEmployeeId} (${oldEmployeeName})`
-            : null,
-          newValue: `${newEmployee.employeeId} (${newEmployee.name})`,
-          doneByRole: "ADMIN",
-          doneById: req.user?.id || null,
-          message: oldEmployeeId
-            ? `Reassigned from ${oldEmployeeName} to ${newEmployee.name}`
-            : `Assigned to ${newEmployee.name}`,
-        });
+//         await logHistory({
+//           applicationId,
+//           action: oldEmployeeId
+//             ? "APPLICATION_REASSIGNED"
+//             : "APPLICATION_ASSIGNED",
+//           oldValue: oldEmployeeId
+//             ? `${oldEmployeeId} (${oldEmployeeName})`
+//             : null,
+//           newValue: `${newEmployee.employeeId} (${newEmployee.name})`,
+//           doneByRole: "ADMIN",
+//           doneById: req.user?.id || null,
+//           message: oldEmployeeId
+//             ? `Reassigned from ${oldEmployeeName} to ${newEmployee.name}`
+//             : `Assigned to ${newEmployee.name}`,
+//         });
 
-        // 🔔 Send Notification to Employee
-await createTestNotification({
-  title: "New Service Assigned",
-  description: "You have been assigned a new service request",
-  employeeId: newEmployee.employeeId,
-  redirectUrl: "/tasks",
+//         // 🔔 Send Notification to Employee
+// await createNotification({
+//   title: "New Service Assigned",
+//   description: "You have been assigned a new service request",
+//   employeeId: newEmployee.employeeId,
+//   redirectUrl: "/tasks",
+// });
+
+// await createNotification({
+//   title: "Service Update",
+//   description: isReassigned
+//     ? `Your request has been reassigned to ${newEmployee.name}`
+//     : `Your request has been assigned to ${newEmployee.name}`,
+//   userId: existingApplication.userId,
+//   redirectUrl: "/my-requests",
+// })
+
+const isReassigned = !!oldEmployeeId;
+
+// ✅ Log History (simple)
+await logHistory({
+  applicationId,
+  action: isReassigned
+    ? "APPLICATION_REASSIGNED"
+    : "APPLICATION_ASSIGNED",
+  oldValue: oldEmployeeId
+    ? `${oldEmployeeId} (${oldEmployeeName})`
+    : null,
+  newValue: `${newEmployee.employeeId} (${newEmployee.name})`,
+  doneByRole: "ADMIN",
+  doneById: req.user?.id || null,
+  message: isReassigned
+    ? `Reassigned from ${oldEmployeeName} to ${newEmployee.name}`
+    : `Assigned to ${newEmployee.name}`,
 });
 
+// 🔔 Notify Employee
+createNotification({
+  title: "New Service Assigned",
+  description: isReassigned
+    ? "A service request has been reassigned to you"
+    : "You have been assigned a new service request",
+  employeeId: newEmployee.employeeId,
+  redirectUrl: "/tasks",
+}).catch(console.error);
+
+// 🔔 Notify User
+if (existingApplication.userId) {
+  createNotification({
+    title: "Service Update",
+    description: isReassigned
+      ? `Your request has been reassigned to ${newEmployee.name}`
+      : `Your request has been assigned to ${newEmployee.name}`,
+    userId: existingApplication.userId,
+  }).catch(console.error);
+}
     
   
         res.json({
