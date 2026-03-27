@@ -2279,11 +2279,11 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
       select: {
         employeeId: true,
         myServiceId: true,
+        userId: true, // ✅ ADD
         employee: {
           select: {
             name: true,
           },
-        userId: true, // ✅ ADD
         },
       },
     });
