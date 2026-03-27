@@ -1912,10 +1912,28 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       include: {
         periodStep: {
           include: {
-            servicePeriod: true,
+            servicePeriod:{
+              include: {
+                application: {
+                  select: {
+                    applicationId: true,
+                    employeeId: true, // 👈 ADD THIS
+                  },
+                },
+              },
+            }
           },
         },
-        applicationTrackStep: true,
+        applicationTrackStep: {
+          include: {
+            application: {
+              select: {
+                applicationId: true,
+                employeeId: true, // 👈 ADD THIS
+              },
+            },
+          },
+        },
       },
     });
 
@@ -1930,9 +1948,12 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
     }
 
      // 🔥 Resolve applicationId correctly
-     const applicationId =
+     const applicationData =
      existing.periodStep?.servicePeriod?.applicationId ||
      existing.applicationTrackStep?.applicationId;
+
+     const applicationId = applicationData?.applicationId;
+     const employeeId = applicationData?.employeeId;
 
    if (!applicationId) {
      return res.status(400).json({
@@ -1985,6 +2006,16 @@ router.put("/user/upload-document/:documentId",myDocuments.single("file"), async
       doneById: application.userId || null,
       message: `User (${application?.user?.name}) uploaded document (v${doc.version})`,
     });
+
+    // 🔔 Notify Employee
+if (employeeId) {
+  createNotification({
+    title: "Document Uploaded",
+    description: `User uploaded ${existing.documentType}`,
+    employeeId,
+    redirectUrl: `/tasks/${applicationId}`,
+  }).catch(console.error);
+}
     
 
 
