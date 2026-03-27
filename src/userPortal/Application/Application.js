@@ -2278,10 +2278,12 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
       where: { applicationId },
       select: {
         employeeId: true,
+        myServiceId: true,
         employee: {
           select: {
             name: true,
           },
+        userId: true, // ✅ ADD
         },
       },
     });
@@ -2295,6 +2297,7 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
     
     const employeeId = application.employeeId;
     const employeeName = application.employee.name;
+    const myServiceId = application.myServiceId;
 
     const doc = await prisma.serviceDocument.update({
       where: { documentId },
@@ -2315,6 +2318,28 @@ router.put("/staff/review-document/:documentId", async (req, res) => {
       message: `Document ${status} by ${employeeName}`,
     });
 
+    // 🔔 Notify User
+if (application?.userId) {
+  createNotification({
+    title:
+      status === "VERIFIED"
+        ? "Document Verified"
+        : "Document Rejected",
+
+    description:
+      status === "VERIFIED"
+        ? `${existing.documentType} verified successfully`
+        : `${existing.documentType} rejected. ${remark || "Please re-upload"}`,
+
+    userId: application.userId,
+
+    // ✅ CONDITIONAL REDIRECT
+    redirectUrl:
+      status === "REJECTED"
+        ? `/my-service/view/${myServiceId}` // 👈 go fix document
+        : null, // 👈 normal page or dashboard
+  }).catch(console.error);
+}
 
     res.json({ success: true, document: doc });
   } catch (error) {
