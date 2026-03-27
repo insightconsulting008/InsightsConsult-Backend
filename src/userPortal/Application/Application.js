@@ -7,6 +7,7 @@ const{ authenticate,authorizeRoles } = require("../../authMiddleware/authMiddlew
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const {logHistory} = require("../../../src/utils/historyService")
+const {createTestNotification} = require("../../notifications/notificationController")
 
 
 // router.get("/users", async (req, res) => {
@@ -1389,6 +1390,14 @@ router.get("/applications", async (req, res) => {
             ? `Reassigned from ${oldEmployeeName} to ${newEmployee.name}`
             : `Assigned to ${newEmployee.name}`,
         });
+
+        // 🔔 Send Notification to Employee
+await createTestNotification({
+  title: "New Service Assigned",
+  description: "You have been assigned a new service request",
+  employeeId: newEmployee.employeeId,
+  redirectUrl: "/tasks",
+});
 
     
   

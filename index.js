@@ -22,7 +22,18 @@ const emailRoutes = require("././src/email/routes/emailRoutes");
 const notificationRoutes = require("./src/notifications/notificationRoutes");
 const {sendEmail} = require('./src/email/emailService')
 
-
+// const {
+//   EventBridgeClient,
+//   PutRuleCommand,
+//   PutTargetsCommand
+// } = require("@aws-sdk/client-eventbridge");
+// const client = new EventBridgeClient({
+//   region: process.env.AWS_REGION,
+//   credentials: {
+//     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+//     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+//   }
+// });
 
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(express.json());
@@ -68,6 +79,71 @@ app.use("/",contact)
 app.use("/",services)
 
 
+//amzon_event_bridge_api
+
+// app.post("/scheduler/create", async (req, res) => {
+//   const ruleName = "trigger-update-api";
+//   try {
+//     await client.send(new PutRuleCommand({
+//       Name: ruleName,
+//       ScheduleExpression: "rate(1 minute)",
+//       State: "ENABLED"
+//     }));
+
+//     await client.send(new PutTargetsCommand({
+//       Rule: ruleName,
+//       Targets: [
+//         {
+//           Id: "1",
+//           Arn: process.env.API_DESTINATION_ARN
+//         }
+//       ]
+//     }));
+
+//     res.json({ success: true, message: "Scheduler created (1 min)" });
+
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+// app.post("/api/update/trigger", async (req, res) => {
+//   try {
+//     // 🔐 Security check
+//     const secret = req.headers["x-secret-key"];
+
+//     if (secret !== process.env.SCHEDULER_SECRET) {
+//       return res.status(403).json({ message: "Unauthorized" });
+//     }
+
+//     // ✅ Test log
+//     console.log("🔥 AWS TRIGGER HIT", new Date());
+
+//     res.json({ success: true });
+
+//   } catch (err) {
+//     console.error("❌ Error:", err.message);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+// app.get("/cron-runner", (req, res) => {
+//   const authHeader = req.headers["authorization"];
+
+//   console.log("🔥 HIT:", new Date().toISOString());
+//   console.log("Auth Header:", authHeader);
+
+//   // ✅ Direct check (no env)
+//   if (authHeader !== "Bearer mysecret123") {
+//     console.log("❌ Unauthorized request");
+//     return res.status(401).json({ error: "Unauthorized" });
+//   }
+
+//   console.log("✅ Authorized EventBridge call");
+
+//   res.status(200).json({ success: true });
+// });
 
 
 /* =====================================================
@@ -81,22 +157,6 @@ const generateEmployeeCode = async () => {
 };
 
 /* -------------------- ROUTES -------------------- */
-app.get("/cron-runner", (req, res) => {
-  const authHeader = req.headers["authorization"];
-
-  console.log("🔥 HIT:", new Date().toISOString());
-  console.log("Auth Header:", authHeader);
-
-  // ✅ Direct check (no env)
-  if (authHeader !== "Bearer mysecret123") {
-    console.log("❌ Unauthorized request");
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
-  console.log("✅ Authorized EventBridge call");
-
-  res.status(200).json({ success: true });
-});
 
 /* =====================================================
    DEPARTMENT APIs
