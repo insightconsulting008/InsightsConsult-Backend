@@ -1789,6 +1789,26 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
           message: `Step changed from ${oldStatus} to ${status}`,
         });
 
+       
+        if (oldStatus !== status) {
+          const application = await prisma.application.findUnique({
+            where: { applicationId },
+            select: { userId: true },
+          });
+  
+          if (application?.userId) {
+            createNotification({
+              title: "Step Updated",
+              description:
+                status === "COMPLETED"
+                  ? "Your step has been completed"
+                  : `Step updated to ${status}`,
+              userId: application.userId,
+              redirectUrl: `/my-service/view/${applicationId}`,
+            }).catch(console.error);
+          }
+        }
+
       }
       
   
@@ -1873,6 +1893,26 @@ router.get("/staff/:employeeId/application/:applicationId", async (req, res) => 
           doneById: req.user?.id || null,
           message: `Period step changed from ${oldStatus} to ${status}`,
         });
+
+              // 🔔 Notification
+      if (oldStatus !== status) {
+        const application = await prisma.application.findUnique({
+          where: { applicationId },
+          select: { userId: true },
+        });
+
+        if (application?.userId) {
+          createNotification({
+            title: "Service Progress Updated",
+            description:
+              status === "COMPLETED"
+                ? "A step has been completed"
+                : `Step updated to ${status}`,
+            userId: application.userId,
+            redirectUrl: `/my-service/view/${applicationId}`,
+          }).catch(console.error);
+        }
+      }
        
       }
   
