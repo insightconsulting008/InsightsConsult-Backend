@@ -603,6 +603,7 @@ router.post("/razorpay/webhook", async (req, res) => {
     if (event.event === "payment_link.paid") {
       const paymentLinkId = event.payload.payment_link.entity.id;
       const paymentId = event.payload.payment.entity.id;
+      const orderId = event.payload.payment.entity.order_id;
       
       console.log(`Processing payment_link.paid for link: ${paymentLinkId}`);
       console.log(`Processing paymentId for link: ${paymentId}`);
@@ -611,7 +612,7 @@ router.post("/razorpay/webhook", async (req, res) => {
       let payment = await prisma.payment.findFirst({
         where: { 
           OR: [
-            { razorpayOrderId: paymentId },
+            { razorpayOrderId: orderId },
             { razorpayPaymentLink: paymentLinkId }
           ]
         }
