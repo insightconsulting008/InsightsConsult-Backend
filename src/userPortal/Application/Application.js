@@ -630,7 +630,7 @@ router.post("/razorpay/webhook", async (req, res) => {
         data: {
           status: "PAID",
           razorpayPaymentId: paymentId,
-          razorpayPaymentId: paymentLinkId,
+          razorpayPaymentLink: paymentLinkId,
           paidAt: new Date(),
         },
         include: {
@@ -647,11 +647,11 @@ router.post("/razorpay/webhook", async (req, res) => {
 
       console.log(`Payment ${updatePayment.paymentId} marked as PAID via payment link`);
 
-      if (updatedPayment.createdById) {
+      if (updatePayment.createdById) {
         createNotification({
           title: "Amendment Payment Received",
-          description: `Amendment payment of ₹${updatedPayment.amount} has been successfully completed by ${updatedPayment.user?.name || "External customer"}.`,
-          userId: updatedPayment.createdById,
+          description: `Amendment payment of ₹${updatePayment.amount} has been successfully completed by ${updatePayment.user?.name || "External customer"}.`,
+          userId: updatePayment.createdById,
         
           // 👇 Use this for button action
           redirectUrl:"/amendment",
