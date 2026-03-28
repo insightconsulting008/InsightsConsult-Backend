@@ -610,7 +610,7 @@ router.post("/razorpay/webhook", async (req, res) => {
       let payment = await prisma.payment.findFirst({
         where: { 
           OR: [
-            { razorpayOrderId: paymentLinkId },
+            { razorpayOrderId: paymentId },
             { razorpayPaymentLink: paymentLinkId }
           ]
         }
