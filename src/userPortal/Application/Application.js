@@ -612,7 +612,7 @@ router.post("/razorpay/webhook", async (req, res) => {
         where: { 
           OR: [
             { razorpayOrderId: paymentLinkId },
-            { razorpayPaymentLink: paymentLinkId }
+            { razorpayPaymentId: paymentId }
           ]
         }
       });
@@ -633,12 +633,31 @@ router.post("/razorpay/webhook", async (req, res) => {
           razorpayPaymentLink: paymentLinkId,
           paidAt: new Date(),
         },
+        include: {
+          user: {
+            select: {
+              name: true
+            }
+          }
+        }
       });
 
       
       console.log(updatePayment,":jaromjery")
 
       console.log(`Payment ${updatePayment.paymentId} marked as PAID via payment link`);
+
+      if (updatedPayment.createdById) {
+        createNotification({
+          title: "Amendment Payment Received",
+          description: `Amendment payment of ₹${updatedPayment.amount} has been successfully completed by ${updatedPayment.user?.name || "External customer"}.`,
+          userId: updatedPayment.createdById,
+        
+          // 👇 Use this for button action
+          redirectUrl:"/amendment",
+        
+        }).catch(console.error);
+      }
       
 
       // // Handle AMENDMENT type payments
@@ -686,60 +705,60 @@ router.post("/razorpay/webhook", async (req, res) => {
     /* ===============================
        PAYMENT FAILED
     =============================== */
-    if (event.event === "payment.failed") {
-      const orderId = event.payload.payment.entity.order_id;
-      const errorDesc = event.payload.payment.entity.error_description;
-      const errorCode = event.payload.payment.entity.error_code;
+    // if (event.event === "payment.failed") {
+    //   const orderId = event.payload.payment.entity.order_id;
+    //   const errorDesc = event.payload.payment.entity.error_description;
+    //   const errorCode = event.payload.payment.entity.error_code;
       
-      console.log(`Payment failed for order: ${orderId}, Error: ${errorCode}`);
+    //   console.log(`Payment failed for order: ${orderId}, Error: ${errorCode}`);
 
-      await prisma.payment.update({
-        where: { razorpayOrderId: orderId },
-        data: { 
-          status: "FAILED",
-          errorDescription: errorDesc,
-          errorCode: errorCode
-        },
-      });
-    }
+    //   await prisma.payment.update({
+    //     where: { razorpayOrderId: orderId },
+    //     data: { 
+    //       status: "FAILED",
+    //       errorDescription: errorDesc,
+    //       errorCode: errorCode
+    //     },
+    //   });
+    // }
 
-    /* ===============================
-       PAYMENT LINK EXPIRED
-    =============================== */
-    if (event.event === "payment_link.expired") {
-      const paymentLinkId = event.payload.payment_link.entity.id;
+    // /* ===============================
+    //    PAYMENT LINK EXPIRED
+    // =============================== */
+    // if (event.event === "payment_link.expired") {
+    //   const paymentLinkId = event.payload.payment_link.entity.id;
       
-      console.log(`Payment link expired: ${paymentLinkId}`);
+    //   console.log(`Payment link expired: ${paymentLinkId}`);
 
-      await prisma.payment.updateMany({
-        where: { 
-          OR: [
-            { razorpayOrderId: paymentLinkId },
-            { razorpayPaymentLink: paymentLinkId }
-          ]
-        },
-        data: { status: "EXPIRED" },
-      });
-    }
+    //   await prisma.payment.updateMany({
+    //     where: { 
+    //       OR: [
+    //         { razorpayOrderId: paymentLinkId },
+    //         { razorpayPaymentLink: paymentLinkId }
+    //       ]
+    //     },
+    //     data: { status: "EXPIRED" },
+    //   });
+    // }
 
-    /* ===============================
-       PAYMENT LINK CANCELLED
-    =============================== */
-    if (event.event === "payment_link.cancelled") {
-      const paymentLinkId = event.payload.payment_link.entity.id;
+    // /* ===============================
+    //    PAYMENT LINK CANCELLED
+    // =============================== */
+    // if (event.event === "payment_link.cancelled") {
+    //   const paymentLinkId = event.payload.payment_link.entity.id;
       
-      console.log(`Payment link cancelled: ${paymentLinkId}`);
+    //   console.log(`Payment link cancelled: ${paymentLinkId}`);
 
-      await prisma.payment.updateMany({
-        where: { 
-          OR: [
-            { razorpayOrderId: paymentLinkId },
-            { razorpayPaymentLink: paymentLinkId }
-          ]
-        },
-        data: { status: "CANCELLED" },
-      });
-    }
+    //   await prisma.payment.updateMany({
+    //     where: { 
+    //       OR: [
+    //         { razorpayOrderId: paymentLinkId },
+    //         { razorpayPaymentLink: paymentLinkId }
+    //       ]
+    //     },
+    //     data: { status: "CANCELLED" },
+    //   });
+    // }
 
     res.json({ received: true });
 
