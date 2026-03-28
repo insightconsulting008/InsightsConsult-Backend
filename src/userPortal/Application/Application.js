@@ -625,12 +625,12 @@ router.post("/razorpay/webhook", async (req, res) => {
       }
 
       // Update payment record
-      updatePayment = await prisma.payment.update({
+    const  updatePayment = await prisma.payment.update({
         where: { paymentId: payment.paymentId },
         data: {
           status: "PAID",
           razorpayPaymentId: paymentId,
-          razorpayPaymentLink: paymentLinkId,
+          razorpayPaymentId: paymentLinkId,
           paidAt: new Date(),
         },
         include: {
