@@ -603,22 +603,21 @@ router.post("/razorpay/webhook", async (req, res) => {
     if (event.event === "payment_link.paid") {
       const paymentLinkId = event.payload.payment_link.entity.id;
       const paymentId = event.payload.payment.entity.id;
-      const orderId = event.payload.payment.entity.order_id;
       
       console.log(`Processing payment_link.paid for link: ${paymentLinkId}`);
-      console.log(`Processing paymentId for link: ${paymentId}`);
+      console.log(`Processing payment for link: ${paymentId}`);
 
       // Find payment by either order_id or payment_link_id
       let payment = await prisma.payment.findFirst({
         where: { 
           OR: [
-            { razorpayOrderId: orderId },
+            { razorpayOrderId: paymentLinkId },
             { razorpayPaymentLink: paymentLinkId }
           ]
         }
       });
 
-      console.log(payment,"ex")
+      console.log(payment,":jaromjery")
 
       if (!payment) {
         console.log(`Payment not found for link: ${paymentLinkId}`);
@@ -626,7 +625,7 @@ router.post("/razorpay/webhook", async (req, res) => {
       }
 
       // Update payment record
-      const updatedPayment = await prisma.payment.update({
+      updatePayment = await prisma.payment.update({
         where: { paymentId: payment.paymentId },
         data: {
           status: "PAID",
@@ -634,35 +633,13 @@ router.post("/razorpay/webhook", async (req, res) => {
           razorpayPaymentLink: paymentLinkId,
           paidAt: new Date(),
         },
-        include: {
-          user: {
-            select: {
-              name: true
-            }
-          }
-        }
       });
 
-      console.log(updatedPayment)
+      
+      console.log(updatePayment,":jaromjery")
 
-      console.log(`Payment ${updatedPayment.paymentId} marked as PAID via payment link`);
-
-      if (updatedPayment.createdById) {
-        createNotification({
-          title: "Amendment Payment Received",
-          description: `Amendment payment of ₹${updatedPayment.amount} has been successfully completed by ${updatedPayment.user?.name || "External customer"}.`,
-          userId: updatedPayment.createdById,
-        
-          // 👇 Use this for button action
-          redirectUrl:"/amendment",
-        
-          // 👇 OPTIONAL (Recommended for frontend control)
-          meta: {
-            cta: {
-              label: "Paid",            },
-          },
-        }).catch(console.error);
-      }
+      console.log(`Payment ${updatePayment.paymentId} marked as PAID via payment link`);
+      
 
       // // Handle AMENDMENT type payments
       // if (payment.type === "AMENDMENT") {
