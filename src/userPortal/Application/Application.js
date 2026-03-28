@@ -630,7 +630,6 @@ router.post("/razorpay/webhook", async (req, res) => {
         data: {
           status: "PAID",
           razorpayPaymentId: paymentId,
-          razorpayPaymentLink: paymentLinkId,
           paidAt: new Date(),
         },
         include: {
