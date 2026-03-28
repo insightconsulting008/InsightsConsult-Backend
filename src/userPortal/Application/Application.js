@@ -651,7 +651,7 @@ router.post("/razorpay/webhook", async (req, res) => {
         createNotification({
           title: "Amendment Payment Received",
           description: `Amendment payment of ₹${updatePayment.amount} has been successfully completed by ${updatePayment.user?.name || "External customer"}.`,
-          userId: updatePayment.createdById,
+          employeeId: updatePayment.createdById,
         
           // 👇 Use this for button action
           redirectUrl:"/amendment",
