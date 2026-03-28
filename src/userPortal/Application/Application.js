@@ -626,7 +626,7 @@ router.post("/razorpay/webhook", async (req, res) => {
       }
 
       // Update payment record
-      payment = await prisma.payment.update({
+      const updatedPayment = await prisma.payment.update({
         where: { paymentId: payment.paymentId },
         data: {
           status: "PAID",
@@ -643,15 +643,15 @@ router.post("/razorpay/webhook", async (req, res) => {
         }
       });
 
-      console.log(update)
+      console.log(updatedPayment)
 
-      console.log(`Payment ${payment.paymentId} marked as PAID via payment link`);
+      console.log(`Payment ${updatedPayment.paymentId} marked as PAID via payment link`);
 
-      if (payment.createdById) {
+      if (updatedPayment.createdById) {
         createNotification({
           title: "Amendment Payment Received",
-          description: `Amendment payment of ₹${payment.amount} has been successfully completed by ${payment.user?.name || "External customer"}.`,
-          userId: payment.createdById,
+          description: `Amendment payment of ₹${updatedPayment.amount} has been successfully completed by ${updatedPayment.user?.name || "External customer"}.`,
+          userId: updatedPayment.createdById,
         
           // 👇 Use this for button action
           redirectUrl:"/amendment",
