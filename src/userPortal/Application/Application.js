@@ -669,17 +669,19 @@ router.post("/razorpay/webhook", async (req, res) => {
           redirectUrl:"/amendment",
         
         }).catch(console.error);
+
+        if (updatePayment.userId) {
+          createNotification({
+            title: "Payment Successful",
+            description: `Your amendment payment of ₹${updatePayment.amount} has been successfully completed.`,
+            userId: updatePayment.userId,
+            redirectUrl: "/transactions", // you can change this
+          }).catch(console.error);
       }
 
 
       // ✅ Notify User
-if (updatePayment.userId) {
-  createNotification({
-    title: "Payment Successful",
-    description: `Your amendment payment of ₹${updatePayment.amount} has been successfully completed.`,
-    userId: updatePayment.userId,
-    redirectUrl: "/transactions", // you can change this
-  }).catch(console.error);
+
       
 
       // // Handle AMENDMENT type payments
