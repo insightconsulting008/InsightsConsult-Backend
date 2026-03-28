@@ -630,19 +630,32 @@ router.post("/razorpay/webhook", async (req, res) => {
           razorpayPaymentLink: paymentLinkId,
           paidAt: new Date(),
         },
+        include: {
+          user: {
+            select: {
+              name: true
+            }
+          }
+        }
       });
 
       console.log(`Payment ${payment.paymentId} marked as PAID via payment link`);
 
       if (payment.createdById) {
-        await prisma.notification.create({
-          data: {
-            userId: payment.createdById,
-            title: "Amendment Payment Received",
-            message: `Amendment payment of ₹${payment.amount} has been successfully paid.`,
-            type: "AMENDMENT",
-          }
-        });
+        createNotification({
+          title: "Amendment Payment Received",
+          description: `Amendment payment of ₹${payment.amount} has been successfully completed by ${payment.user?.name || "External customer"}.`,
+          userId: payment.createdById,
+        
+          // 👇 Use this for button action
+          redirectUrl:"/amendment",
+        
+          // 👇 OPTIONAL (Recommended for frontend control)
+          meta: {
+            cta: {
+              label: "Paid",            },
+          },
+        }).catch(console.error);
       }
 
       // // Handle AMENDMENT type payments
