@@ -605,6 +605,7 @@ router.post("/razorpay/webhook", async (req, res) => {
       const paymentId = event.payload.payment.entity.id;
       
       console.log(`Processing payment_link.paid for link: ${paymentLinkId}`);
+      console.log(`Processing paymentId for link: ${paymentId}`);
 
       // Find payment by either order_id or payment_link_id
       let payment = await prisma.payment.findFirst({
@@ -615,6 +616,8 @@ router.post("/razorpay/webhook", async (req, res) => {
           ]
         }
       });
+
+      console.log(payment,"ex")
 
       if (!payment) {
         console.log(`Payment not found for link: ${paymentLinkId}`);
@@ -638,6 +641,8 @@ router.post("/razorpay/webhook", async (req, res) => {
           }
         }
       });
+
+      console.log(update)
 
       console.log(`Payment ${payment.paymentId} marked as PAID via payment link`);
 
