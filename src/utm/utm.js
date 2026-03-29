@@ -469,14 +469,14 @@ const generateUTMLink = ({
   
       await prisma.clickLog.create({
         data: {
-          shortLinkId: link.id,
+          shortLinkId: link.shortLinkId,
           ip: req.ip,
           userAgent: req.headers["user-agent"],
         },
       });
   
       await prisma.shortLink.update({
-        where: { id: link.id },
+        where: { shortLinkId: link.shortLinkId },
         data: {
           clicks: { increment: 1 },
         },
