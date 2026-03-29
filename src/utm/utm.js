@@ -423,7 +423,7 @@ const generateUTMLink = ({
       res.json({
         success: true,
         utmCampaign,
-        shortUrl: `https://insightconsultancy.netlify.app/u/${code}`,
+        shortUrl: `https://insightsconsult-backend.onrender.com/u/${code}`,
       });
     } catch (err) {
       res.status(500).json({ error: err.message });
