@@ -470,7 +470,9 @@ const generateUTMLink = ({
       await prisma.clickLog.create({
         data: {
           shortLinkId: link.shortLinkId,
-          ip: req.ip,
+          ip:      req.headers["x-forwarded-for"]?.split(",")[0] ||
+          req.socket?.remoteAddress ||
+          req.ip,
           userAgent: req.headers["user-agent"],
         },
       });
