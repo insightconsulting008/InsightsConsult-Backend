@@ -21,6 +21,7 @@ const googleAuth = require("./src/utils/googleSignup")
 const emailRoutes = require("././src/email/routes/emailRoutes");
 const notificationRoutes = require("./src/notifications/notificationRoutes");
 const {sendEmail} = require('./src/email/emailService')
+const utm = require('./src/utm/utm')
 
 // const {
 //   EventBridgeClient,
@@ -77,6 +78,7 @@ app.use("/", settings)
 app.use("/", blogs)
 app.use("/",contact)
 app.use("/",services)
+app.use("/",utm)
 
 
 //amzon_event_bridge_api
