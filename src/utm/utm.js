@@ -370,7 +370,7 @@ const generateUTMLink = ({
   /* =====================================================
      🚀 CREATE UTM + SHORT LINK
   ===================================================== */
-  app.post("/admin/utm/create", async (req, res) => {
+  router.post("/admin/utm/create", async (req, res) => {
     try {
       const {
         name,
@@ -433,7 +433,7 @@ const generateUTMLink = ({
   /* =====================================================
      🔗 CREATE SHORT LINK (OPTIONAL)
   ===================================================== */
-  app.post("/short-link", async (req, res) => {
+  router.post("/short-link", async (req, res) => {
     try {
       const { fullUrl } = req.body;
   
@@ -459,7 +459,7 @@ const generateUTMLink = ({
   /* =====================================================
      🔥 REDIRECT + CLICK TRACK
   ===================================================== */
-  app.get("/u/:code", async (req, res) => {
+  router.get("/u/:code", async (req, res) => {
     try {
       const link = await prisma.shortLink.findUnique({
         where: { code: req.params.code },
@@ -494,7 +494,7 @@ const generateUTMLink = ({
   ===================================================== */
   
   // Campaign analytics
-  app.get("/analytics/campaign", async (req, res) => {
+  router.get("/analytics/campaign", async (req, res) => {
     const data = await prisma.payment.groupBy({
       by: ["utmCampaign"],
       _sum: { amount: true },
@@ -505,7 +505,7 @@ const generateUTMLink = ({
   });
   
   // Influencer analytics
-  app.get("/analytics/ref", async (req, res) => {
+  router.get("/analytics/ref", async (req, res) => {
     const data = await prisma.payment.groupBy({
       by: ["refCode"],
       _sum: { amount: true },
