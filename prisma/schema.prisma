@@ -10,6 +10,45 @@ datasource db {
   // directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
+model UtmCampaign {
+  utmId        String   @id @default(cuid())
+  name         String
+  baseUrl      String
+
+  source       String
+  medium       String
+  campaign     String
+  content      String?
+  term         String?
+
+  refCode      String?   // 🔥 influencer support
+
+  fullUrl      String
+  createdAt DateTime @default(now())
+}
+
+model ShortLink {
+  shortLinkId        String   @id @default(cuid())
+  code      String   @unique
+  fullUrl   String
+  clicks    Int      @default(0)
+
+  createdAt DateTime @default(now())
+  clickLog ClickLog[]
+}
+
+model ClickLog {
+  ClickLogId          String   @id @default(cuid())
+
+  ip          String?
+  userAgent   String?
+
+  shortLinkId         String
+  shortLink           ShortLink @relation(fields: [shortLinkId], references: [shortLinkId])
+
+  createdAt   DateTime @default(now())
+}
+
 model FormSubmission {
   formSubmissionId String      @id @default(cuid())
   formType         String   // enquiry | contact
@@ -150,6 +189,13 @@ model User {
 
   photoUrl    String?
 
+
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+  utmTerm     String?
+  refCode     String?
 
   // 🔐 Password Reset
   resetToken        String?
