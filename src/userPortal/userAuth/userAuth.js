@@ -14,7 +14,7 @@ const {sendEmail} = require("../../email/emailService")
 ===================================================== */
 
 const generateAccessToken = (payload) =>
-  jwt.sign(payload, config.ACCESS_SECRET, { expiresIn: "15min" });
+  jwt.sign(payload, config.ACCESS_SECRET, { expiresIn: "1d" });
 
 const generateRefreshToken = (payload) =>
   jwt.sign(payload, config.REFRESH_SECRET, { expiresIn: "7d" });
