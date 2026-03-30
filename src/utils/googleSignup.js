@@ -10,7 +10,7 @@ const config = require("../utils/config")
 ===================================================== */
 
 const generateAccessToken = (payload) =>
-    jwt.sign(payload, config.ACCESS_SECRET, { expiresIn: "15min" });
+    jwt.sign(payload, config.ACCESS_SECRET, { expiresIn: "1d" });
   
   const generateRefreshToken = (payload) =>
     jwt.sign(payload, config.REFRESH_SECRET, { expiresIn: "7d" });
@@ -21,7 +21,12 @@ const generateAccessToken = (payload) =>
 
 router.post("/user/google-auth", async (req, res) => {
   try {
-    const { token } = req.body;
+    const { token,   utmSource,
+      utmMedium,
+      utmCampaign,
+      utmContent,
+      utmTerm,
+      refCode } = req.body;
 
     if (!token) {
       return res.status(400).json({
@@ -52,6 +57,12 @@ router.post("/user/google-auth", async (req, res) => {
           photoUrl: picture,
           provider: "GOOGLE",
           providerId: sub,
+          utmSource,
+          utmMedium,
+          utmCampaign,
+          utmContent,
+          utmTerm,
+          refCode,
         },
       });
     }

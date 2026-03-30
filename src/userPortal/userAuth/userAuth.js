@@ -27,7 +27,12 @@ const generateRefreshToken = (payload) =>
 
 router.post("/user/register", async (req, res) => {
   try {
-    const { name, email, phoneNumber, password } = req.body;
+    const { name, email, phoneNumber, password , utmSource,
+      utmMedium,
+      utmCampaign,
+      utmContent,
+      utmTerm,
+      refCode,} = req.body;
 
     // 1️⃣ Validate input
     if (!name || !email || !phoneNumber || !password) {
@@ -52,7 +57,12 @@ router.post("/user/register", async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { name, email, phoneNumber, password: hashed },
+      data: { name, email, phoneNumber, password: hashed , utmSource,
+        utmMedium,
+        utmCampaign,
+        utmContent,
+        utmTerm,
+        refCode,},
     });
 
     const accessToken = generateAccessToken({
