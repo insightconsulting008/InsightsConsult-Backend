@@ -1,6 +1,0 @@
--- AlterTable
-ALTER TABLE "Service" ALTER COLUMN "duration" SET DATA TYPE TEXT,
-ALTER COLUMN "finalIndividualPrice" SET DATA TYPE TEXT,
-ALTER COLUMN "gstPercentage" SET DATA TYPE TEXT,
-ALTER COLUMN "individualPrice" SET DATA TYPE TEXT,
-ALTER COLUMN "offerPrice" SET DATA TYPE TEXT;

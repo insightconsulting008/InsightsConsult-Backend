@@ -27,7 +27,12 @@ const generateRefreshToken = (payload) =>
 
 router.post("/user/register", async (req, res) => {
   try {
-    const { name, email, phoneNumber, password } = req.body;
+    const { name, email, phoneNumber, password , utmSource,
+      utmMedium,
+      utmCampaign,
+      utmContent,
+      utmTerm,
+      refCode,} = req.body;
 
     // 1️⃣ Validate input
     if (!name || !email || !phoneNumber || !password) {
@@ -36,6 +41,17 @@ router.post("/user/register", async (req, res) => {
         message: "All fields are required",
       });
     }
+
+    let utmCampaignId = null;
+
+if (utmCampaign) {
+  const campaignData = await prisma.utmCampaign.findUnique({
+    where: { campaign: utmCampaign },
+    select: { utmCampaignId: true },
+  });
+
+  utmCampaignId = campaignData?.utmCampaignId || null;
+}
 
       // 2️⃣ Check if user already exists
       const existingUser = await prisma.user.findUnique({
@@ -49,10 +65,20 @@ router.post("/user/register", async (req, res) => {
         });
       }
 
+      
+
     const hashed = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { name, email, phoneNumber, password: hashed },
+      data: { name, email, phoneNumber, password: hashed , // ✅ Save only if exists, else null
+        utmSource: utmSource || null,
+        utmMedium: utmMedium || null,
+        utmCampaign: utmCampaign || null,
+        utmContent: utmContent || null,
+        utmTerm: utmTerm || null,
+        refCode: refCode || null,
+        // ✅ relation
+        utmCampaignId: utmCampaignId || null,},
     });
 
     const accessToken = generateAccessToken({
