@@ -65,6 +65,8 @@ if (utmCampaign) {
         });
       }
 
+      
+
     const hashed = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
