@@ -42,6 +42,17 @@ router.post("/user/register", async (req, res) => {
       });
     }
 
+    let utmCampaignId = null;
+
+if (utmCampaign) {
+  const campaignData = await prisma.utmCampaign.findUnique({
+    where: { campaign: utmCampaign },
+    select: { utmCampaignId: true },
+  });
+
+  utmCampaignId = campaignData?.utmCampaignId || null;
+}
+
       // 2️⃣ Check if user already exists
       const existingUser = await prisma.user.findUnique({
         where: { email },
@@ -57,12 +68,16 @@ router.post("/user/register", async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { name, email, phoneNumber, password: hashed , utmSource,
-        utmMedium,
-        utmCampaign,
-        utmContent,
-        utmTerm,
-        refCode,},
+      data: { name, email, phoneNumber, password: hashed , // ✅ Save only if exists, else null
+        utmSource: utmSource || null,
+        utmMedium: utmMedium || null,
+        utmCampaign: utmCampaign || null,
+        utmContent: utmContent || null,
+        utmTerm: utmTerm || null,
+        refCode: refCode || null,
+    
+        // ✅ relation
+        utmCampaignId: utmCampaignId || null,},
     });
 
     const accessToken = generateAccessToken({
