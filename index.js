@@ -331,6 +331,57 @@ app.delete("/department/:departmentId", async (req, res) => {
    EMPLOYEE APIs
 ===================================================== */
 
+
+
+app.post("/setup/admin", async (req, res) => {
+  try {
+    const { name, email, password, mobileNumber,profilePassword } = req.body;
+
+    // 🔒 Check if admin already exists
+    const existingAdmin = await prisma.employee.findFirst({
+      where: { email },
+    });
+
+    if (existingAdmin) {
+      return res.status(400).json({
+        success: false,
+        message: "Admin already created. Setup locked.",
+      });
+    }
+
+    const employeeCode = await generateEmployeeCode();
+
+    const admin = await prisma.employee.create({
+      data: {
+        name,
+        email,
+        password,
+        mobileNumber,
+        employeeCode,
+        profilePassword,
+        role: "ADMIN",
+        designation: "Owner",
+        status: "ACTIVE",
+        departmentId: null, // 👈 no department
+        isFirstLogin: false,
+        inviteStatus: "ACCEPTED",
+      },
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Admin created successfully",
+      data: admin,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
 /** ✅ Create Employee  **/
   app.post("/employee", profileUpload.single('photoUrl'), async (req, res) => {
     try {

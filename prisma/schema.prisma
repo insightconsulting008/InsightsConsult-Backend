@@ -284,6 +284,8 @@ model Department {
   Employee       Employee[]
 }
 
+
+
 model Employee {
   employeeId   String         @id @unique @default(cuid())
   employeeCode String?  @unique
@@ -300,8 +302,8 @@ model Employee {
   designation  String
   status       EmployeeStatus @default(ACTIVE)
   photoUrl     String?
-  departmentId String
-  department   Department     @relation(fields: [departmentId], references: [departmentId])
+  departmentId String?
+  department   Department?    @relation(fields: [departmentId], references: [departmentId])
   service Service[]
   application Application[]
 
