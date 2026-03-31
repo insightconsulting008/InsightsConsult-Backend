@@ -41,7 +41,7 @@ model ShortLink {
 }
 
 model ClickLog {
-  ClickLogId          String   @id @default(cuid())
+  clickLogId          String   @id @default(cuid())
 
   ip          String?
   userAgent   String?

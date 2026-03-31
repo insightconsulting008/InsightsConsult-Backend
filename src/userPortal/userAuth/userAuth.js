@@ -75,7 +75,6 @@ if (utmCampaign) {
         utmContent: utmContent || null,
         utmTerm: utmTerm || null,
         refCode: refCode || null,
-    
         // ✅ relation
         utmCampaignId: utmCampaignId || null,},
     });
