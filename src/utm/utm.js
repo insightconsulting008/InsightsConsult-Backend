@@ -299,37 +299,7 @@ const crypto = require("crypto");
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
 
 
-/* =====================================================
-   🔥 UTM LINK GENERATOR
-===================================================== */
-const generateUTMLink = ({
-    baseUrl,
-    source,
-    medium,
-    campaign,
-    content,
-    term,
-    refCode,
-  }) => {
-    const url = new URL(baseUrl);
-  
-    url.searchParams.append("utm_source", source);
-    url.searchParams.append("utm_medium", medium);
-    url.searchParams.append("utm_campaign", campaign);
-  
-    if (content) url.searchParams.append("utm_content", content);
-    if (term) url.searchParams.append("utm_term", term);
-    if (refCode) url.searchParams.append("ref", refCode);
-  
-    return url.toString();
-  };
-  
-  /* =====================================================
-     🔥 SECURE SHORT CODE GENERATOR
-  ===================================================== */
-  const generateCode = () => {
-    return crypto.randomBytes(3).toString("hex"); // 6 chars
-  };
+
   
   /* =====================================================
      🔥 ENSURE UNIQUE CODE
@@ -366,11 +336,40 @@ const generateUTMLink = ({
     req.tracking = { utmData, refCode };
     next();
   };
+
   
-  /* =====================================================
-     🚀 CREATE UTM + SHORT LINK
-  ===================================================== */
-  router.post("/admin/utm/create", async (req, res) => {
+  /* =========================
+     🔥 SLUG FUNCTION
+  ========================= */
+  const slugify = (text) => {
+    return text.toLowerCase().trim().replace(/\s+/g, "-");
+  };
+  
+  /* =========================
+     🔥 UTM LINK GENERATOR
+  ========================= */
+  const generateUTMLink = ({
+    baseUrl,
+    source,
+    medium,
+    campaign,
+    content,
+    term,
+    refCode,
+  }) => {
+    let url = `${baseUrl}?utm_source=${source}&utm_medium=${medium}&utm_campaign=${campaign}`;
+  
+    if (content) url += `&utm_content=${content}`;
+    if (term) url += `&utm_term=${term}`;
+    if (refCode) url += `&refCode=${refCode}`;
+  
+    return url;
+  };
+  
+  /* =========================
+     🚀 CREATE UTM CAMPAIGN
+  ========================= */
+  router.post("/api/admin/utm/create", async (req, res) => {
     try {
       const {
         name,
@@ -383,27 +382,48 @@ const generateUTMLink = ({
         refCode,
       } = req.body;
   
+      // ✅ validation
       if (!name || !baseUrl || !source || !medium || !campaign) {
         return res.status(400).json({ error: "Missing required fields" });
       }
   
+      // 🔥 STEP 1: SLUG
+      let baseSlug = slugify(campaign);
+      let finalSlug = baseSlug;
+  
+      let count = 1;
+  
+      // 🔥 STEP 2: UNIQUE (increment)
+      while (true) {
+        const exists = await prisma.utmCampaign.findUnique({
+          where: { campaign: finalSlug },
+        });
+  
+        if (!exists) break;
+  
+        finalSlug = `${baseSlug}-${count}`;
+        count++;
+      }
+  
+      // 🔥 STEP 3: GENERATE LINK
       const fullUrl = generateUTMLink({
         baseUrl,
         source,
         medium,
-        campaign,
+        campaign: finalSlug,
         content,
         term,
         refCode,
       });
   
+      // 🔥 STEP 4: SAVE
       const utmCampaign = await prisma.utmCampaign.create({
         data: {
           name,
           baseUrl,
           source,
           medium,
-          campaign,
+          campaign: finalSlug,
           content,
           term,
           refCode,
@@ -411,84 +431,124 @@ const generateUTMLink = ({
         },
       });
   
-      const code = await generateUniqueCode();
-  
-      await prisma.shortLink.create({
-        data: {
-          code,
-          fullUrl,
-        },
-      });
-  
+      // ✅ RESPONSE
       res.json({
         success: true,
         utmCampaign,
-        shortUrl: `https://insightsconsult-backend.onrender.com/u/${code}`,
+        fullUrl,
       });
+  
     } catch (err) {
+      console.error(err);
       res.status(500).json({ error: err.message });
     }
   });
   
+  router.get("/api/admin/utm/all", async (req, res) => {
+    try {
+      const utmCampaigns = await prisma.utmCampaign.findMany();
+  
+      res.json({
+        success: true,
+        data: utmCampaigns,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        error: "Something went wrong",
+      });
+    }
+  });
+
+
+  router.get("/api/admin/utm/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      const utmCampaign = await prisma.utmCampaign.findUnique({
+        where: {
+          utmCampaignId: id,
+        },
+      });
+  
+      if (!utmCampaign) {
+        return res.status(404).json({
+          error: "UTM Campaign not found",
+        });
+      }
+  
+      res.json({
+        success: true,
+        data: utmCampaign,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        error: "Something went wrong",
+      });
+    }
+  });
+
+
   /* =====================================================
      🔗 CREATE SHORT LINK (OPTIONAL)
   ===================================================== */
-  router.post("/short-link", async (req, res) => {
-    try {
-      const { fullUrl } = req.body;
+  // router.post("/short-link", async (req, res) => {
+  //   try {
+  //     const { fullUrl } = req.body;
   
-      if (!fullUrl) {
-        return res.status(400).json({ error: "fullUrl is required" });
-      }
+  //     if (!fullUrl) {
+  //       return res.status(400).json({ error: "fullUrl is required" });
+  //     }
   
-      const code = await generateUniqueCode();
+  //     const code = await generateUniqueCode();
   
-      const link = await prisma.shortLink.create({
-        data: { code, fullUrl },
-      });
+  //     const link = await prisma.shortLink.create({
+  //       data: { code, fullUrl },
+  //     });
   
-      res.json({
-        shortUrl: `http://localhost:5000/u/${code}`,
-        link,
-      });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  });
+  //     res.json({
+  //       shortUrl: `http://localhost:5000/u/${code}`,
+  //       link,
+  //     });
+  //   } catch (err) {
+  //     res.status(500).json({ error: err.message });
+  //   }
+  // });
   
-  /* =====================================================
-     🔥 REDIRECT + CLICK TRACK
-  ===================================================== */
-  router.get("/u/:code", async (req, res) => {
-    try {
-      const link = await prisma.shortLink.findUnique({
-        where: { code: req.params.code },
-      });
+  // /* =====================================================
+  //    🔥 REDIRECT + CLICK TRACK
+  // ===================================================== */
+  // router.get("/u/:code", async (req, res) => {
+  //   try {
+  //     const link = await prisma.shortLink.findUnique({
+  //       where: { code: req.params.code },
+  //     });
   
-      if (!link) return res.status(404).send("Not found");
+  //     if (!link) return res.status(404).send("Not found");
   
-      await prisma.clickLog.create({
-        data: {
-          shortLinkId: link.shortLinkId,
-          ip:      req.headers["x-forwarded-for"]?.split(",")[0] ||
-          req.socket?.remoteAddress ||
-          req.ip,
-          userAgent: req.headers["user-agent"],
-        },
-      });
+  //     await prisma.clickLog.create({
+  //       data: {
+  //         shortLinkId: link.shortLinkId,
+  //         ip:      req.headers["x-forwarded-for"]?.split(",")[0] ||
+  //         req.socket?.remoteAddress ||
+  //         req.ip,
+  //         userAgent: req.headers["user-agent"],
+  //       },
+  //     });
   
-      await prisma.shortLink.update({
-        where: { shortLinkId: link.shortLinkId },
-        data: {
-          clicks: { increment: 1 },
-        },
-      });
+  //     await prisma.shortLink.update({
+  //       where: { shortLinkId: link.shortLinkId },
+  //       data: {
+  //         clicks: { increment: 1 },
+  //       },
+  //     });
   
-      res.redirect(link.fullUrl);
-    } catch (err) {
-      res.status(500).send(err.message);
-    }
-  });
+  //     res.redirect(link.fullUrl);
+  //   } catch (err) {
+  //     res.status(500).send(err.message);
+  //   }
+  // });
   
 
   /* =====================================================

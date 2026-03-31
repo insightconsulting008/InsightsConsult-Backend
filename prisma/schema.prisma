@@ -11,17 +11,20 @@ datasource db {
 }
 
 model UtmCampaign {
-  utmId        String   @id @default(cuid())
+  utmCampaignId        String   @id @default(cuid())
   name         String
   baseUrl      String
 
   source       String
   medium       String
-  campaign     String
+  campaign     String @unique
   content      String?
   term         String?
 
   refCode      String?   // 🔥 influencer support
+
+  payment Payment[]
+  user User[]
 
   fullUrl      String
   createdAt DateTime @default(now())
@@ -192,10 +195,12 @@ model User {
 
   utmSource   String?
   utmMedium   String?
-  utmCampaign String?
   utmContent  String?
   utmTerm     String?
   refCode     String?
+
+  utmCampaignId String?
+  utmCampaign   UtmCampaign? @relation(fields: [utmCampaignId], references: [utmCampaignId])
 
   // 🔐 Password Reset
   resetToken        String?
@@ -236,6 +241,15 @@ model Payment {
   createdById String?
   createdBy   Employee? @relation( fields: [createdById], references: [employeeId])
 
+ // 🔥 Marketing tracking
+  utmSource   String?
+  utmMedium   String?
+  utmContent  String?
+  utmTerm     String?
+  refCode     String?
+
+  utmCampaignId String?
+  utmCampaign   UtmCampaign? @relation(fields: [utmCampaignId], references: [utmCampaignId])
 
   // what user is paying for
   serviceId String?

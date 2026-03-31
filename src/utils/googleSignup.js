@@ -21,7 +21,8 @@ const generateAccessToken = (payload) =>
 
 router.post("/user/google-auth", async (req, res) => {
   try {
-    const { token,   utmSource,
+    const { token,
+      utmSource,
       utmMedium,
       utmCampaign,
       utmContent,
