@@ -45,6 +45,17 @@ router.post("/user/google-auth", async (req, res) => {
 
     const { sub, email, name, picture } = payload;
 
+    let utmCampaignId = null;
+
+    if (utmCampaign) {
+      const campaignData = await prisma.utmCampaign.findUnique({
+        where: { campaignName: utmCampaign }, // ✅ FIXED
+        select: { utmCampaignId: true },
+      });
+
+      utmCampaignId = campaignData?.utmCampaignId || null;
+    }
+
     let user = await prisma.user.findUnique({
       where: { email },
     });
@@ -58,12 +69,16 @@ router.post("/user/google-auth", async (req, res) => {
           photoUrl: picture,
           provider: "GOOGLE",
           providerId: sub,
-          utmSource,
-          utmMedium,
-          utmCampaign,
-          utmContent,
-          utmTerm,
-          refCode,
+         // 🔥 UTM snapshot
+         utmSource: utmSource || null,
+         utmMedium: utmMedium || null,
+         utmCampaignName: utmCampaign || null, // ✅ FIXED
+         utmContent: utmContent || null,
+         utmTerm: utmTerm || null,
+         refCode: refCode || null,
+
+         // 🔗 Relation
+         utmCampaignId: utmCampaignId || null,
         },
       });
     }

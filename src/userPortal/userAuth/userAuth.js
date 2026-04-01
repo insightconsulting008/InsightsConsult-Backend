@@ -44,14 +44,14 @@ router.post("/user/register", async (req, res) => {
 
     let utmCampaignId = null;
 
-if (utmCampaign) {
-  const campaignData = await prisma.utmCampaign.findUnique({
-    where: { campaign: utmCampaign },
-    select: { utmCampaignId: true },
-  });
+    if (utmCampaign) {
+      const campaignData = await prisma.utmCampaign.findUnique({
+        where: { campaignName: utmCampaign }, // ✅ FIXED
+        select: { utmCampaignId: true },
+      });
 
-  utmCampaignId = campaignData?.utmCampaignId || null;
-}
+      utmCampaignId = campaignData?.utmCampaignId || null;
+    }
 
       // 2️⃣ Check if user already exists
       const existingUser = await prisma.user.findUnique({
@@ -73,12 +73,13 @@ if (utmCampaign) {
       data: { name, email, phoneNumber, password: hashed , // ✅ Save only if exists, else null
         utmSource: utmSource || null,
         utmMedium: utmMedium || null,
-        utmCampaign: utmCampaign || null,
+        utmCampaignName: utmCampaign || null, // ✅ FIXED
         utmContent: utmContent || null,
         utmTerm: utmTerm || null,
         refCode: refCode || null,
-        // ✅ relation
-        utmCampaignId: utmCampaignId || null,},
+
+        // 🔗 Relation
+        utmCampaignId: utmCampaignId || null,}
     });
 
     const accessToken = generateAccessToken({

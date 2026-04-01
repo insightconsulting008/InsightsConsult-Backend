@@ -4,300 +4,6 @@ const router = express.Router();
 const prisma = require("../prisma/prisma")
 const crypto = require("crypto");
 
-/* =====================================================
-   🔥 UTM + REF LINK GENERATOR
-// ===================================================== */
-// const generateUTMLink = ({
-//   baseUrl,
-//   source,
-//   medium,
-//   campaign,
-//   content,
-//   term,
-//   refCode,
-// }) => {
-//   const url = new URL(baseUrl);
-
-//   url.searchParams.append("utm_source", source);
-//   url.searchParams.append("utm_medium", medium);
-//   url.searchParams.append("utm_campaign", campaign);
-
-//   if (content) url.searchParams.append("utm_content", content);
-//   if (term) url.searchParams.append("utm_term", term);
-//   if (refCode) url.searchParams.append("ref", refCode); // 🔥
-
-//   return url.toString();
-// };
-
-// /* =====================================================
-//    🚀 CREATE UTM CAMPAIGN (ADMIN)
-// ===================================================== */
-// app.post("/admin/utm/create", async (req, res) => {
-//   try {
-//     const {
-//       name,
-//       baseUrl,
-//       source,
-//       medium,
-//       campaign,
-//       content,
-//       term,
-//       refCode,
-//     } = req.body;
-
-//     // Validation
-//     if (!baseUrl || !source || !medium || !campaign) {
-//       return res.status(400).json({
-//         message: "baseUrl, source, medium, campaign required",
-//       });
-//     }
-
-//     // Generate URL
-//     const fullUrl = generateUTMLink({
-//       baseUrl,
-//       source,
-//       medium,
-//       campaign,
-//       content,
-//       term,
-//       refCode,
-//     });
-
-//     // Save in DB
-//     const data = await prisma.utmCampaign.create({
-//       data: {
-//         name,
-//         baseUrl,
-//         source,
-//         medium,
-//         campaign,
-//         content,
-//         term,
-//         refCode,
-//         fullUrl,
-//       },
-//     });
-
-//     res.json({
-//       success: true,
-//       message: "UTM Campaign Created Successfully",
-//       data,
-//     });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
-
-// /* =====================================================
-//    📊 GET ALL CAMPAIGNS
-// ===================================================== */
-// app.get("/admin/utm/all", async (req, res) => {
-//   try {
-//     const campaigns = await prisma.utmCampaign.findMany({
-//       orderBy: { createdAt: "desc" },
-//     });
-
-//     res.json({
-//       success: true,
-//       data: campaigns,
-//     });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
-
-// /* =====================================================
-//    🔍 GET SINGLE CAMPAIGN
-// ===================================================== */
-// app.get("/admin/utm/:id", async (req, res) => {
-//   try {
-//     const { id } = req.params;
-
-//     const campaign = await prisma.utmCampaign.findUnique({
-//       where: { id },
-//     });
-
-//     if (!campaign) {
-//       return res.status(404).json({ message: "Campaign not found" });
-//     }
-
-//     res.json({
-//       success: true,
-//       data: campaign,
-//     });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
-
-
-
-/* =====================================================
-   🔥 UTM LINK GENERATOR
-===================================================== */
-// const generateUTMLink = ({
-//   baseUrl,
-//   source,
-//   medium,
-//   campaign,
-//   content,
-//   term,
-//   refCode,
-// }) => {
-//   const url = new URL(baseUrl);
-
-//   url.searchParams.append("utm_source", source);
-//   url.searchParams.append("utm_medium", medium);
-//   url.searchParams.append("utm_campaign", campaign);
-
-//   if (content) url.searchParams.append("utm_content", content);
-//   if (term) url.searchParams.append("utm_term", term);
-//   if (refCode) url.searchParams.append("ref", refCode);
-
-//   return url.toString();
-// };
-
-// /* =====================================================
-//    🔥 SHORT CODE GENERATOR
-// ===================================================== */
-// const generateCode = () => {
-//   return Math.random().toString(36).substring(2, 8);
-// };
-
-// /* =====================================================
-//    🔥 TRACKING MIDDLEWARE
-// ===================================================== */
-// const extractTracking = (req, res, next) => {
-//   const utmData = {};
-//   let refCode = null;
-
-//   Object.keys(req.body).forEach((key) => {
-//     if (key.startsWith("utm_")) utmData[key] = req.body[key];
-//     if (key === "ref") refCode = req.body[key];
-//   });
-
-//   req.tracking = { utmData, refCode };
-//   next();
-// };
-
-// /* =====================================================
-//    🚀 CREATE UTM CAMPAIGN
-// ===================================================== */
-// app.post("/admin/utm/create", async (req, res) => {
-//   try {
-//     const data = req.body;
-
-//     const fullUrl = generateUTMLink(data);
-
-//     const campaign = await prisma.utmCampaign.create({
-//       data: {
-//         ...data,
-//         fullUrl,
-//       },
-//     });
-
-//     res.json({ success: true, campaign });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
-
-// /* =====================================================
-//    🔗 CREATE SHORT LINK
-// ===================================================== */
-// app.post("/short-link", async (req, res) => {
-//   try {
-//     const { fullUrl } = req.body;
-
-//     let code;
-//     let exists = true;
-
-//     while (exists) {
-//       code = generateCode();
-//       const found = await prisma.shortLink.findUnique({ where: { code } });
-//       if (!found) exists = false;
-//     }
-
-//     const link = await prisma.shortLink.create({
-//       data: { code, fullUrl },
-//     });
-
-//     res.json({
-//       shortUrl: `http://localhost:5000/u/${code}`,
-//       link,
-//     });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
-
-// /* =====================================================
-//    🔥 REDIRECT + CLICK TRACK
-// ===================================================== */
-// app.get("/u/:code", async (req, res) => {
-//   try {
-//     const link = await prisma.shortLink.findUnique({
-//       where: { code: req.params.code },
-//     });
-
-//     if (!link) return res.status(404).send("Not found");
-
-//     await prisma.clickLog.create({
-//       data: {
-//         shortLinkId: link.id,
-//         ip: req.ip,
-//         userAgent: req.headers["user-agent"],
-//       },
-//     });
-
-//     await prisma.shortLink.update({
-//       where: { id: link.id },
-//       data: { clicks: { increment: 1 } },
-//     });
-
-//     res.redirect(link.fullUrl);
-//   } catch (err) {
-//     res.status(500).send(err.message);
-//   }
-// });
-
-
-// /* =====================================================
-//    📊 ANALYTICS
-// ===================================================== */
-
-// // Revenue by influencer
-// app.get("/analytics/ref", async (req, res) => {
-//     const data = await prisma.payment.groupBy({
-//       by: ["refCode"],
-//       _sum: { amount: true },
-//       _count: true,
-//     });
-//     res.json(data);
-//   });
-  
-//   // Revenue by campaign
-//   app.get("/analytics/campaign", async (req, res) => {
-//     const payments = await prisma.payment.findMany();
-  
-//     const result = {};
-  
-//     payments.forEach((p) => {
-//       const camp = p.utmData?.utm_campaign || "unknown";
-  
-//       if (!result[camp]) {
-//         result[camp] = { revenue: 0, count: 0 };
-//       }
-  
-//       result[camp].revenue += p.amount;
-//       result[camp].count++;
-//     });
-  
-//     res.json(result);
-//   });
-
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-
 
 
   
@@ -321,22 +27,7 @@ const crypto = require("crypto");
     return code;
   };
   
-  /* =====================================================
-     🔥 TRACKING MIDDLEWARE (FIXED)
-  ===================================================== */
-  const extractTracking = (req, res, next) => {
-    const utmData = {};
-    let refCode = null;
-  
-    Object.keys(req.query).forEach((key) => {
-      if (key.startsWith("utm_")) utmData[key] = req.query[key];
-      if (key === "ref") refCode = req.query[key];
-    });
-  
-    req.tracking = { utmData, refCode };
-    next();
-  };
-
+ 
   
   /* =========================
      🔥 SLUG FUNCTION
@@ -372,23 +63,22 @@ const crypto = require("crypto");
   router.post("/api/admin/utm/create", async (req, res) => {
     try {
       const {
-        name,
         baseUrl,
-        source,
-        medium,
-        campaign,
-        content,
-        term,
-        refCode,
+      source,
+      medium,
+      campaignName,
+      content,
+      term,
+      refCode,
       } = req.body;
   
       // ✅ validation
-      if (!name || !baseUrl || !source || !medium || !campaign) {
+      if ( !baseUrl || !source || !medium || !campaignName) {
         return res.status(400).json({ error: "Missing required fields" });
       }
   
       // 🔥 STEP 1: SLUG
-      let baseSlug = slugify(campaign);
+      let baseSlug = slugify(campaignName);
       let finalSlug = baseSlug;
   
       let count = 1;
@@ -396,7 +86,7 @@ const crypto = require("crypto");
       // 🔥 STEP 2: UNIQUE (increment)
       while (true) {
         const exists = await prisma.utmCampaign.findUnique({
-          where: { campaign: finalSlug },
+          where: { campaignName: finalSlug },
         });
   
         if (!exists) break;
@@ -410,7 +100,7 @@ const crypto = require("crypto");
         baseUrl,
         source,
         medium,
-        campaign: finalSlug,
+        campaignName: finalSlug,
         content,
         term,
         refCode,
@@ -419,14 +109,13 @@ const crypto = require("crypto");
       // 🔥 STEP 4: SAVE
       const utmCampaign = await prisma.utmCampaign.create({
         data: {
-          name,
           baseUrl,
           source,
           medium,
-          campaign: finalSlug,
-          content,
-          term,
-          refCode,
+          campaignName: finalSlug, // ✅ FIXED
+          content: content || null,
+          term: term || null,
+          refCode: refCode || null,
           fullUrl,
         },
       });
@@ -488,6 +177,125 @@ const crypto = require("crypto");
       });
     }
   });
+
+
+router.post("/short-link", async (req, res) => {
+  try {
+    const { fullUrl } = req.body;
+
+    if (!fullUrl) {
+      return res.status(400).json({
+        success: false,
+        message: "URL is required",
+      });
+    }
+
+    // 🔥 Generate unique code
+    let code;
+    let exists = true;
+
+    while (exists) {
+      code = crypto.randomBytes(4).toString("hex"); // e.g. ab12cd34
+
+      const found = await prisma.shortLink.findUnique({
+        where: { code },
+      });
+
+      if (!found) exists = false;
+    }
+
+    const shortLink = await prisma.shortLink.create({
+      data: {
+        code,
+        fullUrl,
+      },
+    });
+
+    const shortUrl = `${req.protocol}://${req.get("host")}/s/${code}`;
+
+    res.json({
+      success: true,
+      shortUrl,
+      data: shortLink,
+    });
+
+  } catch (err) {
+    console.error("CREATE SHORT LINK ERROR:", err);
+    res.status(500).json({ success: false });
+  }
+});
+
+router.get("/s/:code", async (req, res) => {
+  try {
+    const { code } = req.params;
+
+    const link = await prisma.shortLink.findUnique({
+      where: { code },
+    });
+
+    if (!link) {
+      return res.status(404).send("Link not found");
+    }
+
+    // 🔥 Increment clicks
+    await prisma.shortLink.update({
+      where: { code },
+      data: {
+        clicks: { increment: 1 },
+      },
+    });
+
+    // 🔥 Save click log
+    await prisma.clickLog.create({
+      data: {
+        shortLinkId: link.shortLinkId,
+        ip: req.ip,
+        userAgent: req.headers["user-agent"],
+      },
+    });
+
+    // 🔁 Redirect
+    res.redirect(link.fullUrl);
+
+  } catch (err) {
+    console.error("REDIRECT ERROR:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+
+router.get("/short-link/:code", async (req, res) => {
+  try {
+    const { code } = req.params;
+
+    const link = await prisma.shortLink.findUnique({
+      where: { code },
+      include: {
+        clickLog: {
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+
+    if (!link) {
+      return res.status(404).json({ success: false });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        code: link.code,
+        fullUrl: link.fullUrl,
+        totalClicks: link.clicks,
+        logs: link.clickLog,
+      },
+    });
+
+  } catch (err) {
+    console.error("ANALYTICS ERROR:", err);
+    res.status(500).json({ success: false });
+  }
+});
 
 
   /* =====================================================
@@ -557,25 +365,237 @@ const crypto = require("crypto");
   
   // Campaign analytics
   router.get("/analytics/campaign", async (req, res) => {
-    const data = await prisma.payment.groupBy({
-      by: ["utmCampaign"],
-      _sum: { amount: true },
-      _count: true,
-    });
+    try {
+      const data = await prisma.payment.groupBy({
+        by: ["utmCampaignName"], // ✅ FIXED
+        where: {
+          status: "PAID", // ✅ only successful payments
+        },
+        _sum: {
+          amount: true,
+        },
+        _count: {
+          _all: true,
+        },
+      });
   
-    res.json(data);
+      // 🔥 Clean response format
+      const formatted = data.map((item) => ({
+        campaign: item.utmCampaignName || "Direct/Unknown",
+        totalRevenue: item._sum.amount || 0,
+        totalConversions: item._count._all,
+      }));
+  
+      res.json({
+        success: true,
+        data: formatted,
+      });
+  
+    } catch (err) {
+      console.error("CAMPAIGN ANALYTICS ERROR:", err);
+  
+      res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
   });
   
   // Influencer analytics
   router.get("/analytics/ref", async (req, res) => {
-    const data = await prisma.payment.groupBy({
-      by: ["refCode"],
-      _sum: { amount: true },
-      _count: true,
-    });
+    try {
+      const data = await prisma.payment.groupBy({
+        by: ["refCode"],
+        where: {
+          status: "PAID", // ✅ important
+        },
+        _sum: {
+          amount: true,
+        },
+        _count: {
+          _all: true,
+        },
+      });
   
-    res.json(data);
+      const formatted = data.map((item) => ({
+        refCode: item.refCode || "No Ref",
+        totalRevenue: item._sum.amount || 0,
+        totalConversions: item._count._all,
+      }));
+  
+      res.json({
+        success: true,
+        data: formatted,
+      });
+  
+    } catch (err) {
+      console.error("REF ANALYTICS ERROR:", err);
+  
+      res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
   });
+
+
+  router.get("/analytics/campaign-users", async (req, res) => {
+    try {
+      const users = await prisma.user.findMany({
+        orderBy: { createdAt: "desc" },
+  
+        select: {
+          name: true,
+          email: true,
+          phoneNumber: true,
+          utmCampaignName: true,
+        },
+      });
+  
+      // 🔥 Group manually
+      const grouped = {};
+  
+      users.forEach((u) => {
+        const campaign = u.utmCampaignName || "Direct";
+  
+        if (!grouped[campaign]) {
+          grouped[campaign] = {
+            campaign,
+            count: 0,
+            users: [],
+          };
+        }
+  
+        grouped[campaign].count++;
+  
+        grouped[campaign].users.push({
+          name: u.name,
+          email: u.email,
+          phone: u.phoneNumber,
+        });
+      });
+  
+      res.json({
+        success: true,
+        data: Object.values(grouped),
+      });
+  
+    } catch (err) {
+      console.error("CAMPAIGN USERS ERROR:", err);
+  
+      res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  ////////////
+
+
+// 🔥 Create short code
+router.post("/short-link", async (req, res) => {
+  try {
+    const { fullUrl } = req.body;
+
+    if (!fullUrl) {
+      return res.status(400).json({
+        success: false,
+        message: "URL required",
+      });
+    }
+
+    let code;
+    let exists = true;
+
+    while (exists) {
+      code = crypto.randomBytes(3).toString("hex"); // short code
+
+      const found = await prisma.shortLink.findUnique({
+        where: { code },
+      });
+
+      if (!found) exists = false;
+    }
+
+    const short = await prisma.shortLink.create({
+      data: { code, fullUrl },
+    });
+
+    res.json({
+      success: true,
+      code: short.code,
+      fullUrl: short.fullUrl,
+    });
+
+  } catch (err) {
+    console.error("CREATE ERROR:", err);
+    res.status(500).json({ success: false });
+  }
+});
+
+
+
+const trackShortLink = async (req, res, next) => {
+  try {
+    const code = req.query.code;
+
+    if (!code) return next();
+
+    const link = await prisma.shortLink.findUnique({
+      where: { code },
+    });
+
+    if (!link) return next();
+
+    // ✅ Get real IP (important for production)
+    const ip =
+      req.headers["x-forwarded-for"]?.split(",")[0] ||
+      req.socket.remoteAddress;
+
+    // 🔥 Increment click count
+    await prisma.shortLink.update({
+      where: { code },
+      data: {
+        clicks: { increment: 1 },
+      },
+    });
+
+    // 🔥 Save log
+    await prisma.clickLog.create({
+      data: {
+        shortLinkId: link.shortLinkId,
+        ip,
+        userAgent: req.headers["user-agent"],
+      },
+    });
+
+    // 👉 attach for later use
+    req.shortLink = link;
+
+    next();
+
+  } catch (err) {
+    console.error("TRACK MIDDLEWARE ERROR:", err);
+    next(); // never block request
+  }
+};
+
+
 
 module.exports = router
   

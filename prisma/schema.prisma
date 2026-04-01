@@ -12,12 +12,11 @@ datasource db {
 
 model UtmCampaign {
   utmCampaignId        String   @id @default(cuid())
-  name         String
   baseUrl      String
 
   source       String
   medium       String
-  campaign     String @unique
+  campaignName     String @unique
   content      String?
   term         String?
 
@@ -192,12 +191,13 @@ model User {
 
   photoUrl    String?
 
-
+  utmCampaignName String?
   utmSource   String?
   utmMedium   String?
   utmContent  String?
   utmTerm     String?
   refCode     String?
+
 
   utmCampaignId String?
   utmCampaign   UtmCampaign? @relation(fields: [utmCampaignId], references: [utmCampaignId])
@@ -242,6 +242,7 @@ model Payment {
   createdBy   Employee? @relation( fields: [createdById], references: [employeeId])
 
  // 🔥 Marketing tracking
+  utmCampaignName  String?
   utmSource   String?
   utmMedium   String?
   utmContent  String?
