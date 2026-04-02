@@ -8,6 +8,7 @@ const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const {logHistory} = require("../../../src/utils/historyService")
 const {createNotification} = require("../../notifications/notificationService")
+const { generateReminders } = require("../../utils/reminderGenerator");
 
 
 // router.get("/users", async (req, res) => {
@@ -1394,6 +1395,9 @@ router.get("/applications", async (req, res) => {
           data: { status: "IN_PROGRESS" },
         });
 
+        if (service.serviceType === "RECURRING") {
+          await generateReminders(myService);
+        }
    
 
  // 2️⃣ Fetch them back (needed because createMany doesn't return IDs)

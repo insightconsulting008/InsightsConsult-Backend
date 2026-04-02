@@ -427,6 +427,8 @@ model Reminder {
   serviceDescription String?
   serviceType        String?
   frequency          Frequency?
+  duration    String?    // eg: 12
+  durationUnit DurationUnit? // month | Stringr
 
   dueDate      DateTime
   reminderDate DateTime
