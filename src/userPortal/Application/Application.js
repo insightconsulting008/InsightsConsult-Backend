@@ -1191,6 +1191,7 @@ router.get("/applications", async (req, res) => {
         --------------------------------------------------- */
         const myService = await prisma.myService.findUnique({
           where: { myServiceId },
+          include: { service: true }, // 🔥 IMPORTANT
         });
   
         if (!myService) {
