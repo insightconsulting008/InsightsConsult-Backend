@@ -1,6 +1,7 @@
 const prisma = require("../prisma/prisma");
 
 const generateReminders = async (myService) => {
+    console.log("my service details:",myService)
   try {
     if (!myService || !myService.service) {
       console.log("⛔ Invalid myService input");
