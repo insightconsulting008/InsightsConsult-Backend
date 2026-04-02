@@ -378,7 +378,13 @@ model Service {
   finalIndividualPrice String 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
- 
+
+  // 🔥 due logic (recurring / one-time optional)
+  dueDay Json?
+
+  // 🔔 reminders config
+  reminderDays Json? // [30,7,3,1,0]
+
   myService         MyService[]   
   inputFields ServiceInputField[]
   trackSteps  ServiceTrackStep[] 
@@ -401,6 +407,7 @@ model MyService {
   serviceId String?
   bundleId  String?
 
+  reminders Reminder[]
 
   status    MyServiceStatus @default(NOT_STARTED)
   createdAt DateTime @default(now())
@@ -409,6 +416,27 @@ model MyService {
   serviceBundle ServiceBundle? @relation(fields: [bundleId], references: [bundleId])
 }
 
+model Reminder {
+  reminderId String @id @default(cuid())
+
+  myServiceId String
+  myService   MyService @relation(fields: [myServiceId], references: [myServiceId])
+
+  // 🔥 SNAPSHOT (IMPORTANT)
+  serviceName        String
+  serviceDescription String?
+  serviceType        String?
+  frequency          Frequency?
+
+  dueDate      DateTime
+  reminderDate DateTime
+
+  status   String   @default("pending") // pending, processing, sent, failed
+  sentAt   DateTime?
+  error    String?
+
+  createdAt DateTime @default(now())
+}
 
 model MasterInputField {
   masterFieldId String   @id @default(cuid())
