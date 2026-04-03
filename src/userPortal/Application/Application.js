@@ -964,7 +964,7 @@ router.post("/admin/service-requests/action", async (req, res) => {
         where: { requestId },
         data: {
           status: "REJECTED",
-          adminId,
+          employeeId:adminId,
         },
       });
 
