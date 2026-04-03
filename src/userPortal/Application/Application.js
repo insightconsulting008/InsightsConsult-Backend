@@ -800,79 +800,186 @@ router.post("/razorpay/webhook", async (req, res) => {
 
 
 router.get("/admin/service-requests", async (req, res) => {
-  const data = await prisma.serviceRequest.findMany({
-    where: { status: "PENDING" },
-    include: { user: true, service: true, bundle: true },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    // 👉 Query params
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
 
-  res.json({ success: true, data });
-});
+    // 👉 Sorting (default: latest first)
+    const sortOrder = req.query.sort === "asc" ? "asc" : "desc";
 
+    const skip = (page - 1) * limit;
 
-router.post("/admin/service-requests/approve", async (req, res) => {
-  const { requestId, adminId } = req.body;
+    // 👉 Total count (for frontend pagination)
+    const total = await prisma.serviceRequest.count({
+      where: { status: "PENDING" },
+    });
 
-  const request = await prisma.serviceRequest.findUnique({
-    where: { requestId },
-  });
+    // 👉 Data fetch
+    const data = await prisma.serviceRequest.findMany({
+      where: { status: "PENDING" },
+      orderBy: { createdAt: sortOrder },
+      skip,
+      take: limit,
 
-  if (!request) {
-    return res.status(404).json({ message: "Not found" });
-  }
-
-  // 👉 MOVE TO myService
-  if (request.serviceId) {
-    await prisma.myService.create({
-      data: {
-        userId: request.userId,
-        serviceId: request.serviceId,
-        status: "NOT_STARTED",
+      include: {
+        user: {
+          select: {
+            userId: true,
+            name: true,
+            email: true,
+            phoneNumber: true,
+            utmCampaignId: true,
+            utmCampaignName: true,
+          },
+        },
+        service: {
+          select: {
+            serviceId: true,
+            name: true,
+          },
+        },
+        bundle: {
+          select: {
+            bundleId: true,
+            name: true,
+          },
+        },
       },
     });
-  }
 
-  if (request.bundleId) {
-    const bundle = await prisma.serviceBundle.findUnique({
-      where: { bundleId: request.bundleId },
-      include: { services: true },
+    res.json({
+      success: true,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      data,
     });
-
-    const data = bundle.services.map(s => ({
-      userId: request.userId,
-      serviceId: s.serviceId,
-      bundleId: request.bundleId,
-      status: "NOT_STARTED",
-    }));
-
-    await prisma.myService.createMany({ data });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
-
-  await prisma.serviceRequest.update({
-    where: { requestId },
-    data: {
-      status: "APPROVED",
-      adminId,
-    },
-  });
-
-  res.json({ success: true, message: "Approved" });
 });
 
 
-router.post("/admin/service-requests/reject", async (req, res) => {
-  const { requestId, adminId, note } = req.body;
+router.post("/admin/service-requests/action", async (req, res) => {
+  try {
+    const { requestId, adminId, action } = req.body;
 
-  await prisma.serviceRequest.update({
-    where: { requestId },
-    data: {
-      status: "REJECTED",
-      adminId,
-      note,
-    },
-  });
+    // 🔐 Validate input
+    if (!requestId || !adminId || !action) {
+      return res.status(400).json({
+        success: false,
+        message: "requestId, adminId and action are required",
+      });
+    }
 
-  res.json({ success: true });
+    if (!["APPROVE", "REJECT"].includes(action)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid action. Use APPROVE or REJECT",
+      });
+    }
+
+    // 🔍 Get request
+    const request = await prisma.serviceRequest.findUnique({
+      where: { requestId },
+    });
+
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        message: "Service request not found",
+      });
+    }
+
+    // 🚫 Prevent duplicate processing
+    if (request.status !== "PENDING") {
+      return res.status(400).json({
+        success: false,
+        message: `Already ${request.status}`,
+      });
+    }
+
+    // =========================
+    // ✅ APPROVE FLOW
+    // =========================
+    if (action === "APPROVE") {
+      if (request.serviceId) {
+        await prisma.myService.create({
+          data: {
+            userId: request.userId,
+            serviceId: request.serviceId,
+            status: "NOT_STARTED",
+          },
+        });
+      }
+
+      if (request.bundleId) {
+        const bundle = await prisma.serviceBundle.findUnique({
+          where: { bundleId: request.bundleId },
+          include: { services: true },
+        });
+
+        if (!bundle) {
+          return res.status(404).json({
+            success: false,
+            message: "Bundle not found",
+          });
+        }
+
+        const data = bundle.services.map((s) => ({
+          userId: request.userId,
+          serviceId: s.serviceId,
+          bundleId: request.bundleId,
+          status: "NOT_STARTED",
+        }));
+
+        await prisma.myService.createMany({ data });
+      }
+
+      await prisma.serviceRequest.update({
+        where: { requestId },
+        data: {
+          status: "APPROVED",
+          employeeId:adminId,
+        },
+      });
+
+      return res.json({
+        success: true,
+        message: "Request approved",
+      });
+    }
+
+    // =========================
+    // ❌ REJECT FLOW
+    // =========================
+    if (action === "REJECT") {
+      await prisma.serviceRequest.update({
+        where: { requestId },
+        data: {
+          status: "REJECTED",
+          adminId,
+        },
+      });
+
+      return res.json({
+        success: true,
+        message: "Request rejected",
+      });
+    }
+  } catch (error) {
+    console.error("Service request action error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
 });
 
 
