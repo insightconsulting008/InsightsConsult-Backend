@@ -27,6 +27,7 @@
     "multer": "^2.0.2",
     "multer-s3": "^3.0.1",
     "nanoid": "^5.1.7",
+    "node-cron": "^4.2.1",
     "nodemon": "^3.1.11",
     "prisma": "^6.19.0",
     "razorpay": "^2.9.6",

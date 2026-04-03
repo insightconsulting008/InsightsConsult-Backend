@@ -415,40 +415,55 @@ router.post("/buy/service", async (req, res) => {
     =================================================== */
     if (!setting?.isRazorpayEnabled) {
 
-      if (serviceId) {
-        const myService = await prisma.myService.create({
-          data: { userId, serviceId, status: "NOT_STARTED" },
-        });
-
-        return res.json({
-          success: true,
-          message: "Service unlocked",
-          paymentRequired: false,
-          myService,
-        });
-      }
-
-      if (bundleId) {
-        const bundle = await prisma.serviceBundle.findUnique({
-          where: { bundleId },
-          include: { services: true },
-        });
-
-        const data = bundle.services.map(s => ({
+      await prisma.serviceRequest.create({
+        data: {
           userId,
-          serviceId: s.serviceId,
-          bundleId,
-          status: "NOT_STARTED",
-        }));
+          serviceId: serviceId || null,
+          bundleId: bundleId || null,
+          status: "PENDING",
+        },
+      });
+    
+      return res.json({
+        success: true,
+        paymentRequired: false,
+        message: "Request sent to admin for approval",
+      });
 
-        await prisma.myService.createMany({ data });
+      // if (serviceId) {
+      //   const myService = await prisma.myService.create({
+      //     data: { userId, serviceId, status: "NOT_STARTED" },
+      //   });
 
-        return res.json({
-          success: true,
-          paymentRequired: false,
-          message: "Bundle unlocked ",
-        });
-      }
+      //   return res.json({
+      //     success: true,
+      //     message: "Service unlocked",
+      //     paymentRequired: false,
+      //     myService,
+      //   });
+      // }
+
+      // if (bundleId) {
+      //   const bundle = await prisma.serviceBundle.findUnique({
+      //     where: { bundleId },
+      //     include: { services: true },
+      //   });
+
+      //   const data = bundle.services.map(s => ({
+      //     userId,
+      //     serviceId: s.serviceId,
+      //     bundleId,
+      //     status: "NOT_STARTED",
+      //   }));
+
+      //   await prisma.myService.createMany({ data });
+
+      //   return res.json({
+      //     success: true,
+      //     paymentRequired: false,
+      //     message: "Bundle unlocked ",
+      //   });
+      // }
     }
 
     /* ===================================================
@@ -781,6 +796,83 @@ router.post("/razorpay/webhook", async (req, res) => {
     console.error("❌ Webhook error:", err);
     res.status(500).send("Webhook error");
   }
+});
+
+
+router.get("/admin/service-requests", async (req, res) => {
+  const data = await prisma.serviceRequest.findMany({
+    where: { status: "PENDING" },
+    include: { user: true, service: true, bundle: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  res.json({ success: true, data });
+});
+
+
+router.post("/admin/service-requests/approve", async (req, res) => {
+  const { requestId, adminId } = req.body;
+
+  const request = await prisma.serviceRequest.findUnique({
+    where: { requestId },
+  });
+
+  if (!request) {
+    return res.status(404).json({ message: "Not found" });
+  }
+
+  // 👉 MOVE TO myService
+  if (request.serviceId) {
+    await prisma.myService.create({
+      data: {
+        userId: request.userId,
+        serviceId: request.serviceId,
+        status: "NOT_STARTED",
+      },
+    });
+  }
+
+  if (request.bundleId) {
+    const bundle = await prisma.serviceBundle.findUnique({
+      where: { bundleId: request.bundleId },
+      include: { services: true },
+    });
+
+    const data = bundle.services.map(s => ({
+      userId: request.userId,
+      serviceId: s.serviceId,
+      bundleId: request.bundleId,
+      status: "NOT_STARTED",
+    }));
+
+    await prisma.myService.createMany({ data });
+  }
+
+  await prisma.serviceRequest.update({
+    where: { requestId },
+    data: {
+      status: "APPROVED",
+      adminId,
+    },
+  });
+
+  res.json({ success: true, message: "Approved" });
+});
+
+
+router.post("/admin/service-requests/reject", async (req, res) => {
+  const { requestId, adminId, note } = req.body;
+
+  await prisma.serviceRequest.update({
+    where: { requestId },
+    data: {
+      status: "REJECTED",
+      adminId,
+      note,
+    },
+  });
+
+  res.json({ success: true });
 });
 
 
@@ -1167,7 +1259,31 @@ router.get("/applications", async (req, res) => {
     }
   });
   
+  router.get("/reminders", async (req, res) => {
+    const data = await prisma.reminder.findMany({
+      orderBy: { dueDate: "asc" },
+    });
   
+    const grouped = {};
+  
+    data.forEach((item) => {
+      const due = new Date(item.dueDate).toDateString(); // key
+  
+      if (!grouped[due]) {
+        grouped[due] = {
+          dueDate: due,
+          reminders: [],
+        };
+      }
+  
+      grouped[due].reminders.push(
+        new Date(item.reminderDate).toDateString()
+      );
+    });
+  
+    res.json(Object.values(grouped));
+  });
+
   router.post("/application/start/apply/:myServiceId",applicationImgUpload.any(),
     async (req, res) => {
       try {

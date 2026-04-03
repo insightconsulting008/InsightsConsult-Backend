@@ -22,6 +22,8 @@ const emailRoutes = require("././src/email/routes/emailRoutes");
 const notificationRoutes = require("./src/notifications/notificationRoutes");
 const {sendEmail} = require('./src/email/emailService')
 const utm = require('./src/utm/utm')
+const cron = require("node-cron");
+const { processReminders } = require("./src/utils/reminderProcessor");
 
 // const {
 //   EventBridgeClient,
@@ -56,6 +58,36 @@ app.get("/test", async(req, res) => {
   res.json({
     message: "Insight Consulting Project Server is running 🚀"
   });
+});
+
+/* ---------------------------------------
+   🔥 CRON JOB (EVERY 1 MINUTE)
+--------------------------------------- */
+// Runs every minute
+cron.schedule("* * * * *", async () => {
+  console.log("\n⏰ CRON START:", new Date().toLocaleString());
+
+  try {
+    await processReminders();
+    console.log("✅ CRON SUCCESS");
+  } catch (error) {
+    console.error("❌ CRON ERROR:", error);
+  }
+});
+
+/* ---------------------------------------
+   🔥 CRON JOB (EVERY 1 MINUTE)
+--------------------------------------- */
+// Runs every minute
+cron.schedule("* * * * *", async () => {
+  console.log("\n⏰ CRON START:", new Date().toLocaleString());
+
+  try {
+    await processReminders();
+    console.log("✅ CRON SUCCESS");
+  } catch (error) {
+    console.error("❌ CRON ERROR:", error);
+  }
 });
 
 
@@ -1491,6 +1523,8 @@ app.post("/service/:serviceId/input-fields", async (req, res) => {
 /* -------------------- SERVER -------------------- */
 app.listen(6001, async  () => {
   console.log(`✅ Insight Consulting Project Server running on port 6001`);
+
+  
   // try {
   //   const result = await createScheduler({
   //     url: "https://insightsconsult-backend.onrender.com/cron-runner",
