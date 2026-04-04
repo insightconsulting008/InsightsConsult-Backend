@@ -43,12 +43,12 @@ const crypto = require("crypto");
     baseUrl,
     source,
     medium,
-    campaign,
+    campaignName, // ✅ FIXED
     content,
     term,
     refCode,
   }) => {
-    let url = `${baseUrl}?utm_source=${source}&utm_medium=${medium}&utm_campaign=${campaign}`;
+    let url = `${baseUrl}?utm_source=${source}&utm_medium=${medium}&utm_campaign=${campaignName}`;
   
     if (content) url += `&utm_content=${content}`;
     if (term) url += `&utm_term=${term}`;
@@ -135,20 +135,62 @@ const crypto = require("crypto");
   
   router.get("/api/admin/utm/all", async (req, res) => {
     try {
-      const utmCampaigns = await prisma.utmCampaign.findMany();
+      const {
+        page = 1,
+        limit = 10,
+        search = "",
+      } = req.query;
+  
+      const pageNumber = parseInt(page);
+      const pageSize = parseInt(limit);
+  
+      // ✅ Build search filter
+      const where = search
+        ? {
+            OR: [
+              { campaignName: { contains: search, mode: "insensitive" } },
+              { source: { contains: search, mode: "insensitive" } },
+              { medium: { contains: search, mode: "insensitive" } },
+              { baseUrl: { contains: search, mode: "insensitive" } },
+              { refCode: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : {};
+  
+      // ✅ Get total count (for frontend pagination)
+      const total = await prisma.utmCampaign.count({ where });
+  
+      // ✅ Fetch paginated data
+      const utmCampaigns = await prisma.utmCampaign.findMany({
+        where,
+        skip: (pageNumber - 1) * pageSize,
+        take: pageSize,
+        orderBy: {
+          createdAt: "desc", // 👈 make sure you have this field
+        },
+      });
   
       res.json({
         success: true,
         data: utmCampaigns,
+  
+        // 🔥 Pagination meta
+        pagination: {
+          total,
+          page: pageNumber,
+          limit: pageSize,
+          totalPages: Math.ceil(total / pageSize),
+        },
       });
+  
     } catch (error) {
       console.error(error);
       res.status(500).json({
+        success: false,
         error: "Something went wrong",
       });
     }
   });
-
 
   router.get("/api/admin/utm/:id", async (req, res) => {
     try {
@@ -177,6 +219,131 @@ const crypto = require("crypto");
       });
     }
   });
+
+  router.delete("/api/admin/utm/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      // ✅ Check if exists
+      const existing = await prisma.utmCampaign.findUnique({
+        where: { utmCampaignId: id },
+      });
+  
+      if (!existing) {
+        return res.status(400).json({
+          success: false,
+          message: "UTM Campaign not found",
+        });
+      }
+  
+      // ✅ Delete
+      await prisma.utmCampaign.delete({
+        where: { utmCampaignId: id },
+      });
+  
+      res.json({
+        success: true,
+        message: "UTM Campaign deleted successfully",
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        error: "Something went wrong",
+      });
+    }
+  });
+
+  router.put("/api/admin/utm/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      const {
+        baseUrl,
+        source,
+        medium,
+        campaignName,
+        content,
+        term,
+        refCode,
+      } = req.body;
+  
+      // ✅ 1. Check existing
+      const existing = await prisma.utmCampaign.findUnique({
+        where: { utmCampaignId: id },
+      });
+  
+      if (!existing) {
+        return res.status(404).json({
+          success: false,
+          message: "UTM Campaign not found",
+        });
+      }
+  
+      // ✅ 2. Handle slug change ONLY if campaignName updated
+      let finalSlug = existing.campaignName;
+  
+      if (campaignName && campaignName !== existing.campaignName) {
+        let baseSlug = slugify(campaignName);
+        finalSlug = baseSlug;
+  
+        let count = 1;
+  
+        while (true) {
+          const exists = await prisma.utmCampaign.findFirst({
+            where: { campaignName: finalSlug },
+          });
+  
+          if (!exists) break;
+  
+          finalSlug = `${baseSlug}-${count}`;
+          count++;
+        }
+      }
+  
+      // ✅ 3. Regenerate URL with updated values
+      const fullUrl = generateUTMLink({
+        baseUrl: baseUrl || existing.baseUrl,
+        source: source || existing.source,
+        medium: medium || existing.medium,
+        campaignName: finalSlug,
+        content: content ?? existing.content,
+        term: term ?? existing.term,
+        refCode: refCode ?? existing.refCode,
+      });
+  
+      // ✅ 4. Update DB
+      const updated = await prisma.utmCampaign.update({
+        where: { utmCampaignId: id },
+        data: {
+          baseUrl: baseUrl || existing.baseUrl,
+          source: source || existing.source,
+          medium: medium || existing.medium,
+          campaignName: finalSlug,
+          content: content ?? existing.content,
+          term: term ?? existing.term,
+          refCode: refCode ?? existing.refCode,
+          fullUrl,
+        },
+      });
+  
+      // ✅ 5. Response
+      res.json({
+        success: true,
+        data: updated,
+      });
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+
+
+
 
 
 router.post("/short-link", async (req, res) => {
