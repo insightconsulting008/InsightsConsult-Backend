@@ -60,6 +60,8 @@ async function createWebhook(keyId, keySecret, alertEmail) {
       })
     });
 
+
+
     return {
       webhookId: response.data.id,
       webhookSecret

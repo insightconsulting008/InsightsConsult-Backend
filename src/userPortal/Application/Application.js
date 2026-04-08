@@ -542,6 +542,8 @@ router.post("/razorpay/webhook", async (req, res) => {
     const setting = await prisma.paymentSetting.findFirst({
            where: { isRazorpayEnabled: true }});
 
+           console.log("settings",setting)
+
     if (!setting) {
       console.error("Payment settings not found");
       return res.status(500).send("Payment settings not configured");
@@ -1247,7 +1249,7 @@ router.get("/my-service/:myServiceId/details", async (req, res) => {
 //   });
 
 
-router.get("/applications", async (req, res) => {
+  router.get("/applications", async (req, res) => {
     try {
       const applications = await prisma.application.findMany({
         orderBy: {
@@ -3109,6 +3111,188 @@ router.get("/mycompany/documents/user/:userId", async (req, res) => {
     });
   } catch (error) {
     console.error("Get issued documents error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+router.get("/admin/user/:userId/documents", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const documents = await prisma.serviceDocument.findMany({
+      where: {
+        NOT: { fileUrl: null },
+        OR: [
+          { applicationTrackStep: { application: { userId } } },
+          { periodStep: { servicePeriod: { application: { userId } } } },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // 🔥 SPLIT INTO FOLDERS
+    const myDocuments = documents.filter(doc => doc.flow === "REQUESTED");
+    const companyDocuments = documents.filter(doc => doc.flow === "ISSUED");
+
+    res.json({
+      success: true,
+      folders: {
+        myDocuments,
+        companyDocuments,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false });
+  }
+});
+
+router.get("/staff/user/:userId/documents/:employeeId", async (req, res) => {
+  try {
+    const { userId, employeeId } = req.params;
+
+    const documents = await prisma.serviceDocument.findMany({
+      where: {
+        NOT: { fileUrl: null },
+
+        AND: [
+          {
+            OR: [
+              {
+                applicationTrackStep: {
+                  application: {
+                    userId,
+                    employeeId,
+                  },
+                },
+              },
+              {
+                periodStep: {
+                  servicePeriod: {
+                    application: {
+                      userId,
+                      employeeId,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // 🔥 SPLIT INTO FOLDERS
+    const myDocuments = documents.filter(doc => doc.flow === "REQUESTED");
+    const companyDocuments = documents.filter(doc => doc.flow === "ISSUED");
+
+    res.json({
+      success: true,
+      folders: {
+        myDocuments,
+        companyDocuments,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false });
+  }
+});
+
+router.get("/admin/documents", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const month = parseInt(req.query.month);
+    const year = parseInt(req.query.year);
+    const flow = req.query.flow; // OPTIONAL: REQUESTED | ISSUED
+
+    let dateFilter = {};
+
+    if (!isNaN(month) && !isNaN(year)) {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 1);
+
+      dateFilter = {
+        createdAt: {
+          gte: startDate,
+          lt: endDate,
+        },
+      };
+    }
+
+    const whereCondition = {
+      NOT: { fileUrl: null },
+      ...dateFilter,
+      ...(flow && { flow }), // apply only if provided
+    };
+
+    const documents = await prisma.serviceDocument.findMany({
+      where: whereCondition,
+      select: {
+        fileUrl: true,
+        createdAt: true,
+
+        // ✅ include user details
+        applicationTrackStep: {
+          select: {
+            application: {
+              select: {
+                user: {
+                  select: {
+                    userId: true,
+                    name: true,
+                    email: true,
+                    phoneNumber: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+
+        periodStep: {
+          select: {
+            servicePeriod: {
+              select: {
+                application: {
+                  select: {
+                    user: {
+                      select: {
+                        userId: true,
+                        name: true,
+                        email: true,
+                        phoneNumber: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    });
+
+    const total = await prisma.serviceDocument.count({
+      where: whereCondition,
+    });
+
+    res.json({
+      success: true,
+      page,
+      limit,
+      total,
+      documents,
+    });
+  } catch (error) {
+    console.error("Admin get documents error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });

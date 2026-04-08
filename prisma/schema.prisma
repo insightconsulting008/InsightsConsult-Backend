@@ -124,9 +124,10 @@ model PaymentSetting {
   razorpayKeyId      String?
   razorpaySecret     String?
   mode               String?
-  webhookId         String?  // store webhook ID from Razorpay
-  webhookSecret     String?  // store webhook secret securely
-  alertEmail        String?   // <-- new field
+  webhookUrl         String?
+  webhookId          String?  // store webhook ID from Razorpay
+  webhookSecret      String?  // store webhook secret securely
+  alertEmail         String?   // <-- new field
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }

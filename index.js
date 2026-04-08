@@ -38,6 +38,8 @@ const { processReminders } = require("./src/utils/reminderProcessor");
 //   }
 // });
 
+
+
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(express.json());
 app.use(cookieParser());
@@ -60,35 +62,21 @@ app.get("/test", async(req, res) => {
   });
 });
 
-/* ---------------------------------------
-   🔥 CRON JOB (EVERY 1 MINUTE)
---------------------------------------- */
-// Runs every minute
-cron.schedule("* * * * *", async () => {
-  console.log("\n⏰ CRON START:", new Date().toLocaleString());
+// /* ---------------------------------------
+//    🔥 CRON JOB (EVERY 1 MINUTE)
+// --------------------------------------- */
+// // Runs every minute
+// cron.schedule("* * * * *", async () => {
+//   console.log("\n⏰ CRON START:", new Date().toLocaleString());
 
-  try {
-    await processReminders();
-    console.log("✅ CRON SUCCESS");
-  } catch (error) {
-    console.error("❌ CRON ERROR:", error);
-  }
-});
+//   try {
+//     await processReminders();
+//     console.log("✅ CRON SUCCESS");
+//   } catch (error) {
+//     console.error("❌ CRON ERROR:", error);
+//   }
+// });
 
-/* ---------------------------------------
-   🔥 CRON JOB (EVERY 1 MINUTE)
---------------------------------------- */
-// Runs every minute
-cron.schedule("* * * * *", async () => {
-  console.log("\n⏰ CRON START:", new Date().toLocaleString());
-
-  try {
-    await processReminders();
-    console.log("✅ CRON SUCCESS");
-  } catch (error) {
-    console.error("❌ CRON ERROR:", error);
-  }
-});
 
 
 
