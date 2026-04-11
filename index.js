@@ -172,6 +172,8 @@ app.post("/trigger-reminder", async (req, res) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
+    await processReminders();
+    //     console.log("✅ CRON SUCCESS");
     console.log("✅ Authorized EventBridge call");
 
     // 👉 YOUR DB LOGIC HERE
