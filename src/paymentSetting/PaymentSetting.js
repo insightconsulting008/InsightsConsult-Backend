@@ -29,118 +29,164 @@ const verifyPassword = async (employeeId, profilePassword) => {
   return employee.profilePassword === profilePassword; // Simple comparison
 };
 
-/**
- * CREATE Payment Setting
- * Usually only ONE record is needed (admin level)
- */
-router.post("/settings/payment",authenticate,authorizeRoles("ADMIN"), async (req, res) => {
+
+// 🔐 Webhook URL validation
+const isValidWebhookUrl = (url) => {
   try {
-    const { razorpayKeyId, razorpaySecret, alertEmail, isRazorpayEnabled, profilePassword} = req.body;
+    const parsed = new URL(url);
+    return parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
+
+
+// ================= CREATE =================
+router.post("/settings/payment", authenticate, authorizeRoles("ADMIN"), async (req, res) => {
+  try {
+    const {
+      razorpayKeyId,
+      razorpaySecret,
+      alertEmail,
+      profilePassword,
+      webhookUrl
+    } = req.body;
+
     const employeeId = req.user.id;
 
-    const isValid = await verifyPassword(employeeId, profilePassword);
-    if (!isValid) {
-      return res.status(402).json({
+    // 🔐 Password check
+    if (!(await verifyPassword(employeeId, profilePassword))) {
+      return res.status(401).json({
         success: false,
-        message: "Invalid password."
+        message: "Invalid password"
       });
     }
 
-    // Detect TEST / LIVE
+    // 🧠 Mode detect
     const mode = detectMode(razorpayKeyId);
     if (mode === "UNKNOWN") {
       return res.status(400).json({
         success: false,
-        message: "Invalid Razorpay Key",
+        message: "Invalid Razorpay Key"
       });
     }
 
-    // Limit max Razorpay accounts
+    // 🚫 Max 3 accounts
     const total = await prisma.paymentSetting.count();
     if (total >= 3) {
       return res.status(400).json({
         success: false,
-        message: "Maximum 3 Razorpay accounts allowed",
+        message: "Maximum 3 Razorpay accounts allowed"
       });
     }
 
-    // If enabling this account, disable all others
-    if (isRazorpayEnabled) {
-      await prisma.paymentSetting.updateMany({
-        data: { isRazorpayEnabled: false },
-      });
-    }
+    // 🚫 Only one active
 
-    // Create webhook if enabled
-    let webhookId = null;
-    let webhookSecret = null;
-    if (isRazorpayEnabled) {
-      const webhookData = await createWebhook(razorpayKeyId, razorpaySecret, alertEmail);
-      if (webhookData) {
-        webhookId = webhookData.webhookId;
-        webhookSecret = webhookData.webhookSecret;
+    // 🚀 Create webhook
+      if (!isValidWebhookUrl(webhookUrl)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid webhook URL"
+        });
       }
-    }
 
-    // Save to database
-  await prisma.paymentSetting.create({
+      const webhookData = await createWebhook(
+        razorpayKeyId,
+        razorpaySecret,
+        alertEmail,
+        webhookUrl
+      );
+
+      if (!webhookData) {
+        return res.status(500).json({
+          success: false,
+          message: "Webhook creation failed"
+        });
+      }
+
+      
+      await prisma.paymentSetting.updateMany({
+        data: { isRazorpayEnabled: false }
+      });
+
+      const isRazorpayEnabled = true;
+
+
+    // 💾 Save
+    await prisma.paymentSetting.create({
       data: {
         razorpayKeyId,
         razorpaySecret,
         mode,
-        webhookId,
-        webhookSecret,
+        webhookId:  webhookData.webhookId,
+        webhookSecret:  webhookData.webhookSecret,
+        webhookUrl,
         alertEmail,
-        isRazorpayEnabled,
-      },
+        isRazorpayEnabled
+      }
     });
 
-    res.json({ success: true, message: "Payment settings saved successfully",});
+    res.json({
+      success: true,
+      message: "Payment settings saved successfully"
+    });
+
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 });
 
-router.get("/settings/payment",authenticate,authorizeRoles("ADMIN"), async (req, res) => {
+
+
+// ================= GET =================
+router.get("/settings/payment", authenticate, authorizeRoles("ADMIN"), async (req, res) => {
   try {
     const settings = await prisma.paymentSetting.findMany({
       select: {
         paymentSettingId: true,
-        razorpayKeyId: true,
         isRazorpayEnabled: true,
         webhookId: true,
+        webhookUrl: true,
         alertEmail: true,
-        updatedAt: true,
-      },
+        updatedAt: true
+      }
     });
 
-    res.json({ success: true, data: settings });
+    res.json({
+      success: true,
+      data: settings
+    });
+
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 });
 
 
+
+// ================= TOGGLE (ON/OFF) =================
 router.put("/settings/payment/:paymentSettingId", authenticate, authorizeRoles("ADMIN"),
   async (req, res) => {
     try {
-      console.log("👉 TOGGLE PAYMENT STATUS");
-
       const { paymentSettingId } = req.params;
       const { isRazorpayEnabled, profilePassword } = req.body;
-
       const employeeId = req.user.id;
 
-      // 🔐 Password Check
-      const isValid = await verifyPassword(employeeId, profilePassword);
-      if (!isValid) {
-        return res.status(402).json({
+      // 🔐 Password check
+      if (!(await verifyPassword(employeeId, profilePassword))) {
+        return res.status(401).json({
           success: false,
           message: "Invalid password"
         });
       }
 
-      // 📦 Get Existing
       const existing = await prisma.paymentSetting.findUnique({
         where: { paymentSettingId }
       });
@@ -152,7 +198,7 @@ router.put("/settings/payment/:paymentSettingId", authenticate, authorizeRoles("
         });
       }
 
-      // 🚫 Only One Active Account
+      // 🚫 Only one active
       if (isRazorpayEnabled === true) {
         await prisma.paymentSetting.updateMany({
           where: { NOT: { paymentSettingId } },
@@ -160,15 +206,10 @@ router.put("/settings/payment/:paymentSettingId", authenticate, authorizeRoles("
         });
       }
 
-      // 🔁 ONLY toggle status
       const updated = await prisma.paymentSetting.update({
         where: { paymentSettingId },
-        data: {
-          isRazorpayEnabled
-        }
+        data: { isRazorpayEnabled }
       });
-
-      console.log("✅ STATUS UPDATED:", updated);
 
       res.json({
         success: true,
@@ -177,7 +218,6 @@ router.put("/settings/payment/:paymentSettingId", authenticate, authorizeRoles("
       });
 
     } catch (error) {
-      console.error("❌ ERROR:", error);
       res.status(500).json({
         success: false,
         message: error.message
@@ -186,60 +226,60 @@ router.put("/settings/payment/:paymentSettingId", authenticate, authorizeRoles("
   }
 );
 
-// DELETE payment setting
-router.delete("/settings/payment/:paymentSettingId",authenticate,authorizeRoles("ADMIN"),async (req, res) => {
-  try {
-    const { paymentSettingId } = req.params;
-    const { profilePassword } = req.body;
-    const employeeId = req.user.id;
 
-    // Verify admin password
-    const isValid = await verifyPassword(employeeId, profilePassword);
-    if (!isValid) {
-      return res.status(402).json({
+
+// ================= DELETE =================
+router.delete("/settings/payment/:paymentSettingId", authenticate, authorizeRoles("ADMIN"),
+  async (req, res) => {
+    try {
+      const { paymentSettingId } = req.params;
+      const { profilePassword } = req.body;
+      const employeeId = req.user.id;
+
+      // 🔐 Password check
+      if (!(await verifyPassword(employeeId, profilePassword))) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid password"
+        });
+      }
+
+      const setting = await prisma.paymentSetting.findUnique({
+        where: { paymentSettingId }
+      });
+
+      if (!setting) {
+        return res.status(404).json({
+          success: false,
+          message: "Payment setting not found"
+        });
+      }
+
+      // 🚫 Prevent deleting active
+      if (setting.isRazorpayEnabled) {
+        return res.status(400).json({
+          success: false,
+          message: "Disable the account before deleting"
+        });
+      }
+
+      await prisma.paymentSetting.delete({
+        where: { paymentSettingId }
+      });
+
+      res.json({
+        success: true,
+        message: "Payment setting deleted successfully"
+      });
+
+    } catch (error) {
+      res.status(500).json({
         success: false,
-        message: "Invalid password. Payment settings not deleted.",
+        message: error.message
       });
     }
-
-    // Check if payment setting exists
-    const setting = await prisma.paymentSetting.findUnique({
-      where: { paymentSettingId },
-    });
-
-    if (!setting) {
-      return res.status(402).json({
-        success: false,
-        message: "Payment setting not found",
-      });
-    }
-
-    // Optional safety check
-    if (setting.isRazorpayEnabled) {
-      return res.status(400).json({
-        success: false,
-        message: "Disable the Razorpay account before deleting it",
-      });
-    }
-
-    // Delete
-    await prisma.paymentSetting.delete({
-      where: { paymentSettingId },
-    });
-
-    res.json({
-      success: true,
-      message: "Payment setting deleted successfully",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
   }
-}
 );
-
 
 module.exports = router
 
@@ -250,12 +290,243 @@ module.exports = router
 
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// function isValidWebhookUrl(url) {
+//   try {
+//     const parsed = new URL(url);
+//     return parsed.protocol === "https:";
+//   } catch {
+//     return false;
+//   }
+// }
+
+// /**
+//  * CREATE Payment Setting
+//  * Usually only ONE record is needed (admin level)
+//  */
+// // router.post("/settings/payment",authenticate,authorizeRoles("ADMIN"), async (req, res) => {
+// //   try {
+
+// //     const { razorpayKeyId, razorpaySecret, alertEmail, isRazorpayEnabled, profilePassword, webhookUrl } = req.body;
+    
+// //     const employeeId = req.user.id;
+
+// //     const isValid = await verifyPassword(employeeId, profilePassword);
+// //     if (!isValid) {
+// //       return res.status(402).json({
+// //         success: false,
+// //         message: "Invalid password."
+// //       });
+// //     }
+
+// //     // Detect TEST / LIVE
+// //     const mode = detectMode(razorpayKeyId);
+// //     if (mode === "UNKNOWN") {
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: "Invalid Razorpay Key",
+// //       });
+// //     }
+
+// //     // Limit max Razorpay accounts
+// //     const total = await prisma.paymentSetting.count();
+// //     if (total >= 3) {
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: "Maximum 3 Razorpay accounts allowed",
+// //       });
+// //     }
+
+// //     // If enabling this account, disable all others
+// //     if (isRazorpayEnabled) {
+// //       await prisma.paymentSetting.updateMany({
+// //         data: { isRazorpayEnabled: false },
+// //       });
+// //     }
+
+// //     // Create webhook if enabled
+// //     let webhookId = null;
+// //     let webhookSecret = null;
+// //     if (isRazorpayEnabled) {
+
+// //       if (!isValidWebhookUrl(webhookUrl)) {
+// //         return res.status(400).json({
+// //           success: false,
+// //           message: "Invalid webhook URL"
+// //         });
+// //       }
+// //       const webhookData = await createWebhook(razorpayKeyId, razorpaySecret, alertEmail,webhookUrl);
+    
+// //       if (webhookData) {
+// //         webhookId = webhookData.webhookId;
+// //         webhookSecret = webhookData.webhookSecret;
+// //       }
+// //     }
+
+// //     // Save to database
+// //   await prisma.paymentSetting.create({
+// //       data: {
+// //         razorpayKeyId,
+// //         razorpaySecret,
+// //         mode,
+// //         webhookId,
+// //         webhookSecret,
+// //         webhookUrl,
+// //         alertEmail,
+// //         isRazorpayEnabled,
+// //       },
+// //     });
+
+// //     res.json({ success: true, message: "Payment settings saved successfully",});
+// //   } catch (error) {
+// //     res.status(500).json({ success: false, message: error.message });
+// //   }
+// // });
+
+// // router.get("/settings/payment",authenticate,authorizeRoles("ADMIN"), async (req, res) => {
+// //   try {
+// //     const settings = await prisma.paymentSetting.findMany({
+// //       select: {
+// //         paymentSettingId: true,
+// //         razorpayKeyId: true,
+// //         isRazorpayEnabled: true,
+// //         webhookId: true,
+// //         alertEmail: true,
+// //         updatedAt: true,
+// //       },
+// //     });
+
+// //     res.json({ success: true, data: settings });
+// //   } catch (error) {
+// //     res.status(500).json({ success: false, message: error.message });
+// //   }
+// // });
+
+
+// // router.put("/settings/payment/:paymentSettingId", authenticate, authorizeRoles("ADMIN"),
+// //   async (req, res) => {
+// //     try {
+// //       console.log("👉 TOGGLE PAYMENT STATUS");
+
+// //       const { paymentSettingId } = req.params;
+// //       const { isRazorpayEnabled, profilePassword } = req.body;
+
+// //       const employeeId = req.user.id;
+
+// //       // 🔐 Password Check
+// //       const isValid = await verifyPassword(employeeId, profilePassword);
+// //       if (!isValid) {
+// //         return res.status(402).json({
+// //           success: false,
+// //           message: "Invalid password"
+// //         });
+// //       }
+
+// //       // 📦 Get Existing
+// //       const existing = await prisma.paymentSetting.findUnique({
+// //         where: { paymentSettingId }
+// //       });
+
+// //       if (!existing) {
+// //         return res.status(404).json({
+// //           success: false,
+// //           message: "Not found"
+// //         });
+// //       }
+
+// //       // 🚫 Only One Active Account
+// //       if (isRazorpayEnabled === true) {
+// //         await prisma.paymentSetting.updateMany({
+// //           where: { NOT: { paymentSettingId } },
+// //           data: { isRazorpayEnabled: false }
+// //         });
+// //       }
+
+// //       // 🔁 ONLY toggle status
+// //       const updated = await prisma.paymentSetting.update({
+// //         where: { paymentSettingId },
+// //         data: {
+// //           isRazorpayEnabled
+// //         }
+// //       });
+
+// //       console.log("✅ STATUS UPDATED:", updated);
+
+// //       res.json({
+// //         success: true,
+// //         message: `Payment ${isRazorpayEnabled ? "enabled" : "disabled"} successfully`,
+// //         data: updated
+// //       });
+
+// //     } catch (error) {
+// //       console.error("❌ ERROR:", error);
+// //       res.status(500).json({
+// //         success: false,
+// //         message: error.message
+// //       });
+// //     }
+// //   }
+// // );
+
+// // // DELETE payment setting
+// // router.delete("/settings/payment/:paymentSettingId",authenticate,authorizeRoles("ADMIN"),async (req, res) => {
+// //   try {
+// //     const { paymentSettingId } = req.params;
+// //     const { profilePassword } = req.body;
+// //     const employeeId = req.user.id;
+
+// //     // Verify admin password
+// //     const isValid = await verifyPassword(employeeId, profilePassword);
+// //     if (!isValid) {
+// //       return res.status(402).json({
+// //         success: false,
+// //         message: "Invalid password. Payment settings not deleted.",
+// //       });
+// //     }
+
+// //     // Check if payment setting exists
+// //     const setting = await prisma.paymentSetting.findUnique({
+// //       where: { paymentSettingId },
+// //     });
+
+// //     if (!setting) {
+// //       return res.status(402).json({
+// //         success: false,
+// //         message: "Payment setting not found",
+// //       });
+// //     }
+
+// //     // Optional safety check
+// //     if (setting.isRazorpayEnabled) {
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: "Disable the Razorpay account before deleting it",
+// //       });
+// //     }
+
+// //     // Delete
+// //     await prisma.paymentSetting.delete({
+// //       where: { paymentSettingId },
+// //     });
+
+// //     res.json({
+// //       success: true,
+// //       message: "Payment setting deleted successfully",
+// //     });
+// //   } catch (error) {
+// //     res.status(500).json({
+// //       success: false,
+// //       message: error.message,
+// //     });
+// //   }
+// // }
+// // );
 
 
 
 
-
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 // // UPDATE payment setting

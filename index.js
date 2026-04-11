@@ -150,22 +150,24 @@ app.use("/",utm)
 //   }
 // });
 
-// app.get("/cron-runner", (req, res) => {
-//   const authHeader = req.headers["authorization"];
+const cronPassword = "mysecret123";
 
-//   console.log("🔥 HIT:", new Date().toISOString());
-//   console.log("Auth Header:", authHeader);
+app.get("/trigger-reminder", (req, res) => {
+  const authHeader = req.headers["authorization"];
 
-//   // ✅ Direct check (no env)
-//   if (authHeader !== "Bearer mysecret123") {
-//     console.log("❌ Unauthorized request");
-//     return res.status(401).json({ error: "Unauthorized" });
-//   }
+  console.log("🔥 HIT:", new Date().toISOString());
+  console.log("Auth Header:", authHeader);
 
-//   console.log("✅ Authorized EventBridge call");
+  // ✅ Correct check
+  if (authHeader !== `Bearer ${cronPassword}`) {
+    console.log("❌ Unauthorized request");
+    return res.status(401).json({ error: "Unauthorized" });
+  }
 
-//   res.status(200).json({ success: true });
-// });
+  console.log("✅ Authorized EventBridge call");
+
+  res.status(200).json({ success: true });
+});
 
 
 /* =====================================================

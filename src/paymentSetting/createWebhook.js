@@ -1,9 +1,9 @@
 const axios = require("axios");
 const crypto = require("crypto");
 
-const WEBHOOK_URL = "https://insightsconsult-backend.onrender.com/razorpay/webhook";
+//const WEBHOOK_URL = "https://insightsconsult-backend.onrender.com/razorpay/webhook";
 
-async function createWebhook(keyId, keySecret, alertEmail) {
+async function createWebhook(keyId, keySecret, alertEmail, webhookUrl) {
   try {
     const webhookSecret = crypto.randomBytes(32).toString("hex");
 
@@ -52,7 +52,7 @@ async function createWebhook(keyId, keySecret, alertEmail) {
         "Content-Type": "application/json"
       },
       data: JSON.stringify({  // explicitly stringify
-        url: WEBHOOK_URL,
+        url: webhookUrl,
         secret: webhookSecret,
         alert_email: alertEmail,
         events,
