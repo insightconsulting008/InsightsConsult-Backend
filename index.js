@@ -152,21 +152,36 @@ app.use("/",utm)
 
 const cronPassword = "mysecret123";
 
-app.get("/trigger-reminder", (req, res) => {
-  const authHeader = req.headers["authorization"];
+app.post("/trigger-reminder", async (req, res) => {
+  try {
+    // Accept BOTH formats (safer)
+    const authHeader = req.headers["authorization"];
+    const apiKeyHeader = req.headers["x-api-key"];
 
-  console.log("🔥 HIT:", new Date().toISOString());
-  console.log("Auth Header:", authHeader);
+    console.log("🔥 HIT:", new Date().toISOString());
+    console.log("Authorization:", authHeader);
+    console.log("x-api-key:", apiKeyHeader);
 
-  // ✅ Correct check
-  if (authHeader !== `Bearer ${cronPassword}`) {
-    console.log("❌ Unauthorized request");
-    return res.status(401).json({ error: "Unauthorized" });
+    // ✅ Check either Authorization OR x-api-key
+    const isAuthorized =
+      authHeader === `Bearer ${cronPassword}` ||
+      apiKeyHeader === cronPassword;
+
+    if (!isAuthorized) {
+      console.log("❌ Unauthorized request");
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    console.log("✅ Authorized EventBridge call");
+
+    // 👉 YOUR DB LOGIC HERE
+    // await processReminders();
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("❌ Error:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
-
-  console.log("✅ Authorized EventBridge call");
-
-  res.status(200).json({ success: true });
 });
 
 
