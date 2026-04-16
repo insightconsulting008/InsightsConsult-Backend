@@ -3,8 +3,6 @@ const router = express.Router();
 const prisma = require("../prisma/prisma");
 const detectMode = require("./detectMode");
 const createWebhook = require("./createWebhook");
-const {authenticate,authorizeRoles} =require("../authMiddleware/authMiddleware")
-
 
 
 
@@ -29,7 +27,6 @@ const verifyPassword = async (employeeId, profilePassword) => {
   return employee.profilePassword === profilePassword; // Simple comparison
 };
 
-
 // 🔐 Webhook URL validation
 const isValidWebhookUrl = (url) => {
   try {
@@ -40,10 +37,8 @@ const isValidWebhookUrl = (url) => {
   }
 };
 
-
-
 // ================= CREATE =================
-router.post("/settings/payment", authenticate, authorizeRoles("ADMIN"), async (req, res) => {
+router.post("/payment", async (req, res) => {
   try {
     const {
       razorpayKeyId,
@@ -140,10 +135,8 @@ router.post("/settings/payment", authenticate, authorizeRoles("ADMIN"), async (r
   }
 });
 
-
-
 // ================= GET =================
-router.get("/settings/payment", authenticate, authorizeRoles("ADMIN"), async (req, res) => {
+router.get("/payment",  async (req, res) => {
   try {
     const settings = await prisma.paymentSetting.findMany({
       select: {
@@ -169,10 +162,8 @@ router.get("/settings/payment", authenticate, authorizeRoles("ADMIN"), async (re
   }
 });
 
-
-
 // ================= TOGGLE (ON/OFF) =================
-router.put("/settings/payment/:paymentSettingId", authenticate, authorizeRoles("ADMIN"),
+router.put("/payment/:paymentSettingId",
   async (req, res) => {
     try {
       const { paymentSettingId } = req.params;
@@ -226,10 +217,8 @@ router.put("/settings/payment/:paymentSettingId", authenticate, authorizeRoles("
   }
 );
 
-
-
 // ================= DELETE =================
-router.delete("/settings/payment/:paymentSettingId", authenticate, authorizeRoles("ADMIN"),
+router.delete("/payment/:paymentSettingId",
   async (req, res) => {
     try {
       const { paymentSettingId } = req.params;

@@ -7,9 +7,9 @@ const prisma = require('./src/prisma/prisma')
 const categoryRouter = require("./src/category/Category");
 const subcategoryRouter = require("./src/subCategory/SubCategory");
 const masterFieldRouter = require("./src/masterFields/MasterInputField")
-const serviceUpdate = require("./src/serviceUpdate/ServiceUpdate")
-const authUserRouter = require("./src/userPortal/userAuth/userAuth")
-const userApplicationApply = require("./src/userPortal/Application/Application")
+const serviceUpdate = require("./serviceUpdate/ServiceUpdate")
+const authUserRouter = require("./userPortal/userAuth/userAuth")
+const userApplicationApply = require("./userPortal/Application/Application")
 const settings = require("./src/paymentSetting/PaymentSetting")
 const {profileUpload,serviceImgUpload,bundleServiceImgUpload} = require("./src/utils/multer")
 const {deleteS3Object} = require("./src/utils/deleteS3Object")
@@ -39,15 +39,16 @@ const { processReminders } = require("./src/utils/reminderProcessor");
 // });
 // latest new api
 
-const UserAuth = require("./src/components/authentication/userAuth")
-const StaffAuth = require("./src/components/authentication/staffAuth")
-const Auth = require("./src/components/authentication/auth")
+const UserAuth = require("./src/routes/authentication/userAuth")
+const StaffAuth = require("./src/routes/authentication/staffAuth")
+const Auth = require("./src/routes/authentication/auth")
 const StaffAccountSetting = require("./src/components/staffPortal/staffAccountSetting")
 const UserAccountSetting = require("./src/components/userPortal/userAccountSetting")
 const Department = require("./src/components/adminPortal/department/department")
 const Employee = require("./src/components/adminPortal/employee/employee")
 const Service = require("./src/components/adminPortal/service/service")
 const serviceBundle = require("./src/components/adminPortal/bundleService/bundleService")
+const AmendmentPayments = require("./src/components/adminPortal/amendment/amendment")
 
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(express.json());
@@ -120,6 +121,7 @@ app.use("/", Department)
 app.use("/", Employee)
 app.use("/", Service)
 app.use("/", serviceBundle)
+app.use("/", AmendmentPayments)
 
 
 

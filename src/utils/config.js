@@ -1,5 +1,5 @@
-require('dotenv').config();
-
+// require('dotenv').config();
+require("dotenv").config({ path: "./prisma/.env" });
 
 // Store environment variables in an object
 const config = {
@@ -13,7 +13,9 @@ const config = {
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   CLIENT_SECRET: process.env.CLIENT_SECRET,
   AWS_ACCOUNT_ID: process.env.AWS_ACCOUNT_ID,
-  CRON_SECRET: process.env.CRON_SECRET
+  SCHEDULER_SECRET: process.env.SCHEDULER_SECRET,
+  SETUP_SECRET: process.env.SETUP_SECRET
+
 };
 
 
