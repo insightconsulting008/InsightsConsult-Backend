@@ -5,76 +5,7 @@ const Razorpay = require("razorpay");
 const {createNotification} = require("../../notifications/notificationService")
 
 
-router.get("/:employeeId", async (req, res) => {
-  try {
-    const { employeeId } = req.params;
-    const { search = "", page = 1, limit = 10 } = req.query;
 
-    const pageNumber = parseInt(page);
-    const pageSize = parseInt(limit);
-    const skip = (pageNumber - 1) * pageSize;
-
-    const whereCondition = {
-      createdById: employeeId,
-      ...(search && {
-        OR: [
-          { status: { contains: search, mode: "insensitive" } },
-          { type: { contains: search, mode: "insensitive" } },
-
-          // 👇 Razorpay fields
-          { razorpayOrderId: { contains: search, mode: "insensitive" } },
-          { razorpayPaymentId: { contains: search, mode: "insensitive" } },
-          { razorpayPaymentLink: { contains: search, mode: "insensitive" } },
-
-          // 👇 User fields
-          {
-            user: {
-              OR: [
-                { name: { contains: search, mode: "insensitive" } },
-                { email: { contains: search, mode: "insensitive" } },
-                { phoneNumber: { contains: search, mode: "insensitive" } },
-              ],
-            },
-          },
-        ],
-      }),
-    };
-
-    const [payments, totalCount] = await Promise.all([
-      prisma.payment.findMany({
-        where: whereCondition,
-        include: {
-          createdBy: { select: { name: true ,photoUrl: true } },
-          user: {
-            select: {
-              name: true,
-              email: true,
-              phoneNumber: true,
-              photoUrl:true,
-            },
-          },
-        },
-        skip,
-        take: pageSize,
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.payment.count({ where: whereCondition }),
-    ]);
-
-    res.status(200).json({
-      data: payments,
-      pagination: {
-        total: totalCount,
-        page: pageNumber,
-        limit: pageSize,
-        totalPages: Math.ceil(totalCount / pageSize),
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching payments:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
 
 
 router.post("/create/amendment-link", async (req, res) => {
@@ -192,6 +123,77 @@ router.get("/users", async (req, res) => {
     res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.get("/:employeeId", async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const { search = "", page = 1, limit = 10 } = req.query;
+
+    const pageNumber = parseInt(page);
+    const pageSize = parseInt(limit);
+    const skip = (pageNumber - 1) * pageSize;
+
+    const whereCondition = {
+      createdById: employeeId,
+      ...(search && {
+        OR: [
+          { status: { contains: search, mode: "insensitive" } },
+          { type: { contains: search, mode: "insensitive" } },
+
+          // 👇 Razorpay fields
+          { razorpayOrderId: { contains: search, mode: "insensitive" } },
+          { razorpayPaymentId: { contains: search, mode: "insensitive" } },
+          { razorpayPaymentLink: { contains: search, mode: "insensitive" } },
+
+          // 👇 User fields
+          {
+            user: {
+              OR: [
+                { name: { contains: search, mode: "insensitive" } },
+                { email: { contains: search, mode: "insensitive" } },
+                { phoneNumber: { contains: search, mode: "insensitive" } },
+              ],
+            },
+          },
+        ],
+      }),
+    };
+
+    const [payments, totalCount] = await Promise.all([
+      prisma.payment.findMany({
+        where: whereCondition,
+        include: {
+          createdBy: { select: { name: true ,photoUrl: true } },
+          user: {
+            select: {
+              name: true,
+              email: true,
+              phoneNumber: true,
+              photoUrl:true,
+            },
+          },
+        },
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.payment.count({ where: whereCondition }),
+    ]);
+
+    res.status(200).json({
+      data: payments,
+      pagination: {
+        total: totalCount,
+        page: pageNumber,
+        limit: pageSize,
+        totalPages: Math.ceil(totalCount / pageSize),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching payments:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
