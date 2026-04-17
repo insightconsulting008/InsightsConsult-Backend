@@ -15,6 +15,85 @@ function makeSlug(text) {
       .replace(/\s+/g, "-");
   }
   
+
+   router.get("/", async (req, res) => {
+      try {
+        const { search = "", page = 1, limit = 10,  type = "public" } = req.query;
+    
+        const pageNumber = parseInt(page);
+        const pageSize = parseInt(limit);
+        const skip = (pageNumber - 1) * pageSize;
+    
+        // Search condition
+        const whereCondition = {
+          published: type === "public",
+          ...(search && {
+            OR: [
+              {
+                title: {
+                  contains: search,
+                  mode: "insensitive",
+                },
+              },
+              {
+                author: {
+                  contains: search,
+                  mode: "insensitive",
+                },
+              },
+            ],
+          }),
+        };
+        // Get total count (for pagination info)
+        const totalBlogs = await prisma.blog.count({
+          where: whereCondition,
+        });
+    
+        const blogs = await prisma.blog.findMany({
+          where: whereCondition,
+          orderBy: [
+            { createdAt: "desc" }, // latest fallback
+          ],
+          skip,
+          take: pageSize,
+        });
+    
+        res.json({
+          total: totalBlogs,
+          currentPage: pageNumber,
+          totalPages: Math.ceil(totalBlogs / pageSize),
+          pageSize,
+          data: blogs,
+        });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Fetch blogs failed" });
+      }
+    });
+  
+    /* ==============================
+       GET SINGLE BLOG
+    ============================== */
+    router.get("/:slug", async (req, res) => {
+      try {
+        const blog = await prisma.blog.findUnique({
+          where: { slug: req.params.slug },
+        });
+    
+        if (!blog) {
+          return res.status(404).json({ message: "Blog not found" });
+        }
+    
+        // Ensure content order
+        blog.content.sort((a, b) => a.order - b.order);
+    
+        res.json(blog);
+      } catch (error) {
+        res.status(500).json({ error: "Fetch blog failed" });
+      }
+    });
+
+
   /* ==============================
      CREATE BLOG
   ============================== */
@@ -79,72 +158,6 @@ function makeSlug(text) {
       }
     }
   );
-  
-
-
-
-  
-  /* ==============================
-     UPDATE BLOG
-  ============================== */
-  // router.put("/blogs/:id",blogImgUpload.fields([
-  //     { name: "thumbnail", maxCount: 1 },
-  //     { name: "contentImages", maxCount: 20 }
-  //   ]),
-  //   async (req, res) => {
-  //     try {
-  //       const { id } = req.params;
-  //       const { title, description, content, published } = req.body;
-  
-  //       const existingBlog = await prisma.blog.findUnique({
-  //         where: { blogId: id },
-  //       });
-  
-  //       if (!existingBlog) {
-  //         return res.status(404).json({ message: "Blog not found" });
-  //       }
-  
-  //       let parsedContent = JSON.parse(content || "[]");
-  
-  //       const uploadedImages = req.files?.contentImages
-  //         ? req.files.contentImages.map(file => file.location)
-  //         : [];
-  
-  //       parsedContent = parsedContent.map(block => {
-  //         if (block.type === "image" && block.fileIndex !== undefined) {
-  //           return {
-  //             type: "image",
-  //             url: uploadedImages[block.fileIndex] || null,
-  //             order: block.order
-  //           };
-  //         }
-  //         return block;
-  //       });
-  
-  //       parsedContent.sort((a, b) => a.order - b.order);
-  
-  //       const thumbnailUrl = req.files?.thumbnail
-  //         ? req.files.thumbnail[0].location
-  //         : existingBlog.thumbnail;
-  
-  //       const updatedBlog = await prisma.blog.update({
-  //         where: { blogId: id },
-  //         data: {
-  //           title,
-  //           description,
-  //           content: parsedContent,
-  //           thumbnail: thumbnailUrl,
-  //           published: published === "true",
-  //         },
-  //       });
-  
-  //       res.json(updatedBlog);
-  //     } catch (error) {
-  //       console.log(error);
-  //       res.status(500).json({ error: "Update blog failed" });
-  //     }
-  //   }
-  // );
   
 
   router.put(
