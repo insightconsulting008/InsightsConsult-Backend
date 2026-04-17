@@ -31,7 +31,7 @@ app.get("/test", async(req, res) => {
 /* -------------------- PROTECTED ROUTES -------------------- */
 
 app.use("/api/admin",authenticate, authorizeRoles("ADMIN"),require("./src/routes/admin/server"));
-app.use("/api/staff",require("./src/routes/staff/server"));
+app.use("/api/staff",authenticate, authorizeRoles("STAFF", "ADMIN"),require("./src/routes/staff/server"));
 app.use("/api/user",authenticate, authorizeRoles("USER","STAFF","ADMIN"),require("./src/routes/user/server"));
 app.use("/api/notifications",authenticate, authorizeRoles("USER","ADMIN","STAFF"), require("./src/notifications/notificationRoutes"))
 
