@@ -16,6 +16,7 @@ router.use("/application-history", require("../admin/applicationHistory.routes")
 router.use("/utm", require("../admin/utm.routes"))
 router.use("/email",require("../../email/routes/emailRoutes"))
 router.use("/settings",require("../../paymentSetting/PaymentSetting"))
+router.use("/users",require("../admin/users.routes"))
 
 
 module.exports = router;  
