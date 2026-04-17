@@ -1,14 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../../prisma/prisma");
-const config = require("../../utils/config")
-const {applicationImgUpload,myDocuments} = require('../../utils/multer')
-const{ authenticate,authorizeRoles } = require("../../authMiddleware/authMiddleware")
-const Razorpay = require("razorpay");
-const crypto = require("crypto");
+const {myDocuments} = require('../../utils/multer')
 const {logHistory} = require("../../../src/utils/historyService")
 const {createNotification} = require("../../notifications/notificationService")
-const { generateReminders } = require("../../utils/reminderGenerator");
+
 
 router.put("/:documentId",myDocuments.single("file"), async (req, res) => {
   try {

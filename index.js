@@ -3,7 +3,6 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
-const config =require("./src/utils/config")
 const cookieParser = require("cookie-parser");
 const { authenticate, authorizeRoles } = require("./src/authMiddleware/authMiddleware")
 
@@ -34,6 +33,7 @@ app.get("/test", async(req, res) => {
 app.use("/api/admin",authenticate, authorizeRoles("ADMIN"),require("./src/routes/admin/server"));
 app.use("/api/staff",authenticate, authorizeRoles("STAFF", "ADMIN"),require("./src/routes/staff/server"));
 app.use("/api/user",authenticate, authorizeRoles("USER"),require("./src/routes/user/server"));
+app.use("/notifications",authenticate, authorizeRoles("USER","ADMIN","STAFF"), require("./src/notifications/notificationRoutes"))
 
 /* -------------------- PUBLIC ROUTES -------------------- */
 
@@ -43,8 +43,14 @@ app.use("/api/razorpay",require("./src/webhook/razorpay.webhook"))
 app.use("/api/user/google-auth", require("./src/utils/googleSignup"))
 
 /* -------------------- SERVER -------------------- */
-app.listen(6001, async  () => {
-  console.log(`✅ Insight Consulting Project Server running on port 6001`);
+// app.listen(6001, async  () => {
+//   console.log(` 6001`);
+// });
+
+const PORT = process.env.PORT || 6001;
+
+app.listen(PORT, () => {
+  console.log(`✅ Insight Consulting Project Server running on port ${PORT}`);
 });
 
 
