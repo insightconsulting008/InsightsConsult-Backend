@@ -32,6 +32,18 @@ const prisma = require("../../prisma/prisma");
   });
 
 
+router.get("/", async (req, res) => {
+      try {
+        const subcategories = await prisma.subCategory.findMany();
+    
+        res.json({ success: true, subcategories });
+      } catch (error) {
+        console.error("Get Subcategories Error:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+      }
+    });
+
+
   // -----------------------------
 // UPDATE SUBCATEGORY (name only)
 // PUT /subcategory/:subCategoryId

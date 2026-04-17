@@ -23,6 +23,16 @@ router.post("/", async (req, res) => {
   });
 
 
+router.get("/", async (req, res) => {
+      try {
+        const categories = await prisma.category.findMany();
+        res.json({ success: true, categories });
+      } catch (error) {
+        console.error("Get Categories Error:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+      }
+    });
+
 // -----------------------------
 // UPDATE CATEGORY
 // PUT /category/:categoryId
