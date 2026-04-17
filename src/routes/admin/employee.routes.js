@@ -296,6 +296,37 @@
       res.status(500).json({ success: false, error: error.message });
     }
   });
+
+
+  router.get("/stats", async (req, res) => {
+    try {
+      const totalDepartments = await prisma.department.count();
+  
+      const totalEmployees = await prisma.employee.count();
+  
+      const activeEmployees = await prisma.employee.count({
+        where: { status: "ACTIVE" }   // change field if your column name is different
+      });
+  
+      const inactiveEmployees = await prisma.employee.count({
+        where: { status: "INACTIVE" }
+      });
+  
+      res.json({
+        success: true,
+        data: {
+          totalDepartments,
+          totalEmployees,
+          activeEmployees,
+          inactiveEmployees,
+        },
+      });
+  
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+  
   
   
   module.exports = router;
