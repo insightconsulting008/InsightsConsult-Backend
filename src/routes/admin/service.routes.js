@@ -141,6 +141,56 @@ const {deleteS3Object} = require("../../utils/deleteS3Object")
   // =============================
   // CREATE SERVICE
   // =============================
+
+
+router.get("/", async (req, res) => {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const search = req.query.search?.trim() || "";
+  
+      const skip = (page - 1) * limit;
+  
+      const where = search
+        ? {
+            name: {
+              contains: search,
+              mode: "insensitive",
+            },
+          }
+        : {};
+  
+      const [services, total] = await Promise.all([
+        prisma.service.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: {
+            createdAt: "desc",
+          },
+        }),
+        prisma.service.count({
+          where,
+        }),
+      ]);
+  
+      res.json({
+        success: true,
+        pagination: {
+          page,
+          limit,
+          totalRecords: total,
+          totalPages: Math.ceil(total / limit),
+        },
+        services,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  });  
   
 
 router.post("/",serviceImgUpload.single('photoUrl') ,async (req, res) => {

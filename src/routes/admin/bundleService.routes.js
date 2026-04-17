@@ -38,6 +38,64 @@
     }
   });
 
+    router.get("/", async (req, res) => {
+      try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || "";
+    
+        const skip = (page - 1) * limit;
+    
+        const whereCondition = search
+          ? {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
+            }
+          : {};
+    
+        const [bundles, total] = await Promise.all([
+          prisma.serviceBundle.findMany({
+            where: whereCondition,
+            skip: skip,
+            take: limit,
+            orderBy: {
+              createdAt: "desc",
+            },
+            include: {
+              services: {
+                select: {
+                  serviceId: true,
+                  name: true,
+                },
+              },
+            },
+          }),
+    
+          prisma.serviceBundle.count({
+            where: whereCondition,
+          }),
+        ]);
+    
+        res.json({
+          success: true,
+          pagination: {
+            totalRecords: total,
+            currentPage: page,
+            limit: limit,
+            totalPages: Math.ceil(total / limit),
+          },
+          bundles,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: error.message,
+        });
+      }
+    });
+
   router.put("/:bundleId",bundleServiceImgUpload.single("photoUrl"),
     async (req, res) => {
       try {
