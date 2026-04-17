@@ -93,13 +93,6 @@ router.post("/payment", async (req, res) => {
         webhookUrl
       );
 
-      if (!webhookData) {
-        return res.status(500).json({
-          success: false,
-          message: "Webhook creation failed"
-        });
-      }
-
       
       await prisma.paymentSetting.updateMany({
         data: { isRazorpayEnabled: false }
