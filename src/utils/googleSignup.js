@@ -20,7 +20,7 @@ const generateAccessToken = (payload) =>
 
 
 
-router.post("/login", async (req, res) => {
+router.post("/google-auth", async (req, res) => {
   try {
     const { token,
       utmSource,
