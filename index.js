@@ -40,7 +40,7 @@ app.use("/api/notifications",authenticate, authorizeRoles("USER","ADMIN","STAFF"
 app.use("/api",require("./src/routes/landingPage/server"));
 app.use("/api/auth",require("./src/routes/authentication/server"));
 app.use("/api/razorpay",require("./src/webhook/razorpay.webhook"))
-app.use("/api/user/google-auth", require("./src/utils/googleSignup"))
+app.use("/api/google-auth", require("./src/utils/googleSignup"))
 
 /* -------------------- SERVER -------------------- */
 // app.listen(6001, async  () => {
