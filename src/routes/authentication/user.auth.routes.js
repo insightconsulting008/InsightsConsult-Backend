@@ -68,15 +68,10 @@ router.post("/register", async (req, res) => {
         utmCampaignId: utmCampaignId || null,}
     });
 
-    const accessToken = generateAccessToken({
-      id: user.userId,
-      role: user.role,
-    });
-
-    const refreshToken = generateRefreshToken({
-      id:user.userId,
-      role:user.role
-    });
+    const { accessToken, refreshToken } = generateTokens({
+        id: user.userId,
+        role: user.role,
+      });
 
     await prisma.refreshToken.create({
       data: {
