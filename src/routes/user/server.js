@@ -11,6 +11,8 @@ router.use("/payments",   require("../user/payments.routes"))
 router.use("/my-service", require("../user/myServices.routes"))
 router.use("/applications", require("../user/applications.routes"))
 router.use("/upload-document", require("../user/documents.routes"))
+router.use("/mycompany",require("../user/myCompanyDocuments.routes"))
+router.use("/mydocuments",require("../user/myDocuments.routes"))
 
 
 module.exports = router;  
