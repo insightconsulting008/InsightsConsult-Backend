@@ -173,11 +173,14 @@ async (req, res) => {
         where: { userId: req.user.id }
       });
 
-       // Delete old photo
-  if (user?.photoUrl) {
-    await deleteS3Object(user.photoUrl);
+  // ✅ SAFE DELETE (only if S3 URL)
+  if (user.photoUrl && user.photoUrl.includes("amazonaws.com")) {
+    try {
+      await deleteS3Object(user.photoUrl);
+    } catch (err) {
+      console.log("⚠️ S3 delete skipped:", err.message);
+    }
   }
-
     const userUpdate = await prisma.user.update({
       where: { userId: req.user.id },
       data: {
