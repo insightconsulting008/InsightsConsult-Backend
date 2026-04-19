@@ -175,9 +175,8 @@ router.post("/forgot-password", async (req, res) => {
 
     // Always return same response (security)
     if (!user) {
-      return res.json({ message: "User Not Found" });
-    }
-
+        return res.status(400).json({ message: "User Not Found" });
+      }
     const token = crypto.randomBytes(32).toString("hex");
     const expiry = new Date(Date.now() + 15 * 60 * 1000);
 
