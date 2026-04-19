@@ -38,9 +38,9 @@ app.use("/api/notifications",authenticate, authorizeRoles("USER","ADMIN","STAFF"
 /* -------------------- PUBLIC ROUTES -------------------- */
 
 app.use("/api",require("./src/routes/landingPage/server"));
-app.use("/",require("./src/routes/authentication/server"));
+app.use("/api/auth",require("./src/routes/authentication/server"));
 app.use("/api/razorpay",require("./src/webhook/razorpay.webhook"))
-app.use("/user", require("./src/utils/googleSignup"))
+app.use("/api/user", require("./src/utils/googleSignup"))
 
 /* -------------------- SERVER -------------------- */
 // app.listen(6001, async  () => {
