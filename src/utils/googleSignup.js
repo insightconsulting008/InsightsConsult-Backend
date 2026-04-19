@@ -4,16 +4,17 @@ const prisma = require("../prisma/prisma")
 const googleClient = require("../utils/googleClient");
 const jwt = require("jsonwebtoken");
 const config = require("../utils/config")
+const generateTokens = require("../utils/tokenHelper")
 
 /* =====================================================
    TOKEN HELPERS
 ===================================================== */
 
-const generateAccessToken = (payload) =>
-    jwt.sign(payload, config.ACCESS_SECRET, { expiresIn: "1d" });
+// const generateAccessToken = (payload) =>
+//     jwt.sign(payload, config.ACCESS_SECRET, { expiresIn: "1d" });
   
-  const generateRefreshToken = (payload) =>
-    jwt.sign(payload, config.REFRESH_SECRET, { expiresIn: "7d" });
+//   const generateRefreshToken = (payload) =>
+//     jwt.sign(payload, config.REFRESH_SECRET, { expiresIn: "7d" });
   
 
 
@@ -85,12 +86,7 @@ router.post("/google-auth", async (req, res) => {
     }
 
     // Generate tokens
-    const accessToken = generateAccessToken({
-      id: user.userId,
-      role: user.role,
-    });
-
-    const refreshToken = generateRefreshToken({
+    const { accessToken, refreshToken } = generateTokens({
       id: user.userId,
       role: user.role,
     });
