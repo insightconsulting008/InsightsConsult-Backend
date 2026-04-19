@@ -139,7 +139,7 @@ router.post("/login", async (req, res) => {
     const { accessToken, refreshToken } = generateTokens({
         id: user.userId,
         role: user.role,
-      });const generateTokens = require("../../utils/tokenHelper")
+      });
 
     await prisma.refreshToken.create({
       data: {
