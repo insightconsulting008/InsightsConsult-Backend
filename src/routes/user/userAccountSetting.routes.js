@@ -108,16 +108,17 @@ router.put("/change-password",async (req, res) => {
       try {
         const { oldPassword, newPassword } = req.body;
   
-        if (!oldPassword || !newPassword) {
-          return res.status(400).json({
-            success: false,
-            message: "Old password and new password are required",
-          });
-        }
-  
+        if (!newPassword) {
+            return res.status(400).json({
+              success: false,
+              message: "New password is required",
+            });
+          }
         const user = await prisma.user.findUnique({
           where: { userId: req.user.id },
         });
+
+
   
         if (!user) {
           return res.status(404).json({
@@ -125,6 +126,29 @@ router.put("/change-password",async (req, res) => {
             message: "User not found",
           });
         }
+
+         // ✅ GOOGLE USER (no password yet)
+    if (user.provider === "GOOGLE" && !user.password) {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+  
+        await prisma.user.update({
+          where: { userId: req.user.id },
+          data: { password: hashedPassword },
+        });
+  
+        return res.json({
+          success: true,
+          message: "Password set successfully",
+        });
+      }
+
+      // ✅ NORMAL USER → must provide old password
+    if (!oldPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Old password is required",
+        });
+      }
   
         const valid = await bcrypt.compare(oldPassword, user.password);
   
