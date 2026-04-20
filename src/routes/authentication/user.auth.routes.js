@@ -190,46 +190,46 @@ router.post("/forgot-password", async (req, res) => {
 
     const resetLink = `http://localhost:5173/user/reset-password?token=${token}`;
 
+
     await sendEmail({
         eventName: "FORGOT_PASSWORD",
         to: email,
-        subject: "Reset Your Password - Insight Consulting",
+        subject: "Reset Your Password",
         html: `
-        <div style="font-family: Arial, sans-serif; background:#f6f6f6; padding:20px;">
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background:#f9fafb; padding:40px 20px;">
           
-          <div style="max-width:600px; margin:auto; background:#ffffff; border-radius:10px; overflow:hidden;">
+          <div style="max-width:480px; margin:auto; background:#ffffff; border-radius:8px; padding:30px; border:1px solid #eee;">
       
-            <!-- HEADER -->
-            <div style="background:#ff3c1f; padding:20px; text-align:center;">
-              <img src="https://ik.imagekit.io/vqdzxla6k/insights%20consultancy%20/landingPage/image%2033%201%20(1)%201.png" 
-                   alt="Insight Consulting" 
-                   style="height:50px;" />
+            <!-- Title -->
+            <h2 style="margin:0 0 10px; color:#111; font-weight:600;">
+              Reset your password
+            </h2>
+      
+            <!-- Message -->
+            <p style="color:#555; font-size:14px; line-height:1.6;">
+              We received a request to reset your password. Click the button below to continue.
+            </p>
+      
+            <!-- Button -->
+            <div style="margin:25px 0; text-align:center;">
+              <a href="${resetLink}" 
+                 style="background:#111; color:#fff; padding:10px 20px; text-decoration:none; border-radius:6px; font-size:14px; display:inline-block;">
+                Reset Password
+              </a>
             </div>
       
-            <!-- BODY -->
-            <div style="padding:30px;">
-              <h2 style="color:#333;">Reset Your Password</h2>
+            <!-- Expiry -->
+            <p style="color:#888; font-size:12px; text-align:center;">
+              This link will expire in 24 hours.
+            </p>
       
-              <p>We received a request to reset your password.</p>
+            <!-- Divider -->
+            <hr style="border:none; border-top:1px solid #eee; margin:25px 0;" />
       
-              <div style="text-align:center; margin:30px 0;">
-                <a href="${resetLink}" 
-                   style="background:#ff3c1f; color:white; padding:12px 25px; text-decoration:none; border-radius:6px; font-weight:bold;">
-                   Reset Password
-                </a>
-              </div>
-      
-              <p style="color:#555;">If you didn’t request this, you can safely ignore this email.</p>
-      
-              <p style="color:red; font-size:14px;">
-                ⚠️ This link will expire in 24 hours.
-              </p>
-            </div>
-      
-            <!-- FOOTER -->
-            <div style="background:#fafafa; padding:15px; text-align:center; font-size:12px; color:#888;">
-              © ${new Date().getFullYear()} Insight Consulting
-            </div>
+            <!-- Footer -->
+            <p style="color:#aaa; font-size:12px; text-align:center;">
+              If you didn’t request this, you can safely ignore this email.
+            </p>
       
           </div>
         </div>
