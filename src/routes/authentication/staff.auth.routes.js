@@ -101,16 +101,62 @@ router.post("/forgot-password", async (req, res) => {
 
     const resetLink = `http://localhost:5173/staff/reset-password?token=${token}`;
 
+    // await sendEmail({
+    //   eventName: "FORGOT_PASSWORD",
+    //   to: email,   // ✅ THIS IS WHERE EMAIL GOES
+    //   subject: "Reset Password",
+    //   html: `<a href="${resetLink}">Click to reset password</a>`
+    // });
+
     await sendEmail({
-      eventName: "FORGOT_PASSWORD",
-      to: email,   // ✅ THIS IS WHERE EMAIL GOES
-      subject: "Reset Password",
-      html: `<a href="${resetLink}">Click to reset password</a>`
-    });
+        eventName: "FORGOT_PASSWORD",
+        to: email,
+        subject: "Reset Your Password - Insight Consulting",
+        html: `
+        <div style="font-family: Arial, sans-serif; background:#f6f6f6; padding:20px;">
+          
+          <div style="max-width:600px; margin:auto; background:#ffffff; border-radius:10px; overflow:hidden;">
+      
+            <!-- HEADER -->
+            <div style="background:#ff3c1f; padding:20px; text-align:center;">
+              <img src="https://ik.imagekit.io/vqdzxla6k/insights%20consultancy%20/landingPage/image%2033%201%20(1)%201.png" 
+                   alt="Insight Consulting" 
+                   style="height:50px;" />
+            </div>
+      
+            <!-- BODY -->
+            <div style="padding:30px;">
+              <h2 style="color:#333;">Reset Your Password</h2>
+      
+              <p>We received a request to reset your password.</p>
+      
+              <div style="text-align:center; margin:30px 0;">
+                <a href="${resetLink}" 
+                   style="background:#ff3c1f; color:white; padding:12px 25px; text-decoration:none; border-radius:6px; font-weight:bold;">
+                   Reset Password
+                </a>
+              </div>
+      
+              <p style="color:#555;">If you didn’t request this, you can safely ignore this email.</p>
+      
+              <p style="color:red; font-size:14px;">
+                ⚠️ This link will expire in 24 hours.
+              </p>
+            </div>
+      
+            <!-- FOOTER -->
+            <div style="background:#fafafa; padding:15px; text-align:center; font-size:12px; color:#888;">
+              © ${new Date().getFullYear()} Insight Consulting
+            </div>
+      
+          </div>
+        </div>
+        `
+      });
 
     console.log("EMPLOYEE RESET LINK:", resetLink);
 
-    res.json({ message: "If email exists, reset link sent" });
+    res.json({ message: "reset link sent" });
 
   } catch (err) {
     console.log(err);

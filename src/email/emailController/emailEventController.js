@@ -1,7 +1,6 @@
 const prisma = require("../../prisma/prisma.js");
 
 
-
 const getEvent = async (req,res) => {
     const getAllEvent = await prisma.emailEvent.findMany()
     res.json({

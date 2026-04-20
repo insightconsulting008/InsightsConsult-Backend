@@ -108,6 +108,18 @@ model EmailConfig {
   secretKey  String?
   region     String?
   fromEmail  String
+
+  // 🏢 Branding (YOUR REQUIREMENT)
+  companyName String?
+  website     String?
+  phone       String?
+  logo        String?
+
+  // 🎨 Design (Dark/Light safe)
+  primaryColor   String @default("#e11d48")
+  secondaryColor String @default("#f1f5f9")
+  textColor      String @default("#111111")
+
   createdAt  DateTime @default(now())
 }
 
@@ -115,6 +127,18 @@ model EmailEvent {
   eventId   String   @id @default(cuid())
   name      String   @unique
   enabled   Boolean  @default(true)
+  isSystem  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+
+model EmailLog {
+  emailLogId String @id @default(cuid())
+  event     String
+  toEmail   String
+  subject   String
+  status String   // SUCCESS | FAILED
+  error  String?
   createdAt DateTime @default(now())
 }
 

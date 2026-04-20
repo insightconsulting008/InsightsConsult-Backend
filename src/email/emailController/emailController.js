@@ -88,7 +88,7 @@ const saveEmailConfig = async (req, res) => {
       await prisma.emailEvent.createMany({
         data: defaultEvents.map((eventName) => ({
           name: eventName,
-          enabled: true
+          enabled: true,
         })),
         skipDuplicates: true
       });
