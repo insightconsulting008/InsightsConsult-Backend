@@ -127,7 +127,6 @@ model EmailEvent {
   eventId   String   @id @default(cuid())
   name      String   @unique
   enabled   Boolean  @default(true)
-  isSystem  Boolean  @default(false)
   createdAt DateTime @default(now())
 }
 
