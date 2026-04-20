@@ -196,7 +196,6 @@ router.post("/forgot-password", async (req, res) => {
       subject: "Reset Password",
       html: `<a href="${resetLink}">Click to reset password</a>`
     });
-
     console.log("USER RESET LINK:", resetLink);
 
     res.json({ message: "If email exists, reset link sent" });
