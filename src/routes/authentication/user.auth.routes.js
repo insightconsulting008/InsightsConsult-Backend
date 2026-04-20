@@ -200,6 +200,11 @@ router.post("/forgot-password", async (req, res) => {
           
           <div style="max-width:480px; margin:auto; background:#ffffff; border-radius:8px; padding:30px; border:1px solid #eee;">
       
+            <!-- Company Name -->
+            <p style="text-align:center; font-weight:600; color:#111; margin-bottom:20px;">
+              Insight Consulting
+            </p>
+      
             <!-- Title -->
             <h2 style="margin:0 0 10px; color:#111; font-weight:600;">
               Reset your password
@@ -223,8 +228,14 @@ router.post("/forgot-password", async (req, res) => {
               This link will expire in 24 hours.
             </p>
       
-            <!-- Divider -->
             <hr style="border:none; border-top:1px solid #eee; margin:25px 0;" />
+      
+            <!-- Website -->
+            <p style="text-align:center; font-size:12px; color:#777;">
+              <a href="https://www.insightconsulting.info" style="color:#555; text-decoration:none;">
+                www.insightconsulting.info
+              </a>
+            </p>
       
             <!-- Footer -->
             <p style="color:#aaa; font-size:12px; text-align:center;">
