@@ -157,6 +157,66 @@ router.post("/login", async (req, res) => {
      
     });
 
+    await sendEmail({
+        eventName: "LOGIN_ALERT",
+        to: email,
+        subject: "New Login to Your Account",
+        html: `
+        <div style="margin:0;padding:0;background:#f5f7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+          
+          <div style="max-width:520px;margin:40px auto;background:#ffffff;border-radius:12px;padding:40px 32px;border:1px solid #eaeaea;">
+            
+            <!-- Brand -->
+            <div style="text-align:center;margin-bottom:30px;">
+              <span style="font-size:18px;font-weight:600;color:#111;letter-spacing:0.5px;">
+                Insight Consulting
+              </span>
+            </div>
+      
+            <!-- Title -->
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:600;color:#111;text-align:center;">
+              New Login Detected
+            </h2>
+      
+            <!-- Message -->
+            <p style="margin:0 0 10px;color:#444;font-size:14px;line-height:1.7;text-align:center;">
+              Your account was accessed successfully.
+            </p>
+      
+            <p style="margin:0 0 25px;color:#666;font-size:14px;line-height:1.7;text-align:center;">
+              If this was you, no further action is needed.
+            </p>
+      
+            <!-- Soft Alert Box -->
+            <div style="background:#fff5f5;border:1px solid #ffe3e3;border-radius:8px;padding:14px;text-align:center;margin-bottom:25px;">
+              <span style="color:#c92a2a;font-size:13px;">
+                If this wasn’t you, we recommend securing your account immediately.
+              </span>
+            </div>
+      
+            <!-- Button -->
+            <div style="text-align:center;margin-bottom:30px;">
+              <a href="${securityLink}" 
+                 style="background:#111;color:#ffffff;padding:12px 26px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:500;display:inline-block;">
+                Secure Account
+              </a>
+            </div>
+      
+            <!-- Divider -->
+            <div style="height:1px;background:#eee;margin:25px 0;"></div>
+      
+            <!-- Footer -->
+            <p style="margin:0;color:#999;font-size:12px;text-align:center;line-height:1.6;">
+              This is a security notification to help keep your account safe.<br/>
+              If you need assistance, please contact Insight Consulting support.
+            </p>
+      
+          </div>
+      
+        </div>
+        `
+      });
+
     return res.status(200).json({
       success: true,
       message: "Login successful", accessToken ,role:user.role,userId:user.userId});
@@ -274,7 +334,7 @@ router.post("/reset-password", async (req, res) => {
         to: user.email,
         subject: "Password Has Been Updated Successfully",
         html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial; background:#f9fafb; padding:40px 20px; text-align:center;">
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial; background:#f9fafb; padding:20px 10px; text-align:center;">
           
           <div style="max-width:420px; margin:auto; background:#fff; padding:40px 25px; border-radius:10px; border:1px solid #eee;">
             
@@ -287,7 +347,7 @@ router.post("/reset-password", async (req, res) => {
             </p>
       
             <a href="https://insightconsultancy.netlify.app/login" 
-               style="background:#111; color:#fff; padding:12px 22px; text-decoration:none; border-radius:6px; font-size:14px; display:inline-block;">
+               style="background:#f13c20; color:#fff; padding:12px 22px; text-decoration:none; border-radius:6px; font-size:14px; display:inline-block;">
               Login to your account
             </a>
       

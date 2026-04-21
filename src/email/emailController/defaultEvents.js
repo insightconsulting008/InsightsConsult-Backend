@@ -3,6 +3,6 @@ const defaultEvents = [
     "FORGOT_PASSWORD",//default
     "EMPLOYEE_FIRST_LOGIN_DETAILS",//default
     "PASSWORD_RESET_SUCCESS",//default or not
-  ];
-  
+    "LOGIN_ALERT"
+]
   module.exports = defaultEvents;
