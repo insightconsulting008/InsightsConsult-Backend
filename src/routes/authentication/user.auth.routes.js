@@ -273,43 +273,33 @@ router.post("/reset-password", async (req, res) => {
     await sendEmail({
         eventName: "PASSWORD_RESET_SUCCESS",
         to: user.email,
-        subject: "Your Password Has Been Changed",
+        subject: "Password Has Been Updated Successfully",
         html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background:#f9fafb; padding:40px 20px;">
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background:#f9fafb; padding:20px 10px;">
           
           <div style="max-width:480px; margin:auto; background:#ffffff; border-radius:8px; padding:30px; border:1px solid #eee;">
       
             <!-- Title -->
             <h2 style="margin:0 0 10px; color:#111; font-weight:600;">
-              Password Updated Successfully
+              Password updated
             </h2>
       
             <!-- Message -->
             <p style="color:#555; font-size:14px; line-height:1.6;">
-              Your password has been successfully changed. You can now log in using your new password.
+              Your password has been updated successfully. You can now log in using your new password.
             </p>
-      
-            <!-- Info Box -->
-            <div style="background:#f1f5f9; padding:12px; border-radius:6px; margin:20px 0;">
-              <p style="margin:0; font-size:13px; color:#333;">
-                If you did not make this change, please contact support immediately.
-              </p>
-            </div>
       
             <!-- Button -->
             <div style="margin:25px 0; text-align:center;">
-              <a href="YOUR_LOGIN_URL"
-                 style="background:#22c55e; color:#fff; padding:10px 20px; text-decoration:none; border-radius:6px; font-size:14px; display:inline-block;">
-                Login Now
+              <a href="https://insightconsultancy.netlify.app/login" 
+                 style="background:#f13c20; color:#fff; padding:10px 20px; text-decoration:none; border-radius:6px; font-size:14px; display:inline-block;">
+                Login
               </a>
             </div>
       
-            <!-- Divider -->
-            <hr style="border:none; border-top:1px solid #eee; margin:25px 0;" />
-      
             <!-- Footer -->
             <p style="color:#aaa; font-size:12px; text-align:center;">
-              This is a security notification from your account.
+              If you didn’t make this change, please contact support.
             </p>
       
           </div>
