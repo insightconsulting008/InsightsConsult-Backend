@@ -95,7 +95,8 @@ router.post("/google-auth", async (req, res) => {
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
     });
- const link = "https://insightconsultancy.netlify.app/login"
+    
+ const link = "https://insightconsulting.info/login"
 
       await sendEmail({ 
         eventName: "LOGIN_ALERT", 
