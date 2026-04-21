@@ -1,9 +1,7 @@
-
 const express = require("express");
 const router = express.Router();
 const prisma = require("../../prisma/prisma")
 const crypto = require("crypto");
-
   
   
   /* =========================
@@ -320,9 +318,9 @@ const crypto = require("crypto");
   });
 
 
-    /* =====================================================
-     📊 ANALYTICS
-  ===================================================== */
+/* =====================================================
+ 📊 ANALYTICS
+===================================================== */
   
   // Campaign analytics
   router.get("/analytics/campaign", async (req, res) => {
@@ -361,7 +359,6 @@ const crypto = require("crypto");
       });
     }
   });
-  
   // Influencer analytics
   router.get("/analytics/ref", async (req, res) => {
     try {
@@ -379,7 +376,7 @@ const crypto = require("crypto");
       });
   
       const formatted = data.map((item) => ({
-        refCode: item.refCode || "No Ref",
+        refCode: item.refCode || "No Ref Code",
         totalRevenue: item._sum.amount || 0,
         totalConversions: item._count._all,
       }));
@@ -398,7 +395,6 @@ const crypto = require("crypto");
       });
     }
   });
-
 
   router.get("/analytics/campaign-users", async (req, res) => {
     try {
@@ -452,7 +448,4 @@ const crypto = require("crypto");
   });
 
 
-
-
 module.exports = router
-  

@@ -87,7 +87,7 @@
     const resetLink = `http://localhost:5173/staff/reset-password?token=${resetToken}`;
        // ✅ SEND EMAIL (FOR BOTH CASES)
     await sendEmail({
-      eventName: "EMPLOYEE_LOGIN_DETAILS",
+      eventName: "EMPLOYEE_FIRST_LOGIN_DETAILS",
       to: email,
       subject: "Your Login Credentials",
       html: `

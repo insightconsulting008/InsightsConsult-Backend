@@ -5,6 +5,8 @@ const cors = require("cors");
 const app = express();
 const cookieParser = require("cookie-parser");
 const { authenticate, authorizeRoles } = require("./src/authMiddleware/authMiddleware")
+const defaultEvents = require("./src/email/emailController/defaultEvents")
+const prisma = require("./src/prisma/prisma")
 
 
 /* -------------------- MIDDLEWARE -------------------- */
@@ -30,7 +32,7 @@ app.get("/test", async(req, res) => {
 });
 /* -------------------- PROTECTED ROUTES -------------------- */
 
-app.use("/api/admin",authenticate, authorizeRoles("ADMIN"),require("./src/routes/admin/server"));
+app.use("/api/admin",require("./src/routes/admin/server"));
 app.use("/api/staff",authenticate, authorizeRoles("STAFF", "ADMIN"),require("./src/routes/staff/server"));
 app.use("/api/user",authenticate, authorizeRoles("USER","STAFF","ADMIN"),require("./src/routes/user/server"));
 app.use("/api/notifications",authenticate, authorizeRoles("USER","ADMIN","STAFF"), require("./src/notifications/notificationRoutes"))
@@ -47,10 +49,53 @@ app.use("/api/google", require("./src/utils/googleSignup"))
 //   console.log(` 6001`);
 // });
 
+
+async function syncEmailEvents() {
+  try {
+    const existing = await prisma.emailEvent.findMany({
+      select: { name: true },
+    });
+
+    const existingNames = existing.map(e => e.name);
+
+    // ➕ Add missing
+    const toAdd = defaultEvents
+      .filter(name => !existingNames.includes(name))
+      .map(name => ({ name, enabled: true }));
+
+    if (toAdd.length > 0) {
+      await prisma.emailEvent.createMany({
+        data: toAdd,
+      });
+    }
+
+    // ➖ Delete extra
+    const toDelete = existingNames.filter(
+      name => !defaultEvents.includes(name)
+    );
+
+    if (toDelete.length > 0) {
+      await prisma.emailEvent.deleteMany({
+        where: {
+          name: { in: toDelete },
+        },
+      });
+    }
+
+    console.log("✅ Email events synced");
+  } catch (err) {
+    console.error("❌ Sync error:", err);
+  }
+}
+
+
 const PORT = process.env.PORT || 6001;
 
 app.listen(PORT, () => {
+  
   console.log(`✅ Insight Consulting Project Server running on port ${PORT}`);
+  syncEmailEvents(); // ✅ now works
+
 });
 
 

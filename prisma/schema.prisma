@@ -243,7 +243,6 @@ model User {
   payments   Payment[]
   refreshToken RefreshToken[]
   serviceRequest  ServiceRequest[]
-
 }
 
 model RefreshToken {
