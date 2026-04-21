@@ -274,46 +274,25 @@ router.post("/reset-password", async (req, res) => {
         to: user.email,
         subject: "Password Has Been Updated Successfully",
         html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background:#f9fafb; padding:40px 20px;">
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial; background:#f9fafb; padding:40px 20px; text-align:center;">
           
-          <div style="max-width:480px; margin:auto; background:#ffffff; border-radius:8px; padding:30px; border:1px solid #eee;">
-      
-            <!-- Title -->
-            <h2 style="margin:0 0 10px; color:#111; font-weight:600;">
+          <div style="max-width:420px; margin:auto; background:#fff; padding:40px 25px; border-radius:10px; border:1px solid #eee;">
+            
+            <h2 style="margin:0 0 15px; color:#111; font-weight:600;">
               Password updated
             </h2>
       
-            <!-- Message -->
-            <p style="color:#555; font-size:14px; line-height:1.6;">
-              Your password has been updated successfully. You can now log in using your new password.
+            <p style="color:#666; font-size:14px; line-height:1.6; margin-bottom:25px;">
+              Your password has been successfully changed.
             </p>
       
-            <!-- Button -->
-            <div style="margin:25px 0; text-align:center;">
-              <a href="https://insightconsultancy.netlify.app/login" 
-                 style="background:#f13c20; color:#fff; padding:10px 20px; text-decoration:none; border-radius:6px; font-size:14px; display:inline-block;">
-                Login
-              </a>
-            </div>
+            <a href="https://insightconsultancy.netlify.app/login" 
+               style="background:#111; color:#fff; padding:12px 22px; text-decoration:none; border-radius:6px; font-size:14px; display:inline-block;">
+              Login to your account
+            </a>
       
-            <!-- Security Note -->
-            <p style="color:#888; font-size:12px; text-align:center;">
-              If you didn’t make this change, please contact support immediately.
-            </p>
-      
-            <!-- Divider -->
-            <hr style="border:none; border-top:1px solid #eee; margin:25px 0;" />
-      
-            <!-- Footer -->
-            <p style="color:#aaa; font-size:12px; text-align:center;">
-              This is a security notification for your account.
-            </p>
-      
-            <!-- Website -->
-            <p style="color:#aaa; font-size:12px; text-align:center; margin-top:10px;">
-              <a href="https://insightconsulting.info" style="color:#aaa; text-decoration:none;">
-                insightconsulting.info
-              </a>
+            <p style="color:#aaa; font-size:12px; margin-top:25px;">
+              Didn’t do this? Contact support immediately.
             </p>
       
           </div>
