@@ -68,52 +68,59 @@ router.post("/login", async (req, res) => {
    
     });
 
-    await sendEmail({
-        eventName: "LOGIN_ALERT",
-        to: emp.email,
-        subject: "New Login Detected",
-        html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background:#f6f7f9; padding:50px 20px;">
-          
-          <div style="max-width:460px; margin:auto; background:#ffffff; border-radius:12px; padding:32px; border:1px solid #eaeaea;">
-            
-            <!-- Title -->
-            <h2 style="margin:0 0 12px; font-size:18px; font-weight:600; color:#111;">
-              New login detected
-            </h2>
-      
-            <!-- Message -->
-            <p style="margin:0 0 20px; font-size:14px; color:#555; line-height:1.6;">
-              Your account was accessed from a new device or location.
-            </p>
-      
-            <!-- Info Card -->
-            <div style="background:#fafafa; border:1px solid #eee; border-radius:8px; padding:14px; font-size:13px; color:#333; line-height:1.6;">
-              <div><strong>IP address:</strong> ${req.ip}</div>
-              <div><strong>Device:</strong> ${req.headers["user-agent"]}</div>
-              <div><strong>Time:</strong> ${new Date().toLocaleString()}</div>
-            </div>
-      
-            <!-- Divider -->
-            <hr style="border:none; border-top:1px solid #eee; margin:24px 0;" />
-      
-            <!-- Action -->
-            <p style="font-size:13px; color:#666; margin:0;">
-              If this wasn’t you, reset your password immediately.
-            </p>
-      
-            <!-- Button -->
-            <div style="margin-top:18px;">
-              <a href="${resetLink}" 
-                 style="display:inline-block; background:#111; color:#fff; padding:10px 18px; border-radius:6px; text-decoration:none; font-size:13px;">
-                Secure account
-              </a>
-            </div>
-      
-          </div>
-        </div>
-        `
-      });
+   const link = "https://insightconsulting.info/admin/login"
+
+   await sendEmail({ 
+  eventName: "LOGIN_ALERT", 
+  to: emp.email, 
+  subject: "New Login to Your Account", 
+
+  html: ` 
+  <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f9fafb; padding: 20px 10px;"> 
+    <div style="max-width: 480px; margin: auto; background: #ffffff; border-radius: 10px; border: 1px solid #eee; padding: 30px;"> 
+
+      <!-- Accent border title --> 
+      <div style="border-left: 3px solid #f13c20; padding-left: 16px; margin-bottom: 24px;"> 
+        <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">Someone logged into your account</h2> 
+        <p style="margin: 0; font-size: 13px; color: #888;">Security alert</p> 
+      </div> 
+
+      <!-- Message --> 
+      <p style="color: #444; font-size: 14px; line-height: 1.7; margin: 0 0 10px;"> 
+        A new login was detected on your account. If this was you, no action is needed. 
+      </p> 
+      <p style="color: #444; font-size: 14px; line-height: 1.7; margin: 0 0 24px;"> 
+        If this wasn't you, please update your password immediately to secure your account. 
+      </p> 
+
+      <!-- Warning box --> 
+      <div style="background: #fff5f4; border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid #fcc;"> 
+        <p style="margin: 0; font-size: 13px; color: #b33; line-height: 1.6;"> 
+          Didn't log in? Your account may be at risk. Change your password now. 
+        </p> 
+      </div> 
+
+      <!-- Button --> 
+      <a href="${link}" 
+         style="display: inline-block; background: #f13c20; color: #fff; padding: 11px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none;"> 
+        Update Password 
+      </a> 
+
+      <!-- Divider --> 
+      <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 16px;" /> 
+
+      <!-- Footer --> 
+      <p style="margin: 0 0 6px; color: #aaa; font-size: 12px; text-align: center;"> 
+        This is a security email from <strong style="color: #888;">Insight Consulting</strong>. 
+      </p> 
+      <p style="margin: 0; font-size: 12px; text-align: center;"> 
+        <a href="https://insightconsulting.info" style="color: #f13c20; text-decoration: none;">insightconsulting.info</a> 
+      </p> 
+
+    </div> 
+  </div> 
+  ` 
+});
 
     return res.status(200).json({
       message: "Login successful", accessToken ,role:emp.role, employeeId :emp.employeeId});
@@ -149,49 +156,56 @@ router.post("/forgot-password", async (req, res) => {
     const resetLink = `https://insightconsultancy.netlify.app/reset-password?token=${token}`;
 
     await sendEmail({
-           eventName: "FORGOT_PASSWORD",
-           to: email,
-           subject: "Reset Your Password",
-           html: `
-           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background:#f9fafb; padding:20px 10px;">
-             
-             <div style="max-width:480px; margin:auto; background:#ffffff; border-radius:8px; padding:30px; border:1px solid #eee;">
-         
-               <!-- Title -->
-               <h2 style="margin:0 0 10px; color:#111; font-weight:600;">
-                 Reset your password
-               </h2>
-         
-               <!-- Message -->
-               <p style="color:#555; font-size:14px; line-height:1.6;">
-                 We received a request to reset your password. Click the button below to continue.
-               </p>
-         
-               <!-- Button -->
-               <div style="margin:25px 0; text-align:center;">
-                 <a href="${resetLink}" 
-                    style="background:#f13c20; color:#fff; padding:10px 20px; text-decoration:none; border-radius:6px; font-size:14px; display:inline-block;">
-                   Reset Password
-                 </a>
-               </div>
-         
-               <!-- Expiry -->
-               <p style="color:#888; font-size:12px; text-align:center;">
-                 This link will expire in 15 minutes.
-               </p>
-         
-               <!-- Divider -->
-               <hr style="border:none; border-top:1px solid #eee; margin:25px 0;" />
-         
-               <!-- Footer -->
-               <p style="color:#aaa; font-size:12px; text-align:center;">
-                 If you didn’t request this, you can safely ignore this email.
-               </p>
-         
-             </div>
-           </div>
-           `
-         });
+        eventName: "FORGOT_PASSWORD",
+        to: user.email,
+        subject: "Reset Your Password",
+      
+        html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f9fafb; padding: 20px 10px;">
+          <div style="max-width: 480px; margin: auto; background: #ffffff; border-radius: 10px; border: 1px solid #eee; padding: 30px;">
+      
+            <!-- Accent border title -->
+            <div style="border-left: 3px solid #f13c20; padding-left: 16px; margin-bottom: 24px;">
+              <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">Reset your password</h2>
+              <p style="margin: 0; font-size: 13px; color: #888;">Password reset request</p>
+            </div>
+      
+            <!-- Message -->
+            <p style="color: #444; font-size: 14px; line-height: 1.7; margin: 0 0 10px;">
+              We received a request to reset your password. Click the button below to continue.
+            </p>
+            <p style="color: #444; font-size: 14px; line-height: 1.7; margin: 0 0 24px;">
+              If you didn't request this, you can safely ignore this email — your password will not be changed.
+            </p>
+      
+            <!-- Warning box -->
+            <div style="background: #fff5f4; border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid #fcc;">
+              <p style="margin: 0; font-size: 13px; color: #b33; line-height: 1.6;">
+                This link will expire in 15 minutes. Request a new one if it expires.
+              </p>
+            </div>
+      
+            <!-- Button -->
+            <a href="${resetLink}"
+               style="display: inline-block; background: #f13c20; color: #fff; padding: 11px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none;">
+              Reset Password
+            </a>
+      
+            <!-- Divider -->
+            <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 16px;" />
+      
+            <!-- Footer -->
+            <p style="margin: 0 0 6px; color: #aaa; font-size: 12px; text-align: center;">
+              This is a security email from <strong style="color: #888;">Insight Consulting</strong>.
+            </p>
+            <p style="margin: 0; font-size: 12px; text-align: center;">
+              <a href="https://insightconsulting.info" style="color: #f13c20; text-decoration: none;">insightconsulting.info</a>
+            </p>
+      
+          </div>
+        </div>
+        `
+      });
 
  
     console.log("EMPLOYEE RESET LINK:", resetLink);
@@ -238,36 +252,44 @@ router.post("/reset-password", async (req, res) => {
       },
     });
 
+    const loginLink = "https://insightconsultancy.netlify.app/admin/login";
     await sendEmail({
-            eventName: "PASSWORD_RESET_SUCCESS",
-            to: employee.email,
-            subject: "Password Has Been Updated Successfully",
-            html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial; background:#f9fafb; padding:20px 10px; text-align:center;">
-              
-              <div style="max-width:420px; margin:auto; background:#fff; padding:40px 25px; border-radius:10px; border:1px solid #eee;">
-                
-                <h2 style="margin:0 0 15px; color:#111; font-weight:600;">
-                  Password updated
-                </h2>
-          
-                <p style="color:#666; font-size:14px; line-height:1.6; margin-bottom:25px;">
-                  Your password has been successfully changed.
-                </p>
-          
-                <a href="https://insightconsultancy.netlify.app/admin/login" 
-                   style="background:#f13c20; color:#fff; padding:12px 22px; text-decoration:none; border-radius:6px; font-size:14px; display:inline-block;">
-                  Login to your account
-                </a>
-          
-                <p style="color:#aaa; font-size:12px; margin-top:25px;">
-                  Didn’t do this? Contact support immediately.
-                </p>
-          
-              </div>
+        eventName: "PASSWORD_RESET_SUCCESS",
+        to: employee.email,
+        subject: "Your password has been updated",
+        html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f9fafb; padding: 20px 10px;">
+          <div style="max-width: 480px; margin: auto; background: #ffffff; border-radius: 10px; border: 1px solid #eee; padding: 30px;">
+            <div style="border-left: 3px solid #f13c20; padding-left: 16px; margin-bottom: 24px;">
+              <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">Password updated</h2>
+              <p style="margin: 0; font-size: 13px; color: #888;">Account security notice</p>
             </div>
-            `
-          });
+            <p style="color: #444; font-size: 14px; line-height: 1.7; margin: 0 0 10px;">
+              Your password has been successfully updated. You can now log in to your account using your new credentials.
+            </p>
+            <p style="color: #444; font-size: 14px; line-height: 1.7; margin: 0 0 24px;">
+              For your security, all active sessions have been signed out. Please log in again to continue.
+            </p>
+            <div style="background: #fff5f4; border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid #fcc;">
+              <p style="margin: 0; font-size: 13px; color: #b33; line-height: 1.6;">
+                If you did not make this change, contact support immediately as your account may be compromised.
+              </p>
+            </div>
+            <a href="${loginLink}"
+               style="display: inline-block; background: #f13c20; color: #fff; padding: 11px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none;">
+              Log in to your account
+            </a>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 16px;" />
+            <p style="margin: 0 0 6px; color: #aaa; font-size: 12px; text-align: center;">
+              This is a security email from <strong style="color: #888;">Insight Consulting</strong>.
+            </p>
+            <p style="margin: 0; font-size: 12px; text-align: center;">
+              <a href="https://insightconsulting.info" style="color: #f13c20; text-decoration: none;">insightconsulting.info</a>
+            </p>
+          </div>
+        </div>
+        `
+      });
 
     res.json({ message: "Password reset successful" });
 
