@@ -96,49 +96,48 @@ router.post("/google-auth", async (req, res) => {
       secure: process.env.NODE_ENV === "production",
     });
  const link = "https://insightconsultancy.netlify.app/login"
-    await sendEmail({
-      eventName: "LOGIN_ALERT",
-      to: user.email,
-      subject: "New Login to Your Account",
 
-
-      html: `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background:#f9fafb; padding:20px 10px;">
-        
-        <div style="max-width:480px; margin:auto; background:#ffffff; border-radius:8px; padding:30px; border:1px solid #eee;">
-    
-          <!-- Title -->
-          <h2 style="margin:0 0 10px; color:#111; font-weight:600;">
-           New Login Detected
-          </h2>
-    
-          <!-- Message -->
-          <p style="color:#555; font-size:14px; line-height:1.6;">
-           Your account was accessed successfully. If this was you, no further action is needed.
-          </p>
-    
-          <!-- Button -->
-          <div style="margin:25px 0; text-align:center;">
-            <a href="${link}" 
-               style="background:#f13c20; color:#fff; padding:10px 20px; text-decoration:none; border-radius:6px; font-size:14px; display:inline-block;">
-              Secure Account
-            </a>
-          </div>
-    
-          <!-- Divider -->
-          <hr style="border:none; border-top:1px solid #eee; margin:25px 0;" />
-    
-          <!-- Footer -->
-          <p style="color:#aaa; font-size:12px; text-align:center;">
-           This is a security notification to help keep your account safe.
-          </p>
-    
-        </div>
-      </div>
-      `
+      await sendEmail({ 
+        eventName: "LOGIN_ALERT", 
+        to: user.email, 
+        subject: "New Login to Your Account", 
+        html: ` 
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background:#f9fafb; padding:20px 10px;"> 
+           
+          <div style="max-width:480px; margin:auto; background:#ffffff; border-radius:8px; padding:30px; border:1px solid #eee;"> 
+       
+            <!-- Title --> 
+            <h2 style="margin:0 0 10px; color:#111; font-weight:600;"> 
+              New Login Detected 
+            </h2> 
+       
+            <!-- Message --> 
+            <p style="color:#555; font-size:14px; line-height:1.6;"> 
+              A new login was detected on your account. If this was you, you can safely ignore this email. 
+              If you don't recognize this login, we strongly recommend changing your password immediately to keep your account secure. 
+            </p> 
+       
+            <!-- Button --> 
+            <div style="margin:25px 0; text-align:center;"> 
+              <a href="${link}"  
+                 style="background:#f13c20; color:#fff; padding:10px 20px; text-decoration:none; border-radius:6px; font-size:14px; display:inline-block;"> 
+                Change Password 
+              </a> 
+            </div> 
+       
+            <!-- Divider --> 
+            <hr style="border:none; border-top:1px solid #eee; margin:25px 0;" /> 
+       
+            <!-- Footer --> 
+            <p style="color:#aaa; font-size:12px; text-align:center;"> 
+              This is a security notification sent for your safety. 
+            </p> 
+       
+          </div> 
+        </div> 
+        ` 
     });
 
-  
     res.json({
       success: true,
       message: "Google authentication successful",
