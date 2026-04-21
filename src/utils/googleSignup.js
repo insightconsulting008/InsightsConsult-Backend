@@ -6,6 +6,8 @@ const googleClient = require("../utils/googleClient");
 const jwt = require("jsonwebtoken");
 const config = require("../utils/config")
 const generateTokens = require("../utils/tokenHelper")
+const {sendEmail} = require("../../src/email/emailService")
+
 
 
 router.post("/google-auth", async (req, res) => {
