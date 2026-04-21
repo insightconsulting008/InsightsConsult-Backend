@@ -95,49 +95,56 @@ router.post("/google-auth", async (req, res) => {
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
     });
-    
- const link = "https://insightconsulting.info/login"
 
-      await sendEmail({ 
-        eventName: "LOGIN_ALERT", 
-        to: user.email, 
-        subject: "New Login to Your Account", 
-        html: ` 
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background:#f9fafb; padding:20px 10px;"> 
-           
-          <div style="max-width:480px; margin:auto; background:#ffffff; border-radius:8px; padding:30px; border:1px solid #eee;"> 
-       
-            <!-- Title --> 
-            <h2 style="margin:0 0 10px; color:#111; font-weight:600;"> 
-              New Login Detected 
-            </h2> 
-       
-            <!-- Message --> 
-            <p style="color:#555; font-size:14px; line-height:1.6;"> 
-              A new login was detected on your account. If this was you, you can safely ignore this email. 
-              If you don't recognize this login, we strongly recommend changing your password immediately to keep your account secure. 
-            </p> 
-       
-            <!-- Button --> 
-            <div style="margin:25px 0; text-align:center;"> 
-              <a href="${link}"  
-                 style="background:#f13c20; color:#fff; padding:10px 20px; text-decoration:none; border-radius:6px; font-size:14px; display:inline-block;"> 
-                Change Password 
-              </a> 
-            </div> 
-       
-            <!-- Divider --> 
-            <hr style="border:none; border-top:1px solid #eee; margin:25px 0;" /> 
-       
-            <!-- Footer --> 
-            <p style="color:#aaa; font-size:12px; text-align:center;"> 
-              This is a security notification sent for your safety. 
-            </p> 
-       
-          </div> 
-        </div> 
-        ` 
-    });
+ const link = "https://insightconsulting.info/login"
+await sendEmail({ 
+  eventName: "LOGIN_ALERT", 
+  to: user.email, 
+  subject: "New Login to Your Account", 
+
+  html: ` 
+  <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f9fafb; padding: 20px 10px;"> 
+    <div style="max-width: 480px; margin: auto; background: #ffffff; border-radius: 10px; border: 1px solid #eee; padding: 30px;"> 
+
+      <!-- Accent border title --> 
+      <div style="border-left: 3px solid #f13c20; padding-left: 16px; margin-bottom: 24px;"> 
+        <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">New login to your account</h2> 
+        <p style="margin: 0; font-size: 13px; color: #888;">Security alert</p> 
+      </div> 
+
+      <!-- Message --> 
+      <p style="color: #444; font-size: 14px; line-height: 1.7; margin: 0 0 10px;"> 
+        A new login was detected. If this was you, no action is needed. 
+      </p> 
+      <p style="color: #444; font-size: 14px; line-height: 1.7; margin: 0 0 24px;"> 
+        Don't recognize this? Change your password right away to secure your account. 
+      </p> 
+
+      <!-- Warning box --> 
+      <div style="background: #fff5f4; border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid #fcc;"> 
+        <p style="margin: 0; font-size: 13px; color: #b33; line-height: 1.6;"> 
+          If you didn't initiate this login, your account may be at risk. Act now. 
+        </p> 
+      </div> 
+
+      <!-- Button --> 
+      <a href="${link}" 
+         style="display: inline-block; background: #f13c20; color: #fff; padding: 11px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none;"> 
+        Change password 
+      </a> 
+
+      <!-- Divider --> 
+      <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 16px;" /> 
+
+      <!-- Footer --> 
+      <p style="margin: 0; color: #aaa; font-size: 12px; text-align: center;"> 
+        This is a security notification sent for your safety. 
+      </p> 
+
+    </div> 
+  </div> 
+  ` 
+});
 
     res.json({
       success: true,
