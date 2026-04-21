@@ -95,7 +95,7 @@ router.post("/google-auth", async (req, res) => {
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
     });
-
+ const link = "https://insightconsultancy.netlify.app/login"
     await sendEmail({
       eventName: "LOGIN_ALERT",
       to: user.email,
@@ -119,7 +119,7 @@ router.post("/google-auth", async (req, res) => {
     
           <!-- Button -->
           <div style="margin:25px 0; text-align:center;">
-            <a href="https://insightconsultancy.netlify.app/login" 
+            <a href="${link}" 
                style="background:#f13c20; color:#fff; padding:10px 20px; text-decoration:none; border-radius:6px; font-size:14px; display:inline-block;">
               Secure Account
             </a>
