@@ -196,7 +196,7 @@ router.post("/forgot-password", async (req, res) => {
         to: email,
         subject: "Reset Your Password",
         html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background:#f9fafb; padding:40px 20px;">
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background:#f9fafb; padding:20px 10px;">
           
           <div style="max-width:480px; margin:auto; background:#ffffff; border-radius:8px; padding:30px; border:1px solid #eee;">
       
@@ -269,13 +269,12 @@ router.post("/reset-password", async (req, res) => {
         resetTokenExpiry: null,
       },
     });
-
     await sendEmail({
         eventName: "PASSWORD_RESET_SUCCESS",
         to: user.email,
         subject: "Password Has Been Updated Successfully",
         html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background:#f9fafb; padding:20px 10px;">
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background:#f9fafb; padding:40px 20px;">
           
           <div style="max-width:480px; margin:auto; background:#ffffff; border-radius:8px; padding:30px; border:1px solid #eee;">
       
@@ -297,16 +296,30 @@ router.post("/reset-password", async (req, res) => {
               </a>
             </div>
       
+            <!-- Security Note -->
+            <p style="color:#888; font-size:12px; text-align:center;">
+              If you didn’t make this change, please contact support immediately.
+            </p>
+      
+            <!-- Divider -->
+            <hr style="border:none; border-top:1px solid #eee; margin:25px 0;" />
+      
             <!-- Footer -->
             <p style="color:#aaa; font-size:12px; text-align:center;">
-              If you didn’t make this change, please contact support.
+              This is a security notification for your account.
+            </p>
+      
+            <!-- Website -->
+            <p style="color:#aaa; font-size:12px; text-align:center; margin-top:10px;">
+              <a href="https://insightconsulting.info" style="color:#aaa; text-decoration:none;">
+                insightconsulting.info
+              </a>
             </p>
       
           </div>
         </div>
         `
       });
-
     res.json({ message: "Password reset successful" });
 
   } catch (err) {
