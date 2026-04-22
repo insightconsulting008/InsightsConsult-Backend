@@ -31,6 +31,12 @@ router.post("/buy", async (req, res) => {
         const WebsiteLink = "www.insightconsulting.info";
         const companyName = "Insight Consulting";
 
+        const user = await prisma.user.findUnique({
+            where: {
+              userId: userId,
+            },
+          });
+
       await prisma.serviceRequest.create({
         data: {
           userId,
