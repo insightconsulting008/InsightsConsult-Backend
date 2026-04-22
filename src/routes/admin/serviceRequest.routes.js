@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../../prisma/prisma");
-const sendEmail = require("../../email/emailService")
+const {sendEmail} = require("../../email/emailService")
 
 
 router.get("/", async (req, res) => {
