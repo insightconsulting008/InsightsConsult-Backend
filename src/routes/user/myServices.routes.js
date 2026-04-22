@@ -37,6 +37,22 @@ router.post("/buy", async (req, res) => {
             },
           });
 
+
+            // Fetch service or bundle name
+  let serviceLabel = "";
+
+  if (serviceId) {
+    const service = await prisma.service.findUnique({
+      where: { id: serviceId },
+    });
+    serviceLabel = service?.name || `Service ID: ${serviceId}`;
+  } else if (bundleId) {
+    const bundle = await prisma.serviceBundle.findUnique({
+      where: { id: bundleId },
+    });
+    serviceLabel = bundle?.name || `Bundle ID: ${bundleId}`;
+  }
+
       await prisma.serviceRequest.create({
         data: {
           userId,
@@ -93,7 +109,6 @@ router.post("/buy", async (req, res) => {
         timeStyle: "short",
       });
       
-      const serviceLabel = serviceId ? `Service ID: ${serviceId}` : `Bundle ID: ${bundleId}`;
       
       await sendEmail({
         eventName: "ADMIN_NEW_REQUEST",
