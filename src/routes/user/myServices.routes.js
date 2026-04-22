@@ -107,6 +107,7 @@ router.post("/buy", async (req, res) => {
       const submittedAt = new Date().toLocaleString("en-IN", {
         dateStyle: "medium",
         timeStyle: "short",
+        timeZone: "Asia/Kolkata",
       });
       
       
