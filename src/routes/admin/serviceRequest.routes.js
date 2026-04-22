@@ -92,6 +92,7 @@ router.post("/action", async (req, res) => {
     // 🔍 Get request
     const request = await prisma.serviceRequest.findUnique({
       where: { requestId },
+      include: { user: true },
     });
 
     if (!request) {
@@ -154,6 +155,44 @@ router.post("/action", async (req, res) => {
         },
       });
 
+      const hrefWebsiteLink = "https://insightconsulting.info"
+      const WebsiteLink = "www.insightconsulting.info"
+      const companyName = "Insight Consulting"
+      await sendEmail({
+        eventName: "REQUEST_APPROVED",
+        to: request.user.email,
+        subject: "Your request has been approved",
+        html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f9fafb; padding: 20px 10px;">
+          <div style="max-width: 480px; margin: auto; background: #ffffff; border-radius: 10px; border: 1px solid #eee; padding: 30px;">
+      
+            <div style="border-left: 3px solid #f13c20; padding-left: 16px; margin-bottom: 24px;">
+              <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">Your request has been approved</h2>
+              <p style="margin: 0; font-size: 13px; color: #888;">Service update</p>
+            </div>
+      
+            <p style="color: #444; font-size: 14px; line-height: 1.8; margin: 0 0 12px;">Hi <strong>${request.user.name}</strong>,</p>
+            <p style="color: #444; font-size: 14px; line-height: 1.8; margin: 0 0 24px;">
+              Great news! Your service request has been approved. You can now access your service from your dashboard.
+            </p>
+      
+            <a href="${hrefWebsiteLink}/my-services"
+               style="display: inline-block; background: #f13c20; color: #fff; padding: 11px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none;">
+              Go to my services
+            </a>
+      
+            <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 16px;" />
+            <p style="margin: 0 0 6px; color: #aaa; font-size: 12px; text-align: center;">
+              Service update from <strong style="color: #888;">${companyName}</strong>.
+            </p>
+            <p style="margin: 0; font-size: 12px; text-align: center;">
+              <a href="${hrefWebsiteLink}" style="color: #f13c20; text-decoration: none;">${WebsiteLink}</a>
+            </p>
+          </div>
+        </div>
+        `,
+      });
+
       return res.json({
         success: true,
         message: "Request approved",
@@ -170,6 +209,42 @@ router.post("/action", async (req, res) => {
           status: "REJECTED",
           employeeId:adminId,
         },
+      });
+
+      await sendEmail({
+        eventName: "REQUEST_REJECTED",
+        to: request.user.email,
+        subject: "Your request was not approved",
+        html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f9fafb; padding: 20px 10px;">
+          <div style="max-width: 480px; margin: auto; background: #ffffff; border-radius: 10px; border: 1px solid #eee; padding: 30px;">
+      
+            <div style="border-left: 3px solid #a32d2d; padding-left: 16px; margin-bottom: 24px;">
+              <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">Your request was not approved</h2>
+              <p style="margin: 0; font-size: 13px; color: #888;">Service update</p>
+            </div>
+      
+            <p style="color: #444; font-size: 14px; line-height: 1.8; margin: 0 0 12px;">Hi <strong>${request.user.name}</strong>,</p>
+            <p style="color: #444; font-size: 14px; line-height: 1.8; margin: 0 0 24px;">
+              Unfortunately, your service request has been reviewed and was not approved at this time.
+              If you have any questions or need further assistance, please feel free to contact us.
+            </p>
+      
+            <a href="${hrefWebsiteLink}/contact"
+               style="display: inline-block; background: #a32d2d; color: #fff; padding: 11px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none;">
+              Contact us
+            </a>
+      
+            <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 16px;" />
+            <p style="margin: 0 0 6px; color: #aaa; font-size: 12px; text-align: center;">
+              Service update from <strong style="color: #888;">${companyName}</strong>.
+            </p>
+            <p style="margin: 0; font-size: 12px; text-align: center;">
+              <a href="${hrefWebsiteLink}" style="color: #f13c20; text-decoration: none;">${WebsiteLink}</a>
+            </p>
+          </div>
+        </div>
+        `,
       });
 
       return res.json({

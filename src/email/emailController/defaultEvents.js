@@ -7,7 +7,7 @@ const defaultEvents = [
     "TASK_ASSIGNED",
     "SERVICE_UPDATE",
     "ADMIN_NEW_REQUEST",
-    "REQUEST_RECEIVED"
+    "REQUEST_RECEIVED","REQUEST_REJECTED","REQUEST_APPROVED"
     
 ]
   module.exports = defaultEvents;
