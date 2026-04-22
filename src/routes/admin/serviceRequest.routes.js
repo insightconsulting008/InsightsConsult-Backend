@@ -73,7 +73,7 @@ router.get("/", async (req, res) => {
 
 router.post("/action", async (req, res) => {
   try {
-    const { requestId, adminId, action } = req.body;
+    const { requestId, adminId, action ,notify} = req.body;
 
     // 🔐 Validate input
     if (!requestId || !adminId || !action) {
@@ -156,9 +156,11 @@ router.post("/action", async (req, res) => {
         },
       });
 
+      if (notify) { // 👈
       const hrefWebsiteLink = "https://insightconsulting.info"
       const WebsiteLink = "www.insightconsulting.info"
       const companyName = "Insight Consulting"
+      
       await sendEmail({
         eventName: "REQUEST_APPROVED",
         to: request.user.email,
@@ -193,6 +195,7 @@ router.post("/action", async (req, res) => {
         </div>
         `,
       });
+    }
 
       return res.json({
         success: true,
@@ -211,7 +214,7 @@ router.post("/action", async (req, res) => {
           employeeId:adminId,
         },
       });
-
+      if (notify) { // 👈
       const hrefWebsiteLink = "https://insightconsulting.info"
       const WebsiteLink = "www.insightconsulting.info"
       const companyName = "Insight Consulting"
@@ -223,7 +226,7 @@ router.post("/action", async (req, res) => {
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f9fafb; padding: 20px 10px;">
           <div style="max-width: 480px; margin: auto; background: #ffffff; border-radius: 10px; border: 1px solid #eee; padding: 30px;">
       
-            <div style="border-left: 3px solid #a32d2d; padding-left: 16px; margin-bottom: 24px;">
+            <div style="border-left: 3px solid #f13c20; padding-left: 16px; margin-bottom: 24px;">
               <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">Your request was not approved</h2>
               <p style="margin: 0; font-size: 13px; color: #888;">Service update</p>
             </div>
@@ -235,7 +238,7 @@ router.post("/action", async (req, res) => {
             </p>
       
             <a href="${hrefWebsiteLink}/contact"
-               style="display: inline-block; background: #a32d2d; color: #fff; padding: 11px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none;">
+               style="display: inline-block; background: #f13c20; color: #fff; padding: 11px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none;">
               Contact us
             </a>
       
@@ -250,6 +253,7 @@ router.post("/action", async (req, res) => {
         </div>
         `,
       });
+    }
 
       return res.json({
         success: true,
