@@ -121,7 +121,7 @@ router.post("/buy", async (req, res) => {
               Please review and approve or reject this request from the admin panel.
             </p>
       
-            <a href="${link}/applications"
+            <a href="/applications"
                style="display: inline-block; background: #f13c20; color: #fff; padding: 11px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none;">
               Review request
             </a>
