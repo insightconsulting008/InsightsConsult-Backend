@@ -43,14 +43,14 @@ router.post("/buy", async (req, res) => {
 
   if (serviceId) {
     const service = await prisma.service.findUnique({
-      where: { id: serviceId },
+      where: { serviceId: serviceId },
     });
-    serviceLabel = service?.name || `Service ID: ${serviceId}`;
+    serviceLabel = service?.name;
   } else if (bundleId) {
     const bundle = await prisma.serviceBundle.findUnique({
-      where: { id: bundleId },
+      where: { bundleId: bundleId },
     });
-    serviceLabel = bundle?.name || `Bundle ID: ${bundleId}`;
+    serviceLabel = bundle?.name;
   }
 
       await prisma.serviceRequest.create({
