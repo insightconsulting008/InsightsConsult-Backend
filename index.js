@@ -19,7 +19,7 @@ app.use(cors({
     "http://localhost:5174",
     "http://localhost:5175",
     "https://insightconsultancy.netlify.app",
-    "https://paatima.netlify.app"
+    "https://paatima.netlify.app","https://insightconsulting.netlify.app"
   ], // frontend URL
   credentials: true
 }));
