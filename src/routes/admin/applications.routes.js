@@ -204,41 +204,73 @@
           },
         });
 
-        /* 4️⃣ Log history (Assign or Reassign only) */
-//         await logHistory({
-//           applicationId,
-//           action: oldEmployeeId
-//             ? "APPLICATION_REASSIGNED"
-//             : "APPLICATION_ASSIGNED",
-//           oldValue: oldEmployeeId
-//             ? `${oldEmployeeId} (${oldEmployeeName})`
-//             : null,
-//           newValue: `${newEmployee.employeeId} (${newEmployee.name})`,
-//           doneByRole: "ADMIN",
-//           doneById: req.user?.id || null,
-//           message: oldEmployeeId
-//             ? `Reassigned from ${oldEmployeeName} to ${newEmployee.name}`
-//             : `Assigned to ${newEmployee.name}`,
-//         });
-
-//         // 🔔 Send Notification to Employee
-// await createNotification({
-//   title: "New Service Assigned",
-//   description: "You have been assigned a new service request",
-//   employeeId: newEmployee.employeeId,
-//   redirectUrl: "/tasks",
-// });
-
-// await createNotification({
-//   title: "Service Update",
-//   description: isReassigned
-//     ? `Your request has been reassigned to ${newEmployee.name}`
-//     : `Your request has been assigned to ${newEmployee.name}`,
-//   userId: existingApplication.userId,
-//   redirectUrl: "/my-requests",
-// })
 
 const isReassigned = !!oldEmployeeId;
+
+
+const hrefWebsiteLink = "https://insightconsulting.info"
+const WebsiteLink = "www.insightconsulting.info"
+const companyName = "Insight Consulting"
+
+await sendEmail({
+    eventName: "TASK_ASSIGNED",
+    to: newEmployee.email,
+    subject: isReassigned
+      ? "Service request reassigned to you"
+      : "New service request assigned to you",
+    html: `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f9fafb; padding: 20px 10px;">
+      <div style="max-width: 480px; margin: auto; background: #ffffff; border-radius: 10px; border: 1px solid #eee; padding: 30px;">
+  
+        <div style="border-left: 3px solid #f13c20; padding-left: 16px; margin-bottom: 24px;">
+          <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">
+            ${isReassigned ? "Service request reassigned to you" : "New service request assigned"}
+          </h2>
+          <p style="margin: 0; font-size: 13px; color: #888;">Task notification</p>
+        </div>
+  
+        <p style="color: #444; font-size: 14px; line-height: 1.7; margin: 0 0 16px;">
+          Hi <strong>${newEmployee.name}</strong>, a service request has been
+          ${isReassigned ? "reassigned to you" : "assigned to you"}.
+          Please review the details and take action.
+        </p>
+  
+        <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid #eee; font-size: 13px; line-height: 2;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #999;">Application ID</span>
+            <span style="color: #222; font-weight: 500;">${applicationId}</span>
+          </div>
+          ${isReassigned ? `
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #999;">Previously assigned to</span>
+            <span style="color: #222; font-weight: 500;">${oldEmployeeName}</span>
+          </div>` : ""}
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #999;">Assigned by</span>
+            <span style="color: #222; font-weight: 500;">Admin</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #999;">Date</span>
+            <span style="color: #222; font-weight: 500;">${new Date().toLocaleDateString("en-IN", { dateStyle: "medium" })}</span>
+          </div>
+        </div>
+  
+        <a href="${hrefWebsiteLink}/tasks"
+           style="display: inline-block; background: #f13c20; color: #fff; padding: 11px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none;">
+          View task
+        </a>
+  
+        <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 16px;" />
+        <p style="margin: 0 0 6px; color: #aaa; font-size: 12px; text-align: center;">
+          Task notification from <strong style="color: #888;">${companyName}</strong>.
+        </p>
+        <p style="margin: 0; font-size: 12px; text-align: center;">
+          <a href="${hrefWebsiteLink}" style="color: #f13c20; text-decoration: none;">${WebsiteLink}</a>
+        </p>
+      </div>
+    </div>
+    `
+  });
 
 // ✅ Log History (simple)
 await logHistory({
@@ -269,6 +301,73 @@ createNotification({
 
 // 🔔 Notify User
 if (existingApplication.userId) {
+
+    const user = existingApplication.user; // make sure to include user in your findUnique
+    const hrefWebsiteLink = "https://insightconsulting.info"
+    const WebsiteLink = "www.insightconsulting.info"
+    const companyName = "Insight Consulting"
+  await sendEmail({
+    eventName: "SERVICE_UPDATE",
+    to: user.email,
+    subject: isReassigned
+      ? "Your request has been reassigned"
+      : "Your request has been assigned",
+    html: `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f9fafb; padding: 20px 10px;">
+      <div style="max-width: 480px; margin: auto; background: #ffffff; border-radius: 10px; border: 1px solid #eee; padding: 30px;">
+
+        <div style="border-left: 3px solid #f13c20; padding-left: 16px; margin-bottom: 24px;">
+          <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">
+            ${isReassigned ? "Your request has been reassigned" : "Your request has been assigned"}
+          </h2>
+          <p style="margin: 0; font-size: 13px; color: #888;">Service update</p>
+        </div>
+
+        <p style="color: #444; font-size: 14px; line-height: 1.7; margin: 0 0 16px;">
+          Hi <strong>${user.name}</strong>, here's a quick update on your service request.
+        </p>
+
+        <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 16px; border: 1px solid #eee; font-size: 13px; line-height: 2;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #999;">Application ID</span>
+            <span style="color: #222; font-weight: 500;">${applicationId}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #999;">Assigned staff</span>
+            <span style="color: #222; font-weight: 500;">${newEmployee.name}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #999;">Status</span>
+            <span style="background: #eaf3de; color: #3b6d11; font-size: 12px; padding: 2px 10px; border-radius: 20px; font-weight: 500;">Assigned</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #999;">Date</span>
+            <span style="color: #222; font-weight: 500;">${new Date().toLocaleDateString("en-IN", { dateStyle: "medium" })}</span>
+          </div>
+        </div>
+
+        <div style="background: #f0f9ff; border-radius: 8px; padding: 14px 16px; margin-bottom: 24px; border: 1px solid #bde0f7; font-size: 13px; color: #185fa5; line-height: 1.6;">
+          Our team is now working on your request. You'll be notified once there's an update.
+        </div>
+
+        <a href="${hrefWebsiteLink}/my-requests"
+           style="display: inline-block; background: #f13c20; color: #fff; padding: 11px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none;">
+          View my request
+        </a>
+
+        <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 16px;" />
+        <p style="margin: 0 0 6px; color: #aaa; font-size: 12px; text-align: center;">
+          Service update from <strong style="color: #888;">${companyName}</strong>.
+        </p>
+        <p style="margin: 0; font-size: 12px; text-align: center;">
+          <a href="${hrefWebsiteLink}" style="color: #f13c20; text-decoration: none;">${WebsiteLink}</a>
+        </p>
+      </div>
+    </div>
+    `
+  });
+
+
   createNotification({
     title: "Service Update",
     description: isReassigned

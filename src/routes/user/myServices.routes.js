@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../../prisma/prisma");
+const {sendEmail} = require("../../email/emailService")
 
 
 router.post("/buy", async (req, res) => {
@@ -26,6 +27,10 @@ router.post("/buy", async (req, res) => {
     =================================================== */
     if (!setting?.isRazorpayEnabled) {
 
+        const hrefWebsiteLink = "https://insightconsulting.info";
+        const WebsiteLink = "www.insightconsulting.info";
+        const companyName = "Insight Consulting";
+
       await prisma.serviceRequest.create({
         data: {
           userId,
@@ -33,6 +38,99 @@ router.post("/buy", async (req, res) => {
           bundleId: bundleId || null,
           status: "PENDING",
         },
+      });
+
+
+      await sendEmail({
+        eventName: "REQUEST_RECEIVED",
+        to: user.email,
+        subject: "We've received your request",
+        html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f9fafb; padding: 20px 10px;">
+          <div style="max-width: 480px; margin: auto; background: #ffffff; border-radius: 10px; border: 1px solid #eee; padding: 30px;">
+      
+            <div style="border-left: 3px solid #f13c20; padding-left: 16px; margin-bottom: 24px;">
+              <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">Request received</h2>
+              <p style="margin: 0; font-size: 13px; color: #888;">${companyName}</p>
+            </div>
+      
+            <p style="color: #444; font-size: 14px; line-height: 1.8; margin: 0 0 12px;">
+              Hi <strong>${user.name}</strong>,
+            </p>
+            <p style="color: #444; font-size: 14px; line-height: 1.8; margin: 0 0 12px;">
+              Thank you for submitting your request. We have received it and our team will get back to you shortly.
+            </p>
+            <p style="color: #444; font-size: 14px; line-height: 1.8; margin: 0 0 24px;">
+              If you have any questions in the meantime, feel free to reach out to us.
+            </p>
+      
+            <a href="${hrefWebsiteLink}/my-requests"
+               style="display: inline-block; background: #f13c20; color: #fff; padding: 11px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none;">
+              View my request
+            </a>
+      
+            <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 16px;" />
+            <p style="margin: 0 0 6px; color: #aaa; font-size: 12px; text-align: center;">
+              This is a confirmation from <strong style="color: #888;">${companyName}</strong>.
+            </p>
+            <p style="margin: 0; font-size: 12px; text-align: center;">
+              <a href="${hrefWebsiteLink}" style="color: #f13c20; text-decoration: none;">${WebsiteLink}</a>
+            </p>
+      
+          </div>
+        </div>
+        `,
+      });
+
+      const submittedAt = new Date().toLocaleString("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+      
+      const serviceLabel = serviceId ? `Service ID: ${serviceId}` : `Bundle ID: ${bundleId}`;
+      
+      await sendEmail({
+        eventName: "ADMIN_NEW_REQUEST",
+        to: "insightconsulting008@gmail.com",
+        subject: `New service request from ${user.name}`,
+        html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f9fafb; padding: 20px 10px;">
+          <div style="max-width: 480px; margin: auto; background: #ffffff; border-radius: 10px; border: 1px solid #eee; padding: 30px;">
+      
+            <div style="border-left: 3px solid #f13c20; padding-left: 16px; margin-bottom: 24px;">
+              <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">New service request</h2>
+              <p style="margin: 0; font-size: 13px; color: #888;">Action required</p>
+            </div>
+      
+            <p style="color: #444; font-size: 14px; line-height: 1.8; margin: 0 0 12px;">
+              <strong>${user.name}</strong> has requested a service while payment is currently disabled.
+            </p>
+            <p style="color: #444; font-size: 14px; line-height: 1.8; margin: 0 0 6px;">
+              <span style="color: #999;">Service:</span> &nbsp; ${serviceLabel}
+            </p>
+            <p style="color: #444; font-size: 14px; line-height: 1.8; margin: 0 0 6px;">
+              <span style="color: #999;">Submitted:</span> &nbsp; ${submittedAt}
+            </p>
+            <p style="color: #444; font-size: 14px; line-height: 1.8; margin: 0 0 24px;">
+              Please review and approve or reject this request from the admin panel.
+            </p>
+      
+            <a href="${link}/applications"
+               style="display: inline-block; background: #f13c20; color: #fff; padding: 11px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none;">
+              Review request
+            </a>
+      
+            <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 16px;" />
+            <p style="margin: 0 0 6px; color: #aaa; font-size: 12px; text-align: center;">
+              Admin notification from <strong style="color: #888;">${companyName}</strong>.
+            </p>
+            <p style="margin: 0; font-size: 12px; text-align: center;">
+              <a href="${hrefWebsiteLink}" style="color: #f13c20; text-decoration: none;">${WebsiteLink}</a>
+            </p>
+      
+          </div>
+        </div>
+        `,
       });
     
       return res.json({

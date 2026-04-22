@@ -86,22 +86,61 @@
 
     const resetLink = `http://localhost:5173/staff/reset-password?token=${resetToken}`;
        // ✅ SEND EMAIL (FOR BOTH CASES)
+ 
+
+    const hrefWebsiteLink = "https://insightconsulting.info"
+    const WebsiteLink = "www.insightconsulting.info"
+    const companyName = "Insight Consulting"
+
     await sendEmail({
-      eventName: "EMPLOYEE_FIRST_LOGIN_DETAILS",
-      to: email,
-      subject: "Your Login Credentials",
-      html: `
-        <h3>Welcome ${name}</h3>
-        <p>Your account has been created successfully.</p>
-
-        <p><b>Login Email:</b> ${email}</p>
-        <p><b>Password:</b> <a href="${resetLink}">Set Password</a></p>
-
-        <p style="color:red;">
-          ⚠️ For security reasons, you must change your password. This link expires in 24 hours.
-        </p>
-      `,
-    });
+        eventName: "EMPLOYEE_FIRST_LOGIN_DETAILS",
+        to: employee.email,
+        subject: "Your account is ready — set your password",
+        html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f9fafb; padding: 20px 10px;">
+          <div style="max-width: 480px; margin: auto; background: #ffffff; border-radius: 10px; border: 1px solid #eee; padding: 30px;">
+            <div style="border-left: 3px solid #f13c20; padding-left: 16px; margin-bottom: 24px;">
+              <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">Welcome to Insight Consulting</h2>
+              <p style="margin: 0; font-size: 13px; color: #888;">Your account is ready</p>
+            </div>
+            <p style="color: #444; font-size: 14px; line-height: 1.7; margin: 0 0 20px;">
+              Hi <strong>${name}</strong>, your account has been created. Use the details below to get started.
+            </p>
+            <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid #eee;">
+              <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                <tr>
+                  <td style="color: #aaa; padding: 5px 0; width: 40%;">Login email</td>
+                  <td style="color: #111; padding: 5px 0; font-weight: 600;">${email}</td>
+                </tr>
+                <tr>
+                  <td style="color: #aaa; padding: 5px 0;">Password</td>
+                  <td style="color: #111; padding: 5px 0; font-weight: 600;">Set via link below</td>
+                </tr>
+              </table>
+            </div>
+            <div style="background: #fff5f4; border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid #fcc;">
+              <p style="margin: 0 0 6px; font-size: 13px; color: #b33; font-weight: 600;">Before you log in:</p>
+              <p style="margin: 0; font-size: 13px; color: #b33; line-height: 1.7;">
+                1. Click the button below to set your password.<br>
+                2. Once done, you can log in with your email and new password.<br>
+                3. This link expires in 24 hours.
+              </p>
+            </div>
+            <a href="${resetLink}"
+               style="display: inline-block; background: #f13c20; color: #fff; padding: 11px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none;">
+              Set your password
+            </a>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 16px;" />
+            <p style="margin: 0 0 6px; color: #aaa; font-size: 12px; text-align: center;">
+              This is a security email from <strong style="color: #888;">${companyName}</strong>.
+            </p>
+            <p style="margin: 0; font-size: 12px; text-align: center;">
+              <a href="${hrefWebsiteLink}" style="color: #f13c20; text-decoration: none;">${WebsiteLink}</a>
+            </p>
+          </div>
+        </div>
+        `,
+      });
 
   
       res.status(201).json({

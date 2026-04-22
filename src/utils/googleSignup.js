@@ -98,6 +98,9 @@ router.post("/google-auth", async (req, res) => {
 
 
  const link = "https://insightconsulting.info/login"
+ const hrefWebsiteLink = "https://insightconsulting.info"
+ const WebsiteLink = "www.insightconsulting.info"
+ const companyName = "Insight Consulting"
     await sendEmail({ 
         eventName: "LOGIN_ALERT", 
         to: user.email, 
@@ -109,7 +112,7 @@ router.post("/google-auth", async (req, res) => {
       
             <!-- Accent border title --> 
             <div style="border-left: 3px solid #f13c20; padding-left: 16px; margin-bottom: 24px;"> 
-              <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">Someone logged into your account</h2> 
+              <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">New login to your account</h2> 
               <p style="margin: 0; font-size: 13px; color: #888;">Security alert</p> 
             </div> 
       
@@ -139,17 +142,17 @@ router.post("/google-auth", async (req, res) => {
       
             <!-- Footer --> 
             <p style="margin: 0 0 6px; color: #aaa; font-size: 12px; text-align: center;"> 
-              This is a security email from <strong style="color: #888;">Insight Consulting</strong>. 
+              This is a security email from <strong style="color: #888;">${companyName}</strong>. 
             </p> 
             <p style="margin: 0; font-size: 12px; text-align: center;"> 
-              <a href="https://insightconsulting.info" style="color: #f13c20; text-decoration: none;">insightconsulting.info</a> 
+              <a href="${hrefWebsiteLink}" style="color: #f13c20; text-decoration: none;">${WebsiteLink}</a> 
             </p> 
       
           </div> 
         </div> 
         ` 
       });
-      
+
     res.json({
       success: true,
       message: "Google authentication successful",

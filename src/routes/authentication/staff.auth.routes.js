@@ -69,6 +69,9 @@ router.post("/login", async (req, res) => {
     });
 
    const link = "https://insightconsulting.info/admin/login"
+   const hrefWebsiteLink = "https://insightconsulting.info"
+   const WebsiteLink = "www.insightconsulting.info"
+   const companyName = "Insight Consulting"
 
    await sendEmail({ 
   eventName: "LOGIN_ALERT", 
@@ -81,7 +84,7 @@ router.post("/login", async (req, res) => {
 
       <!-- Accent border title --> 
       <div style="border-left: 3px solid #f13c20; padding-left: 16px; margin-bottom: 24px;"> 
-        <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">Someone logged into your account</h2> 
+        <h2 style="margin: 0 0 4px; color: #111; font-size: 17px; font-weight: 600;">New login to your account</h2> 
         <p style="margin: 0; font-size: 13px; color: #888;">Security alert</p> 
       </div> 
 
@@ -111,10 +114,10 @@ router.post("/login", async (req, res) => {
 
       <!-- Footer --> 
       <p style="margin: 0 0 6px; color: #aaa; font-size: 12px; text-align: center;"> 
-        This is a security email from <strong style="color: #888;">Insight Consulting</strong>. 
+        This is a security email from <strong style="color: #888;">${companyName}</strong>. 
       </p> 
       <p style="margin: 0; font-size: 12px; text-align: center;"> 
-        <a href="https://insightconsulting.info" style="color: #f13c20; text-decoration: none;">insightconsulting.info</a> 
+        <a href="${hrefWebsiteLink}" style="color: #f13c20; text-decoration: none;">${WebsiteLink}</a> 
       </p> 
 
     </div> 
@@ -154,6 +157,9 @@ router.post("/forgot-password", async (req, res) => {
     });
 
     const resetLink = `https://insightconsultancy.netlify.app/reset-password?token=${token}`;
+    const hrefWebsiteLink = "https://insightconsulting.info"
+    const WebsiteLink = "www.insightconsulting.info"
+    const companyName = "Insight Consulting"
 
     await sendEmail({
         eventName: "FORGOT_PASSWORD",
@@ -196,10 +202,10 @@ router.post("/forgot-password", async (req, res) => {
       
             <!-- Footer -->
             <p style="margin: 0 0 6px; color: #aaa; font-size: 12px; text-align: center;">
-              This is a security email from <strong style="color: #888;">Insight Consulting</strong>.
+              This is a security email from <strong style="color: #888;">${companyName}</strong>.
             </p>
             <p style="margin: 0; font-size: 12px; text-align: center;">
-              <a href="https://insightconsulting.info" style="color: #f13c20; text-decoration: none;">insightconsulting.info</a>
+              <a href="${hrefWebsiteLink}" style="color: #f13c20; text-decoration: none;">${WebsiteLink}</a>
             </p>
       
           </div>
@@ -253,6 +259,9 @@ router.post("/reset-password", async (req, res) => {
     });
 
     const loginLink = "https://insightconsultancy.netlify.app/admin/login";
+    const hrefWebsiteLink = "https://insightconsulting.info"
+    const WebsiteLink = "www.insightconsulting.info"
+    const companyName = "Insight Consulting"
     await sendEmail({
         eventName: "PASSWORD_RESET_SUCCESS",
         to: employee.email,
@@ -281,10 +290,10 @@ router.post("/reset-password", async (req, res) => {
             </a>
             <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 16px;" />
             <p style="margin: 0 0 6px; color: #aaa; font-size: 12px; text-align: center;">
-              This is a security email from <strong style="color: #888;">Insight Consulting</strong>.
+              This is a security email from <strong style="color: #888;">${companyName}</strong>.
             </p>
             <p style="margin: 0; font-size: 12px; text-align: center;">
-              <a href="https://insightconsulting.info" style="color: #f13c20; text-decoration: none;">insightconsulting.info</a>
+              <a href="${hrefWebsiteLink}" style="color: #f13c20; text-decoration: none;">${WebsiteLink}</a>
             </p>
           </div>
         </div>
