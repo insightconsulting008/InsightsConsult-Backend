@@ -212,6 +212,9 @@ router.post("/action", async (req, res) => {
         },
       });
 
+      const hrefWebsiteLink = "https://insightconsulting.info"
+      const WebsiteLink = "www.insightconsulting.info"
+      const companyName = "Insight Consulting"
       await sendEmail({
         eventName: "REQUEST_REJECTED",
         to: request.user.email,
